@@ -4,35 +4,90 @@ on:
   push:
     tags:
       - 'v*'
+
 env:
   IS_STABLE: ${{ !contains(github.ref, '-') }}
+  GO_VERSION: '1.26'
 
 jobs:
+  version:
+    name: Generate Version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      full_version: ${{ steps.version.outputs.full_version }}
+      version_number: ${{ steps.version.outputs.version_number }}
+      build_number: ${{ steps.version.outputs.build_number }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Generate Version
+        id: version
+        env:
+          TZ: UTC
+        run: |
+          set -e
+          VERSION_NUMBER=$(grep -E "^version:" pubspec.yaml | sed -E 's/^version:[[:space:]]*([0-9.]+).*/\1/')
+          
+          UTC_NOW=$(date -u '+%Y-%m-%d %H:%M:%S')
+          BUILD_NUMBER=$(date -u -d "$UTC_NOW 8 hours" '+%Y%m%d%H' 2>/dev/null || date -u -v+8H -j -f '%Y-%m-%d %H:%M:%S' "$UTC_NOW" '+%Y%m%d%H')
+          
+          FULL_VERSION="${VERSION_NUMBER}+${BUILD_NUMBER}"
+          
+          echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+          echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+          echo "full_version=$FULL_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "Generated version: $FULL_VERSION"
+          echo "  Version number: $VERSION_NUMBER"
+          echo "  Build number: $BUILD_NUMBER"
+
   build:
+    name: "Build ${{ matrix.name }}"
+    needs: [version]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
+      fail-fast: false
       matrix:
         include:
           - platform: android
             os: ubuntu-latest
+            arch: arm64
+            name: "Android (arm64)"
+          - platform: android
+            os: ubuntu-latest
+            arch: arm
+            name: "Android (arm)"
+          - platform: android
+            os: ubuntu-latest
+            arch: amd64
+            name: "Android (x64)"
           - platform: windows
             os: Windows-2022
             arch: amd64
-          - platform: linux
-            os: ubuntu-22.04
-            arch: amd64
+            name: "Windows x64"
+          # - platform: windows
+          # os: windows-11-arm
+          # arch: arm64
+          # name: "Windows arm64"
           - platform: macos
             os: macos-15-intel
             arch: amd64
+            name: "macOS Intel x64"
           - platform: macos
             os: macos-latest
             arch: arm64
-          #          - platform: windows
-          #            os: windows-11-arm
-          #            arch: arm64
+            name: "macOS Apple Silicon"
+          - platform: linux
+            os: ubuntu-22.04
+            arch: amd64
+            name: "Linux x64"
           - platform: linux
             os: ubuntu-24.04-arm
             arch: arm64
+            name: "Linux arm64"
 
     steps:
       - name: Setup rust
@@ -52,7 +107,6 @@ jobs:
         if: startsWith(matrix.platform,'android')
         run: |
           echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks
-          echo "${{ secrets.SERVICE_JSON }}" | base64 --decode > android/app/google-services.json
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/local.properties
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/local.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/local.properties
@@ -60,19 +114,11 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.0'
+          go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: |
             core/go.sum
 
       - name: Setup Flutter
-        if: ${{ !(startsWith(matrix.os, 'windows-11-arm') || startsWith(matrix.os, 'ubuntu-24.04-arm')) }}
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          flutter-version: 3.35.7
-          cache: true
-      - name: Setup Flutter With Other
-        if: startsWith(matrix.os, 'windows-11-arm') || startsWith(matrix.os, 'ubuntu-24.04-arm')
         uses: subosito/flutter-action@v2
         with:
           channel: master
@@ -84,8 +130,24 @@ jobs:
           flutter --version
           flutter pub get
 
-      - name: Setup
-        run: dart setup.dart ${{ matrix.platform }} ${{ matrix.arch && format('--arch {0}', matrix.arch) }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }}
+      - name: Build Application
+        id: build
+        shell: bash
+        env:
+          FLUTTER_VERSION_NUMBER: ${{ needs.version.outputs.version_number }}
+          FLUTTER_BUILD_NUMBER: ${{ needs.version.outputs.build_number }}
+          OIX_API_DOMAIN: ${{ secrets.OIX_API_DOMAIN }}
+          OIX_API_ROUTER: ${{ secrets.OIX_API_ROUTER }}
+        run: |
+          set -e
+          BUILD_ARGS="${{ matrix.platform }}"
+          [ -n "${{ matrix.arch }}" ] && BUILD_ARGS="$BUILD_ARGS --arch ${{ matrix.arch }}"
+          BUILD_ARGS="$BUILD_ARGS --out app"
+          [ "${{ env.IS_STABLE }}" == "true" ] && BUILD_ARGS="$BUILD_ARGS --env stable"
+          dart setup.dart $BUILD_ARGS
+          
+          find ./dist -name "*.exe" -type f -exec sh -c 'mv "$1" "${1%.exe}-setup.exe"' _ {} \;
+          find ./dist -name "*.appimage" -type f -exec sh -c 'mv "$1" "${1%.appimage}.AppImage"' _ {} \;
 
       - name: Upload
         uses: actions/upload-artifact@v4
@@ -96,7 +158,7 @@ jobs:
 
   changelog:
     runs-on: ubuntu-latest
-    needs: [ build ]
+    needs: [ version, build ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -134,8 +196,8 @@ jobs:
           git add CHANGELOG.md
           if ! git diff --cached --quiet; then
             echo "Commit pushing"
-            git config --local user.email "chen08209@gmail.com"
-            git config --local user.name "chen08209"
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
             git commit -m "Update changelog"
             git push
             if [ $? -eq 0 ]; then
@@ -151,16 +213,8 @@ jobs:
 
   upload:
     permissions: write-all
-    needs: [ build ]
+    needs: [ version, build ]
     runs-on: ubuntu-latest
-    services:
-      telegram-bot-api:
-        image: aiogram/telegram-bot-api:latest
-        env:
-          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
-          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
-        ports:
-          - 8081:8081
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -177,45 +231,24 @@ jobs:
       - name: Generate release.md
         run: |
           tags=($(git tag --merged HEAD --sort=-creatordate))
-          preTag=$(curl -s "https://api.github.com/repos/chen08209/FlClash/releases/latest" | \
-          sed -nE 's/.*"tag_name": "([^"]+)".*/\1/p')
-          
-          [ -z "$preTag" ] && preTag=""
-          
+          preTag=$(curl -s "https://api.github.com/repos/pickrui/FlClash/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")' || echo "")
           out="release.md" > "$out"
-          
           for i in "${!tags[@]}"; do
             curr="${tags[i]}"
             [[ "$curr" == "$preTag" ]] && break
-          
+
             prev="${tags[i+1]}"
             range="${prev:+$prev..}$curr"
-          
+
+            echo -e "## $curr\n" >> "$out"
             git log --no-merges --pretty=format:"%B" "$range" | \
             awk '!/Update changelog/ && NF {print "- " $0 "\n"}' >> "$out"
           done
-      - name: Push to telegram
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TAG: ${{ github.ref_name }}
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
-          python release_telegram.py
 
       - name: Patch release.md
         run: |
           version=$(echo "${{ github.ref_name }}" | sed 's/^v//')
           sed "s|VERSION|$version|g" ./.github/release_template.md >> release.md
-
-      - name: Generate sha256
-        if: env.IS_STABLE == 'true'
-        run: |
-          cd ./dist
-          for file in $(find . -type f -not -name "*.sha256"); do
-            sha256sum "$file" > "${file}.sha256"
-          done  
 
       - name: Release
         if: ${{ env.IS_STABLE == 'true' }}
@@ -224,25 +257,43 @@ jobs:
           files: ./dist/*
           body_path: './release.md'
 
-      - name: Create Fdroid Source Dir
-        if: ${{ env.IS_STABLE == 'true' }}
+      - name: Update Version via oixCloud API
+        if: success() && env.IS_STABLE == 'true'
+        continue-on-error: true
         run: |
-          mkdir -p ./tmp
-          cp ./dist/*android-arm64-v8a* ./tmp/ || true
-          echo "Files copied successfully"
-
-      - name: Push to fdroid repo
-        if: ${{ env.IS_STABLE == 'true' }}
-        uses: cpina/github-action-push-to-another-repository@v1.7.2
-        env:
-          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
-        with:
-          source-directory: ./tmp/
-          destination-github-username: chen08209
-          destination-repository-name: FlClash-fdroid-repo
-          user-name: 'github-actions[bot]'
-          user-email: 'github-actions[bot]@users.noreply.github.com'
-          target-branch: main
-          commit-message: Update from ${{ github.ref_name }}
-          target-directory: /tmp/
-
+          API_KEY="${{ secrets.OIX_KEY }}"
+          API_URL="https://${{ secrets.OIX_API_DOMAIN }}/api/v1/version/update"
+          FULL_VERSION="${{ needs.version.outputs.full_version }}"
+          
+          if [ -z "$API_KEY" ]; then
+            echo "⚠️  Skipping version update: OIX_KEY secret not configured"
+            exit 0
+          fi
+          
+          if [ -z "$FULL_VERSION" ]; then
+            echo "❌ Error: Version number not available"
+            exit 1
+          fi
+          
+          echo "📦 Updating oixCloud version to: $FULL_VERSION"
+          
+          response=$(curl -s -w "\n%{http_code}" -X POST "$API_URL" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "key=$API_KEY" \
+            --data-urlencode "version=$FULL_VERSION")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response body: $body"
+          
+          if [ "$http_code" = "200" ]; then
+            echo "✅ Version updated successfully on oixCloud"
+            echo "   Version: $FULL_VERSION"
+            echo "   API: $API_URL"
+          else
+            echo "❌ Failed to update version"
+            echo "   HTTP Status: $http_code"
+            echo "   Response: $body"
+            exit 1
+          fi

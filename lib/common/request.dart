@@ -32,9 +32,45 @@ class Request {
     );
   }
 
+  Future<Response<T>> _getWithRedirect<T>(
+    String url, {
+    required Options options,
+  }) async {
+    final opts = options.copyWith(
+      followRedirects: false,
+      validateStatus: (status) => status != null && status < 400,
+    );
+
+    var response = await _clashDio.get<T>(url, options: opts);
+    int redirectCount = 0;
+    while ([
+          HttpStatus.movedTemporarily,
+          HttpStatus.movedPermanently,
+          HttpStatus.seeOther,
+          HttpStatus.temporaryRedirect,
+          HttpStatus.permanentRedirect,
+        ].contains(response.statusCode) &&
+        redirectCount < 5) {
+      final location = response.headers.value(HttpHeaders.locationHeader);
+      if (location == null || location.isEmpty) break;
+      final redirectUrl = Uri.parse(url).resolve(location).toString();
+      response = await _clashDio.get<T>(redirectUrl, options: opts);
+      redirectCount++;
+    }
+
+    if (response.statusCode != null && response.statusCode! >= 400) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        type: DioExceptionType.badResponse,
+      );
+    }
+    return response;
+  }
+
   Future<Response<Uint8List>> getFileResponseForUrl(String url) async {
     try {
-      return await _clashDio.get<Uint8List>(
+      return await _getWithRedirect<Uint8List>(
         url,
         options: Options(responseType: ResponseType.bytes),
       );
@@ -53,11 +89,10 @@ class Request {
   }
 
   Future<Response<String>> getTextResponseForUrl(String url) async {
-    final response = await _clashDio.get<String>(
+    return _getWithRedirect<String>(
       url,
       options: Options(responseType: ResponseType.plain),
     );
-    return response;
   }
 
   Future<MemoryImage?> getImage(String url) async {
@@ -74,17 +109,28 @@ class Request {
   Future<Map<String, dynamic>?> checkForUpdate() async {
     try {
       final response = await dio.get(
-        'https://api.github.com/repos/$repository/releases/latest',
+        'https://${secrets.OIX_API_DOMAIN}/api/v1/version/get',
         options: Options(responseType: ResponseType.json),
       );
       if (response.statusCode != 200) return null;
-      final data = response.data as Map<String, dynamic>;
-      final remoteVersion = data['tag_name'];
-      final version = globalState.packageInfo.version;
-      final hasUpdate =
-          utils.compareVersions(remoteVersion.replaceAll('v', ''), version) > 0;
+      final data = response.data as Map<String, dynamic>?;
+      if (data == null || (data['ret'] as int?) != 200) return null;
+
+      final versionData = data['data'];
+      final String? remoteVersion = versionData is Map<String, dynamic>
+          ? versionData['version'] as String?
+          : versionData as String?;
+
+      if (remoteVersion == null) return null;
+
+      final currentBuildNumber = int.tryParse(globalState.packageInfo.buildNumber) ?? 0;
+      final remoteBuildNumber = int.tryParse(remoteVersion) ?? 0;
+
+      final hasUpdate = remoteBuildNumber > currentBuildNumber;
+
       if (!hasUpdate) return null;
-      return data;
+
+      return <String, dynamic>{'tag_name': remoteVersion, 'body': ''};
     } catch (e) {
       commonPrint.log('checkForUpdate failed', logLevel: LogLevel.warning);
       return null;

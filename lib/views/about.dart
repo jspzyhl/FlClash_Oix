@@ -9,19 +9,6 @@ import 'package:fl_clash/widgets/scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-@immutable
-class Contributor {
-  final String avatar;
-  final String name;
-  final String link;
-
-  const Contributor({
-    required this.avatar,
-    required this.name,
-    required this.link,
-  });
-}
-
 class AboutView extends StatelessWidget {
   const AboutView({super.key});
 
@@ -45,9 +32,23 @@ class AboutView extends StatelessWidget {
           },
         ),
         ListItem(
-          title: const Text('Telegram'),
+          title: Text(appLocalizations.userCenter),
           onTap: () {
-            globalState.openUrl('https://t.me/FlClash');
+            globalState.openUrl('https://oixcloud.com/user');
+          },
+          trailing: const Icon(Icons.launch),
+        ),
+        ListItem(
+          title: Text(appLocalizations.softwareCenter),
+          onTap: () {
+            globalState.openUrl('https://oixcloud.com/client');
+          },
+          trailing: const Icon(Icons.launch),
+        ),
+        ListItem(
+          title: Text(appLocalizations.documentCenter),
+          onTap: () {
+            globalState.openUrl('https://docs.dler.io/black-hole');
           },
           trailing: const Icon(Icons.launch),
         ),
@@ -66,39 +67,6 @@ class AboutView extends StatelessWidget {
             );
           },
           trailing: const Icon(Icons.launch),
-        ),
-      ],
-    );
-  }
-
-  List<Widget> _buildContributorsSection() {
-    const contributors = [
-      Contributor(
-        avatar: 'assets/images/avatar/june2.jpg',
-        name: 'June2',
-        link: 'https://t.me/Jibadong',
-      ),
-      Contributor(
-        avatar: 'assets/images/avatar/arue.jpg',
-        name: 'Arue',
-        link: 'https://t.me/xrcm6868',
-      ),
-    ];
-    return generateSection(
-      separated: false,
-      title: appLocalizations.otherContributors,
-      items: [
-        ListItem(
-          title: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Wrap(
-              spacing: 24,
-              children: [
-                for (final contributor in contributors)
-                  Avatar(contributor: contributor),
-              ],
-            ),
-          ),
         ),
       ],
     );
@@ -134,7 +102,7 @@ class AboutView extends StatelessWidget {
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           Text(
-                            globalState.packageInfo.version,
+                            '${globalState.packageInfo.version}+${globalState.packageInfo.buildNumber}',
                             style: Theme.of(context).textTheme.labelLarge,
                           ),
                         ],
@@ -144,7 +112,9 @@ class AboutView extends StatelessWidget {
                   onEnterDeveloperMode: () {
                     ref
                         .read(appSettingProvider.notifier)
-                        .update((state) => state.copyWith(developerMode: true));
+                        .update(
+                          (state) => state.copyWith(developerMode: true),
+                        );
                     context.showNotifier(
                       appLocalizations.developerModeEnableTip,
                     );
@@ -152,16 +122,10 @@ class AboutView extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 24),
-            Text(
-              appLocalizations.desc,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
           ],
         ),
       ),
       const SizedBox(height: 12),
-      ..._buildContributorsSection(),
       ..._buildMoreSection(context),
     ];
     return BaseScaffold(
@@ -170,34 +134,6 @@ class AboutView extends StatelessWidget {
         padding: kMaterialListPadding.copyWith(top: 16, bottom: 16),
         child: generateListView(items),
       ),
-    );
-  }
-}
-
-class Avatar extends StatelessWidget {
-  final Contributor contributor;
-
-  const Avatar({super.key, required this.contributor});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      child: Column(
-        children: [
-          SizedBox(
-            width: 36,
-            height: 36,
-            child: CircleAvatar(
-              foregroundImage: AssetImage(contributor.avatar),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(contributor.name, style: context.textTheme.bodySmall),
-        ],
-      ),
-      onTap: () {
-        globalState.openUrl(contributor.link);
-      },
     );
   }
 }

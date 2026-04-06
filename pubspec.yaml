@@ -81,6 +81,7 @@ dev_dependencies:
   riverpod_lint: ^3.0.0
 
   drift_dev: ^2.29.0
+  intl_utils: ^2.8.11
 
 flutter:
   uses-material-design: true

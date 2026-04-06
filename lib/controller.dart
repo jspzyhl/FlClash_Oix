@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi' hide Size;
 import 'dart:io';
 
 import 'package:fl_clash/core/core.dart';
@@ -6,7 +7,6 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
-import 'package:fl_clash/widgets/dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -56,8 +56,6 @@ extension InitControllerExt on AppController {
       window?.hide();
     }
     await _handleFailedPreference();
-    await _handlerDisclaimer();
-    await _showCrashlyticsTip();
     await _connectCore();
     await _initCore();
     await _initStatus();
@@ -77,64 +75,6 @@ extension InitControllerExt on AppController {
       await file.safeDelete();
     }
     await handleExit();
-  }
-
-  Future<bool> showDisclaimer() async {
-    return await globalState.showCommonDialog<bool>(
-          dismissible: false,
-          child: CommonDialog(
-            title: appLocalizations.disclaimer,
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(_context).pop<bool>(false);
-                },
-                child: Text(appLocalizations.exit),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(_context).pop<bool>(true);
-                },
-                child: Text(appLocalizations.agree),
-              ),
-            ],
-            child: Text(appLocalizations.disclaimerDesc),
-          ),
-        ) ??
-        false;
-  }
-
-  Future<void> _showCrashlyticsTip() async {
-    if (!system.isAndroid) {
-      return;
-    }
-    if (_ref.read(appSettingProvider.select((state) => state.crashlyticsTip))) {
-      return;
-    }
-    await globalState.showMessage(
-      title: appLocalizations.dataCollectionTip,
-      cancelable: false,
-      message: TextSpan(text: appLocalizations.dataCollectionContent),
-    );
-    _ref
-        .read(appSettingProvider.notifier)
-        .update((state) => state.copyWith(crashlyticsTip: true));
-  }
-
-  Future<void> _handlerDisclaimer() async {
-    if (_ref.read(
-      appSettingProvider.select((state) => state.disclaimerAccepted),
-    )) {
-      return;
-    }
-    final isDisclaimerAccepted = await showDisclaimer();
-    if (!isDisclaimerAccepted) {
-      await handleExit();
-    }
-    _ref
-        .read(appSettingProvider.notifier)
-        .update((state) => state.copyWith(disclaimerAccepted: true));
-    return;
   }
 
   Future<void> _initStatus() async {
@@ -186,7 +126,34 @@ extension InitControllerExt on AppController {
         cancelText: isUser ? null : appLocalizations.noLongerRemind,
       );
       if (res == true) {
-        launchUrl(Uri.parse('https://github.com/$repository/releases/latest'));
+        String downloadUrl;
+        if (system.isWindows) {
+          downloadUrl = 'https://dl.dler.io/flclash-windows-amd64-setup.exe';
+        } else if (system.isMacOS) {
+          final isArm = Abi.current() == Abi.macosArm64;
+          final arch = isArm ? 'arm64' : 'amd64';
+          downloadUrl = 'https://dl.dler.io/flclash-macos-$arch.dmg';
+        } else if (system.isAndroid) {
+          final abi = Abi.current();
+          String arch;
+          if (abi == Abi.androidArm64) {
+            arch = 'arm64-v8a';
+          } else if (abi == Abi.androidArm) {
+            arch = 'armeabi-v7a';
+          } else if (abi == Abi.androidX64) {
+            arch = 'x86_64';
+          } else {
+            arch = 'arm64-v8a';
+          }
+          downloadUrl = 'https://dl.dler.io/flclash-android-$arch.apk';
+        } else if (Platform.isLinux) {
+          final isArm = Abi.current() == Abi.linuxArm64;
+          final arch = isArm ? 'arm64' : 'amd64';
+          downloadUrl = 'https://dl.dler.io/flclash-linux-$arch.deb';
+        } else {
+          downloadUrl = 'https://dl.dler.io';
+        }
+        launchUrl(Uri.parse(downloadUrl));
       } else if (!isUser && res == false) {
         _ref
             .read(appSettingProvider.notifier)

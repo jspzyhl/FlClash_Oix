@@ -597,7 +597,7 @@ SharedState sharedState(Ref ref) {
   final appSettingVM3 = ref.watch(
     appSettingProvider.select(
       (state) =>
-          VM3(state.onlyStatisticsProxy, state.crashlytics, state.testUrl),
+          VM2(state.onlyStatisticsProxy, state.testUrl),
     ),
   );
   final bypassDomain = ref.watch(
@@ -612,15 +612,13 @@ SharedState sharedState(Ref ref) {
   final currentProfileName = currentProfileVM2.a;
   final selectedMap = currentProfileVM2.b;
   final onlyStatisticsProxy = appSettingVM3.a;
-  final crashlytics = appSettingVM3.b;
-  final testUrl = appSettingVM3.c;
+  final testUrl = appSettingVM3.b;
   final stack = clashConfigVM2.a;
   final port = clashConfigVM2.b;
   return SharedState(
     currentProfileName: currentProfileName,
     onlyStatisticsProxy: onlyStatisticsProxy,
     stopText: appLocalizations.stop,
-    crashlytics: crashlytics,
     stopTip: appLocalizations.stopVpn,
     startTip: appLocalizations.startVpn,
     setupParams: SetupParams(selectedMap: selectedMap, testUrl: testUrl),

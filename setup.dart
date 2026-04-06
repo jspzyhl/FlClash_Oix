@@ -369,15 +369,6 @@ class BuildCommand extends Command {
       .map((e) => e.arch!)
       .toList();
 
-  Future<void> _buildEnvFile(String env, {String? coreSha256}) async {
-    final data = {
-      'APP_ENV': env,
-      if (coreSha256 != null) 'CORE_SHA256': coreSha256,
-    };
-    final envFile = File(join(current, 'env.json'))..create();
-    await envFile.writeAsString(json.encode(data));
-  }
-
   Future<void> _getLinuxDependencies(Arch arch) async {
     await Build.exec(Build.getExecutable('sudo apt update -y'));
     await Build.exec(
@@ -418,12 +409,97 @@ class BuildCommand extends Command {
     required String env,
   }) async {
     await Build.getDistributor();
+    
+    // Get version from environment variables if available
+    final versionNumber = Platform.environment['FLUTTER_VERSION_NUMBER'];
+    final buildNumber = Platform.environment['FLUTTER_BUILD_NUMBER'];
+    
+    // Update pubspec.yaml with version from environment if available
+    if (versionNumber != null && buildNumber != null) {
+      await _updatePubspecVersion(versionNumber, buildNumber);
+    }
+    
+    // Use custom artifact name template to exclude version number and -setup suffix
+    const artifactNameTemplate = 'flclash-{{platform}}{{#description}}-{{description}}{{/description}}.{{ext}}';
+    final oixApiDomain = Platform.environment['OIX_API_DOMAIN'];
+    final apiManagedRouter = Platform.environment['OIX_API_ROUTER'];
+    
+    var dartDefines = '--build-dart-define=APP_ENV=$env';
+    if (oixApiDomain != null && oixApiDomain.isNotEmpty) dartDefines += ' --build-dart-define=OIX_API_DOMAIN=$oixApiDomain';
+    if (apiManagedRouter != null && apiManagedRouter.isNotEmpty) dartDefines += ' --build-dart-define=OIX_API_ROUTER=$apiManagedRouter';
+
     await Build.exec(
       name: name,
       Build.getExecutable(
-        'flutter_distributor package --skip-clean --platform ${target.name} --targets $targets --flutter-build-args=verbose,dart-define-from-file=env.json$args',
+        'flutter_distributor package --skip-clean --platform ${target.name} --targets $targets --artifact-name $artifactNameTemplate --flutter-build-args=verbose$args $dartDefines',
       ),
     );
+  }
+
+  Future<void> _buildAndroidApkDirect({
+    required String targetPlatform,
+    required String archName,
+    required String env,
+  }) async {
+    final versionNumber = Platform.environment['FLUTTER_VERSION_NUMBER'];
+    final buildNumber = Platform.environment['FLUTTER_BUILD_NUMBER'];
+    
+    if (versionNumber != null && buildNumber != null) {
+      await _updatePubspecVersion(versionNumber, buildNumber);
+    }
+    
+    final oixApiDomain = Platform.environment['OIX_API_DOMAIN'];
+    final apiManagedRouter = Platform.environment['OIX_API_ROUTER'];
+    
+    var dartDefines = '--dart-define=APP_ENV=$env';
+    if (oixApiDomain != null && oixApiDomain.isNotEmpty) dartDefines += ' --dart-define=OIX_API_DOMAIN=$oixApiDomain';
+    if (apiManagedRouter != null && apiManagedRouter.isNotEmpty) dartDefines += ' --dart-define=OIX_API_ROUTER=$apiManagedRouter';
+
+    await Build.exec(
+      name: name,
+      Build.getExecutable(
+        'flutter build apk --target-platform $targetPlatform $dartDefines',
+      ),
+    );
+    
+    final distDir = Directory(join(current, 'dist'));
+    if (!await distDir.exists()) {
+      await distDir.create(recursive: true);
+    }
+    
+    final sourceApk = File(join(current, 'build', 'app', 'outputs', 'flutter-apk', 'app-release.apk'));
+    if (await sourceApk.exists()) {
+      final targetApk = File(join(distDir.path, 'flclash-android-$archName.apk'));
+      await sourceApk.copy(targetApk.path);
+      print('✓ Built APK: ${targetApk.path}');
+    } else {
+      throw 'APK file not found: ${sourceApk.path}';
+    }
+  }
+
+  Future<void> _updatePubspecVersion(String version, String buildNumber) async {
+    final pubspecPath = join(current, 'pubspec.yaml');
+    final pubspecFile = File(pubspecPath);
+    
+    if (!await pubspecFile.exists()) {
+      print('Warning: pubspec.yaml not found');
+      return;
+    }
+    
+    final content = await pubspecFile.readAsString();
+    final lines = content.split('\n');
+    final updatedLines = <String>[];
+    
+    for (final line in lines) {
+      if (line.startsWith('version:')) {
+        updatedLines.add('version: $version+$buildNumber');
+        print('Updated version to: $version+$buildNumber');
+      } else {
+        updatedLines.add(line);
+      }
+    }
+    
+    await pubspecFile.writeAsString(updatedLines.join('\n'));
   }
 
   Future<String?> get systemArch async {
@@ -457,23 +533,21 @@ class BuildCommand extends Command {
       mode: mode,
     );
 
-    String? coreSha256;
-
-    if (Platform.isWindows) {
-      coreSha256 = await Build.calcSha256(corePaths.first);
-      await Build.buildHelper(target, coreSha256);
-    }
-    await _buildEnvFile(env, coreSha256: coreSha256);
     if (out != 'app') {
       return;
     }
 
     switch (target) {
       case Target.windows:
+        final token = target != Target.android
+            ? await Build.calcSha256(corePaths.first)
+            : null;
+        Build.buildHelper(target, token!);
         _buildDistributor(
           target: target,
           targets: 'exe,zip',
-          args: ' --description $archName',
+          args:
+              ' --description $archName --build-dart-define=CORE_SHA256=$token',
           env: env,
         );
         return;
@@ -500,18 +574,31 @@ class BuildCommand extends Command {
           Arch.arm64: 'android-arm64',
           Arch.amd64: 'android-x64',
         };
-        final defaultArches = [Arch.arm, Arch.arm64, Arch.amd64];
-        final defaultTargets = defaultArches
-            .where((element) => arch == null ? true : element == arch)
-            .map((e) => targetMap[e])
-            .toList();
-        _buildDistributor(
-          target: target,
-          targets: 'apk',
-          args:
-              ",split-per-abi --build-target-platform ${defaultTargets.join(",")}",
-          env: env,
-        );
+        final archNameMap = {
+          Arch.arm: 'armeabi-v7a',
+          Arch.arm64: 'arm64-v8a',
+          Arch.amd64: 'x86_64',
+        };
+        
+        if (arch != null) {
+          await _buildAndroidApkDirect(
+            targetPlatform: targetMap[arch]!,
+            archName: archNameMap[arch]!,
+            env: env,
+          );
+        } else {
+          final defaultArches = [Arch.arm, Arch.arm64, Arch.amd64];
+          final defaultTargets = defaultArches
+              .map((e) => targetMap[e])
+              .toList();
+          _buildDistributor(
+            target: target,
+            targets: 'apk',
+            args:
+                ",split-per-abi --build-target-platform ${defaultTargets.join(",")}",
+            env: env,
+          );
+        }
         return;
       case Target.macos:
         await _getMacosDependencies();
