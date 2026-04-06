@@ -11,6 +11,8 @@ import 'package:fl_clash/pages/editor.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:fl_clash/services/cloud_api_service.dart';
 
 class EditProfileView extends StatefulWidget {
   final Profile profile;
@@ -30,6 +32,7 @@ class _EditProfileViewState extends State<EditProfileView> {
   late final TextEditingController _labelController;
   late final TextEditingController _urlController;
   late final TextEditingController _autoUpdateDurationController;
+  late final TextEditingController _oixParamsController;
   late bool _autoUpdate;
   String? _rawText;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -41,11 +44,61 @@ class _EditProfileViewState extends State<EditProfileView> {
     super.initState();
     _labelController = TextEditingController(text: widget.profile.label);
     _urlController = TextEditingController(text: widget.profile.url);
+    _oixParamsController = TextEditingController();
+    _loadoixParams();
     _autoUpdate = widget.profile.autoUpdate;
     _autoUpdateDurationController = TextEditingController(
       text: widget.profile.autoUpdateDuration.inMinutes.toString(),
     );
     _updateFileInfo();
+  }
+
+  Future<void> _loadoixParams() async {
+    if (!widget.profile.isoixCloudProfile) return;
+    final prefs = await SharedPreferences.getInstance();
+    final savedParams = prefs.getString('cloud_service_config_params') ?? '';
+    if (mounted) {
+      setState(() {
+        _oixParamsController.text = savedParams;
+      });
+    }
+  }
+
+  Future<void> _saveoixParams(Profile currentProfile) async {
+    final prefs = await SharedPreferences.getInstance();
+    var text = _oixParamsController.text;
+    text = text.replaceAll(RegExp(r'&+'), '&');
+    if (text == '&') text = '';
+    if (text.isNotEmpty && !text.startsWith('&')) {
+      text = '&' + text;
+    }
+    await prefs.setString('cloud_service_config_params', text);
+
+    final baseUrl = await CloudApiService().getManagedUrl();
+    if (baseUrl != null) {
+      String base = baseUrl;
+      String ext = '';
+      final extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(base);
+      if (extMatch != null) {
+        ext = extMatch.group(0)!;
+        base = base.substring(0, base.length - ext.length);
+      }
+      if (base.contains('?')) {
+         if (!base.endsWith('?')) base += '&';
+      } else {
+         base += '?';
+      }
+      var newUrl = base + text;
+      newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
+      newUrl += ext;
+      
+      final profile = currentProfile.copyWith(url: newUrl);
+      appController.putProfile(profile);
+      await appController.updateProfile(profile, showLoading: true);
+    } else {
+      appController.putProfile(currentProfile);
+      await appController.updateProfile(currentProfile, showLoading: true);
+    }
   }
 
   Future<void> _updateFileInfo() async {
@@ -64,13 +117,24 @@ class _EditProfileViewState extends State<EditProfileView> {
   Future<void> _handleConfirm() async {
     if (!_formKey.currentState!.validate()) return;
     var profile = widget.profile.copyWith(
-      url: _urlController.text,
+      url: widget.profile.isoixCloudProfile ? widget.profile.url : _urlController.text,
       label: _labelController.text,
       autoUpdate: _autoUpdate,
       autoUpdateDuration: Duration(
         minutes: int.parse(_autoUpdateDurationController.text),
       ),
     );
+    
+    if (widget.profile.isoixCloudProfile) {
+      await appController.safeRun(() async {
+        await _saveoixParams(profile);
+      });
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+    
     final hasUpdate = widget.profile.url != profile.url;
     if (_fileData != null) {
       if (profile.type == ProfileType.url && _autoUpdate) {
@@ -206,6 +270,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     _urlController.dispose();
     _fileInfoNotifier.dispose();
     _autoUpdateDurationController.dispose();
+    _oixParamsController.dispose();
     super.dispose();
     appController.autoApplyProfile();
   }
@@ -324,6 +389,29 @@ class _EditProfileViewState extends State<EditProfileView> {
           );
         },
       ),
+      if (isoixCloud) ...[
+        ValueListenableBuilder(
+          valueListenable: _oixParamsController,
+          builder: (context, value, child) {
+            final isOverseas = value.text.contains(RegExp(r"(^|&)lv=1($|&)"));
+            return ListItem(
+              title: TextFormField(
+                textInputAction: TextInputAction.next,
+                controller: _oixParamsController,
+                maxLines: 3,
+                minLines: 1,
+                enabled: !isOverseas,
+                style: const TextStyle(fontFamily: 'monospace'),
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: '可选项参数',
+                  hintText: '&area=hk',
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     ];
     return CommonPopScope(
       onPop: (context) {

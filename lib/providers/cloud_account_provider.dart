@@ -62,6 +62,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('cloud_profile');
     await prefs.remove('cloud_notification');
+    await prefs.remove('cloud_service_config_params');
   }
 
   Future<void> signInWithPassword({required String email, required String password}) async {
@@ -86,7 +87,8 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
       final managedUrl = await CloudApiService().getManagedUrl();
       if (managedUrl != null && managedUrl.isNotEmpty) {
-        await importManagedProfile(managedUrl);
+        final injectedUrl = await _injectDefaultParams(managedUrl, result.profile);
+        await importManagedProfile(injectedUrl);
       }
     } catch (e) {
       CloudApiService().setToken(null);
@@ -115,7 +117,8 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
       final managedUrl = await CloudApiService().getManagedUrl();
       if (managedUrl != null && managedUrl.isNotEmpty) {
-        await importManagedProfile(managedUrl);
+        final injectedUrl = await _injectDefaultParams(managedUrl, userInfo.profile);
+        await importManagedProfile(injectedUrl);
       }
     } catch (e) {
       CloudApiService().setToken(null);
@@ -148,6 +151,44 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     }
   }
 
+  Future<String> _injectDefaultParams(String baseUrl, CloudProfile profile) async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSavedParams = prefs.containsKey('cloud_service_config_params');
+    String savedParams = prefs.getString('cloud_service_config_params') ?? '';
+
+    if (!hasSavedParams &&
+        profile.subscription.isNotEmpty &&
+        profile.subscription != 'Pass Iron' &&
+        profile.subscription != 'null') {
+      if (profile.subscription == 'Pass Bronze') {
+        savedParams = '&lv=2';
+      } else {
+        savedParams = '&type=love';
+      }
+      await prefs.setString('cloud_service_config_params', savedParams);
+    }
+    
+    if (savedParams.isNotEmpty) {
+      String base = baseUrl;
+      String ext = '';
+      final extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(base);
+      if (extMatch != null) {
+        ext = extMatch.group(0)!;
+        base = base.substring(0, base.length - ext.length);
+      }
+      if (base.contains('?')) {
+         if (!base.endsWith('?')) base += '&';
+      } else {
+         base += '?';
+      }
+      var newUrl = base + savedParams;
+      newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
+      newUrl += ext;
+      return newUrl;
+    }
+    return baseUrl;
+  }
+
   Future<void> syncManagedConfig() async {
     if (!state.isLoggedIn) return;
     
@@ -156,8 +197,9 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       final existingProfiles = ref.read(profilesProvider).where((p) => p.isoixCloudProfile).toList();
       if (existingProfiles.isEmpty) {
         final managedUrl = await CloudApiService().getManagedUrl();
-        if (managedUrl != null && managedUrl.isNotEmpty) {
-          final profile = await appController.addProfileFormURL(managedUrl);
+        if (managedUrl != null && managedUrl.isNotEmpty && state.profile != null) {
+          final injectedUrl = await _injectDefaultParams(managedUrl, state.profile!);
+          final profile = await appController.addProfileFormURL(injectedUrl);
           if (profile != null) {
             ref.read(currentProfileIdProvider.notifier).value = profile.id;
           }
