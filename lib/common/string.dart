@@ -69,6 +69,12 @@ extension StringExtension on String {
     }
   }
 
+  String get maskProfileContent {
+    return replaceAllMapped(RegExp(r'(^|\s)(server|password|uuid):([ \t]*)([^\r\n]+)'), (match) {
+      return '${match.group(1)}${match.group(2)}:${match.group(3)}******';
+    });
+  }
+
   String toMd5() {
     final bytes = utf8.encode(this);
     return md5.convert(bytes).toString();

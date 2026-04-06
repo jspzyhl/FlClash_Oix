@@ -170,6 +170,13 @@ extension ProfileExtension on Profile {
 
   String get realLabel => label.takeFirstValid([id.toString()]);
 
+  bool get isoixCloudProfile {
+    final profileUrl = url.toLowerCase();
+    final hasDomainMatch = secrets.API_DOMAIN.trim().isNotEmpty &&
+        profileUrl.contains(secrets.API_DOMAIN.trim());
+    return label.contains('oixCloud') || hasDomainMatch;
+  }
+
   String get fileName => '$id.yaml';
 
   String get updatingKey => 'profile_$id';

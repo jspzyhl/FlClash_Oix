@@ -109,7 +109,7 @@ class Request {
   Future<Map<String, dynamic>?> checkForUpdate() async {
     try {
       final response = await dio.get(
-        'https://${secrets.OIX_API_DOMAIN}/api/v1/version/get',
+        'https://${secrets.API_DOMAIN.trim()}/api/v1/version/get',
         options: Options(responseType: ResponseType.json),
       );
       if (response.statusCode != 200) return null;
@@ -124,7 +124,7 @@ class Request {
       if (remoteVersion == null) return null;
 
       final currentBuildNumber = int.tryParse(globalState.packageInfo.buildNumber) ?? 0;
-      final remoteBuildNumber = int.tryParse(remoteVersion) ?? 0;
+      final remoteBuildNumber = int.tryParse(remoteVersion.split('+').last) ?? 0;
 
       final hasUpdate = remoteBuildNumber > currentBuildNumber;
 

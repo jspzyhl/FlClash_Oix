@@ -34,6 +34,13 @@ class Navigation {
             const ProfilesView(key: GlobalObjectKey(PageLabel.profiles)),
       ),
       NavigationItem(
+        icon: const Icon(Icons.cloud_outlined),
+        label: PageLabel.oixCloud,
+        builder: (_) =>
+            const CloudAccountPage(key: GlobalObjectKey(PageLabel.oixCloud)),
+        modes: [NavigationItemMode.mobile, NavigationItemMode.desktop],
+      ),
+      NavigationItem(
         icon: Icon(Icons.view_timeline),
         label: PageLabel.requests,
         builder: (_) =>

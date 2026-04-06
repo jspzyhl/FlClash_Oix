@@ -45,6 +45,7 @@ class _OverwriteViewState extends ConsumerState<OverwriteView> {
 
   @override
   Widget build(BuildContext context) {
+    final profile = ref.watch(profileProvider(widget.profileId));
     return CommonScaffold(
       title: appLocalizations.override,
       actions: [

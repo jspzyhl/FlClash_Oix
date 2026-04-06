@@ -301,7 +301,7 @@ extension ProfilesControllerExt on AppController {
     }
   }
 
-  Future<void> addProfileFormURL(String url) async {
+  Future<Profile?> addProfileFormURL(String url) async {
     if (globalState.navigatorKey.currentState?.canPop() ?? false) {
       globalState.navigatorKey.currentState?.popUntil((route) => route.isFirst);
     }
@@ -312,6 +312,7 @@ extension ProfilesControllerExt on AppController {
     if (profile != null) {
       putProfile(profile);
     }
+    return profile;
   }
 
   void setProfileAndAutoApply(Profile profile) {

@@ -34,14 +34,14 @@ class AboutView extends StatelessWidget {
         ListItem(
           title: Text(appLocalizations.userCenter),
           onTap: () {
-            globalState.openUrl('https://oixcloud.com/user');
+            globalState.openUrl('https://${secrets.BASE_DOMAIN.trim()}/user');
           },
           trailing: const Icon(Icons.launch),
         ),
         ListItem(
           title: Text(appLocalizations.softwareCenter),
           onTap: () {
-            globalState.openUrl('https://oixcloud.com/client');
+            globalState.openUrl('https://${secrets.BASE_DOMAIN.trim()}/client');
           },
           trailing: const Icon(Icons.launch),
         ),

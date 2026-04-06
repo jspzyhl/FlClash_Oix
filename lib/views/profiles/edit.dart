@@ -136,13 +136,16 @@ class _EditProfileViewState extends State<EditProfileView> {
     final title = widget.profile.label.takeFirstValid([
       widget.profile.id.toString(),
     ]);
+    final isoixCloud = widget.profile.isoixCloudProfile;
+    final displayContent = isoixCloud ? _rawText!.maskProfileContent : _rawText!;
+
     final editorPage = EditorPage(
       title: title,
-      content: _rawText!,
-      onSave: (context, _, content) {
+      content: displayContent,
+      onSave: isoixCloud ? null : (context, _, content) {
         _handleSaveEdit(context, content);
       },
-      onPop: (context, _, content) async {
+      onPop: isoixCloud ? null : (context, _, content) async {
         if (content == _rawText) {
           return true;
         }
@@ -209,11 +212,13 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   @override
   Widget build(BuildContext context) {
+    final isoixCloud = widget.profile.isoixCloudProfile;
     final items = [
       ListItem(
         title: TextFormField(
           textInputAction: TextInputAction.next,
           controller: _labelController,
+          enabled: !isoixCloud,
           decoration: InputDecoration(
             border: const OutlineInputBorder(),
             labelText: appLocalizations.name,
@@ -226,7 +231,7 @@ class _EditProfileViewState extends State<EditProfileView> {
           },
         ),
       ),
-      if (widget.profile.type == ProfileType.url) ...[
+      if (widget.profile.type == ProfileType.url && !isoixCloud) ...[
         ListItem(
           title: TextFormField(
             textInputAction: TextInputAction.next,
@@ -281,10 +286,11 @@ class _EditProfileViewState extends State<EditProfileView> {
             ),
           ),
       ],
-      ValueListenableBuilder<FileInfo?>(
-        valueListenable: _fileInfoNotifier,
-        builder: (_, fileInfo, _) {
-          return FadeThroughBox(
+      if (!isoixCloud)
+        ValueListenableBuilder<FileInfo?>(
+          valueListenable: _fileInfoNotifier,
+          builder: (_, fileInfo, _) {
+            return FadeThroughBox(
             alignment: Alignment.centerLeft,
             child: fileInfo == null
                 ? Container()

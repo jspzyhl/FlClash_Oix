@@ -330,6 +330,7 @@ enum PageLabel {
   requests,
   resources,
   connections,
+  oixCloud,
 }
 
 enum RuleAction {

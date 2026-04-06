@@ -32,23 +32,27 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m5(label) => "${label}当前已存在";
 
-  static String m6(count) => "${count} 小时前";
+  static String m6(date) => "到期: ${date}";
 
-  static String m7(count) => "${count} 分钟前";
+  static String m7(count) => "${count} 小时前";
 
-  static String m8(count) => "${count} 个月前";
+  static String m8(count) => "${count} 分钟前";
 
-  static String m9(label) => "暂无${label}";
+  static String m9(count) => "${count} 个月前";
 
-  static String m10(label) => "${label}必须为数字";
+  static String m10(label) => "暂无${label}";
 
-  static String m11(label) => "${label} 必须在 1024 到 49151 之间";
+  static String m11(label) => "${label}必须为数字";
 
-  static String m12(count) => "已选择 ${count} 项";
+  static String m12(label) => "${label} 必须在 1024 到 49151 之间";
 
-  static String m13(label) => "${label}必须为URL";
+  static String m13(value) => "剩余: ${value}";
 
-  static String m14(count) => "${count} 年前";
+  static String m14(count) => "已选择 ${count} 项";
+
+  static String m15(label) => "${label}必须为URL";
+
+  static String m16(count) => "${count} 年前";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -62,6 +66,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "选中应用将会被排除在VPN之外",
     ),
     "accessControlSettings": MessageLookupByLibrary.simpleMessage("访问控制设置"),
+    "accessToken": MessageLookupByLibrary.simpleMessage("Access Token"),
     "account": MessageLookupByLibrary.simpleMessage("账号"),
     "action": MessageLookupByLibrary.simpleMessage("操作"),
     "action_mode": MessageLookupByLibrary.simpleMessage("切换模式"),
@@ -88,6 +93,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowBypassDesc": MessageLookupByLibrary.simpleMessage("开启后部分应用可绕过VPN"),
     "allowLan": MessageLookupByLibrary.simpleMessage("局域网代理"),
     "allowLanDesc": MessageLookupByLibrary.simpleMessage("允许通过局域网访问代理"),
+    "announcement": MessageLookupByLibrary.simpleMessage("公告"),
+    "apiAvailable": MessageLookupByLibrary.simpleMessage("API 已连接"),
+    "apiUnavailable": MessageLookupByLibrary.simpleMessage("API 异常"),
     "app": MessageLookupByLibrary.simpleMessage("应用"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage("应用访问控制"),
     "appDesc": MessageLookupByLibrary.simpleMessage("处理应用相关设置"),
@@ -115,6 +123,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "通过WebDAV或者文件同步数据",
     ),
     "backupSuccess": MessageLookupByLibrary.simpleMessage("备份成功"),
+    "balance": MessageLookupByLibrary.simpleMessage("余额"),
     "basicConfig": MessageLookupByLibrary.simpleMessage("基本配置"),
     "basicConfigDesc": MessageLookupByLibrary.simpleMessage("全局修改基本配置"),
     "bind": MessageLookupByLibrary.simpleMessage("绑定"),
@@ -125,6 +134,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "cancel": MessageLookupByLibrary.simpleMessage("取消"),
     "cancelFilterSystemApp": MessageLookupByLibrary.simpleMessage("取消过滤系统应用"),
     "cancelSelectAll": MessageLookupByLibrary.simpleMessage("取消全选"),
+    "checkApi": MessageLookupByLibrary.simpleMessage("检查 API"),
     "checkError": MessageLookupByLibrary.simpleMessage("检测失败"),
     "checkUpdate": MessageLookupByLibrary.simpleMessage("检查更新"),
     "checkUpdateError": MessageLookupByLibrary.simpleMessage("当前应用已经是最新版了"),
@@ -135,6 +145,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "color": MessageLookupByLibrary.simpleMessage("颜色"),
     "colorSchemes": MessageLookupByLibrary.simpleMessage("配色方案"),
     "columns": MessageLookupByLibrary.simpleMessage("列数"),
+    "commission": MessageLookupByLibrary.simpleMessage("返利"),
     "compatible": MessageLookupByLibrary.simpleMessage("兼容模式"),
     "compatibleDesc": MessageLookupByLibrary.simpleMessage(
       "开启将失去部分应用能力，获得全量的Clash的支持",
@@ -209,6 +220,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "edit": MessageLookupByLibrary.simpleMessage("编辑"),
     "editGlobalRules": MessageLookupByLibrary.simpleMessage("编辑全局规则"),
     "editRule": MessageLookupByLibrary.simpleMessage("编辑规则"),
+    "emailFormatValidation": MessageLookupByLibrary.simpleMessage("邮箱格式不正确"),
+    "emailHint": MessageLookupByLibrary.simpleMessage("请输入邮箱地址"),
+    "emailLabel": MessageLookupByLibrary.simpleMessage("邮箱"),
+    "emailPassword": MessageLookupByLibrary.simpleMessage("邮箱密码"),
+    "emailValidation": MessageLookupByLibrary.simpleMessage("请输入邮箱"),
     "emptyTip": m4,
     "en": MessageLookupByLibrary.simpleMessage("英语"),
     "enableOverride": MessageLookupByLibrary.simpleMessage("启用覆写"),
@@ -219,6 +235,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "exit": MessageLookupByLibrary.simpleMessage("退出"),
     "expand": MessageLookupByLibrary.simpleMessage("标准"),
     "expirationTime": MessageLookupByLibrary.simpleMessage("到期时间"),
+    "expireDate": m6,
     "exportFile": MessageLookupByLibrary.simpleMessage("导出文件"),
     "exportLogs": MessageLookupByLibrary.simpleMessage("导出日志"),
     "exportSuccess": MessageLookupByLibrary.simpleMessage("导出成功"),
@@ -264,7 +281,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "hotkeyManagement": MessageLookupByLibrary.simpleMessage("快捷键管理"),
     "hotkeyManagementDesc": MessageLookupByLibrary.simpleMessage("使用键盘控制应用程序"),
     "hours": MessageLookupByLibrary.simpleMessage("小时"),
-    "hoursAgo": m6,
+    "hoursAgo": m7,
     "icon": MessageLookupByLibrary.simpleMessage("图片"),
     "iconConfiguration": MessageLookupByLibrary.simpleMessage("图片配置"),
     "iconStyle": MessageLookupByLibrary.simpleMessage("图标样式"),
@@ -301,6 +318,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "logLevel": MessageLookupByLibrary.simpleMessage("日志等级"),
     "logcat": MessageLookupByLibrary.simpleMessage("日志捕获"),
     "logcatDesc": MessageLookupByLibrary.simpleMessage("禁用将会隐藏日志入口"),
+    "loggedOutViewDesc": MessageLookupByLibrary.simpleMessage("登录后查看账户信息和管理订阅"),
+    "loggedOutViewTitle": MessageLookupByLibrary.simpleMessage("oixCloud"),
+    "loginFailed": MessageLookupByLibrary.simpleMessage("登录失败"),
+    "loginSuccess": MessageLookupByLibrary.simpleMessage("登录成功"),
+    "loginTitle": MessageLookupByLibrary.simpleMessage("登录"),
+    "logoutContent": MessageLookupByLibrary.simpleMessage("确定要退出账号吗？"),
+    "logoutTitle": MessageLookupByLibrary.simpleMessage("退出登录"),
     "logs": MessageLookupByLibrary.simpleMessage("日志"),
     "logsDesc": MessageLookupByLibrary.simpleMessage("日志捕获记录"),
     "logsTest": MessageLookupByLibrary.simpleMessage("日志测试"),
@@ -314,12 +338,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "minimizeOnExit": MessageLookupByLibrary.simpleMessage("退出时最小化"),
     "minimizeOnExitDesc": MessageLookupByLibrary.simpleMessage("修改系统默认退出事件"),
     "minutes": MessageLookupByLibrary.simpleMessage("分钟"),
-    "minutesAgo": m7,
+    "minutesAgo": m8,
     "mixedPort": MessageLookupByLibrary.simpleMessage("混合端口"),
     "mode": MessageLookupByLibrary.simpleMessage("模式"),
     "monochromeScheme": MessageLookupByLibrary.simpleMessage("单色"),
     "months": MessageLookupByLibrary.simpleMessage("月"),
-    "monthsAgo": m8,
+    "monthsAgo": m9,
     "more": MessageLookupByLibrary.simpleMessage("更多"),
     "name": MessageLookupByLibrary.simpleMessage("名称"),
     "nameSort": MessageLookupByLibrary.simpleMessage("按名称排序"),
@@ -351,8 +375,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "none": MessageLookupByLibrary.simpleMessage("无"),
     "notSelectedTip": MessageLookupByLibrary.simpleMessage("当前代理组无法选中"),
     "nullProfileDesc": MessageLookupByLibrary.simpleMessage("没有配置文件,请先添加配置文件"),
-    "nullTip": m9,
-    "numberTip": m10,
+    "nullTip": m10,
+    "numberTip": m11,
+    "oixCloud": MessageLookupByLibrary.simpleMessage("oixCloud"),
     "oneColumn": MessageLookupByLibrary.simpleMessage("一列"),
     "onlyIcon": MessageLookupByLibrary.simpleMessage("仅图标"),
     "onlyOtherApps": MessageLookupByLibrary.simpleMessage("仅第三方应用"),
@@ -378,6 +403,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "palette": MessageLookupByLibrary.simpleMessage("调色板"),
     "password": MessageLookupByLibrary.simpleMessage("密码"),
+    "passwordHint": MessageLookupByLibrary.simpleMessage("请输入密码"),
+    "passwordLabel": MessageLookupByLibrary.simpleMessage("密码"),
+    "passwordValidation": MessageLookupByLibrary.simpleMessage("请输入密码"),
     "paste": MessageLookupByLibrary.simpleMessage("粘贴"),
     "pleaseBindWebDAV": MessageLookupByLibrary.simpleMessage("请绑定WebDAV"),
     "pleaseEnterScriptName": MessageLookupByLibrary.simpleMessage("请输入脚本名称"),
@@ -388,9 +416,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "pleaseUploadValidQrcode": MessageLookupByLibrary.simpleMessage(
       "请上传有效的二维码",
     ),
+    "points": MessageLookupByLibrary.simpleMessage("积分"),
     "port": MessageLookupByLibrary.simpleMessage("端口"),
     "portConflictTip": MessageLookupByLibrary.simpleMessage("请输入不同的端口"),
-    "portTip": m11,
+    "portTip": m12,
     "preferH3Desc": MessageLookupByLibrary.simpleMessage("优先使用DOH的http/3"),
     "pressKeyboard": MessageLookupByLibrary.simpleMessage("请按下按键"),
     "preview": MessageLookupByLibrary.simpleMessage("预览"),
@@ -433,8 +462,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "rainbowScheme": MessageLookupByLibrary.simpleMessage("彩虹"),
     "redirPort": MessageLookupByLibrary.simpleMessage("Redir端口"),
     "redo": MessageLookupByLibrary.simpleMessage("重做"),
+    "refresh": MessageLookupByLibrary.simpleMessage("刷新"),
+    "refreshSuccess": MessageLookupByLibrary.simpleMessage("刷新完成"),
     "regExp": MessageLookupByLibrary.simpleMessage("正则"),
     "reload": MessageLookupByLibrary.simpleMessage("重载"),
+    "remaining": m13,
     "remote": MessageLookupByLibrary.simpleMessage("远程"),
     "remoteBackupDesc": MessageLookupByLibrary.simpleMessage("备份数据到WebDAV"),
     "remoteDestination": MessageLookupByLibrary.simpleMessage("远程目标"),
@@ -468,6 +500,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "restoreStrategy_compatible": MessageLookupByLibrary.simpleMessage("兼容"),
     "restoreStrategy_override": MessageLookupByLibrary.simpleMessage("覆盖"),
     "restoreSuccess": MessageLookupByLibrary.simpleMessage("恢复成功"),
+    "revokeAccessToken": MessageLookupByLibrary.simpleMessage(
+      "删除 Access Token",
+    ),
     "routeAddress": MessageLookupByLibrary.simpleMessage("路由地址"),
     "routeAddressDesc": MessageLookupByLibrary.simpleMessage("配置监听路由地址"),
     "routeMode": MessageLookupByLibrary.simpleMessage("路由模式"),
@@ -489,7 +524,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "seconds": MessageLookupByLibrary.simpleMessage("秒"),
     "selectAll": MessageLookupByLibrary.simpleMessage("全选"),
     "selected": MessageLookupByLibrary.simpleMessage("已选择"),
-    "selectedCountTitle": m12,
+    "selectedCountTitle": m14,
+    "serviceCheckFailed": MessageLookupByLibrary.simpleMessage("服务检测失败"),
     "settings": MessageLookupByLibrary.simpleMessage("设置"),
     "show": MessageLookupByLibrary.simpleMessage("显示"),
     "shrink": MessageLookupByLibrary.simpleMessage("紧凑"),
@@ -539,11 +575,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "tight": MessageLookupByLibrary.simpleMessage("紧凑"),
     "time": MessageLookupByLibrary.simpleMessage("时间"),
     "tip": MessageLookupByLibrary.simpleMessage("提示"),
+    "todayUsed": MessageLookupByLibrary.simpleMessage("今日使用"),
     "toggle": MessageLookupByLibrary.simpleMessage("切换"),
+    "tokenLabel": MessageLookupByLibrary.simpleMessage("Access Token"),
+    "tokenValidation": MessageLookupByLibrary.simpleMessage("请输入 Access Token"),
     "tonalSpotScheme": MessageLookupByLibrary.simpleMessage("调性点缀"),
     "tools": MessageLookupByLibrary.simpleMessage("工具"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("Tproxy端口"),
     "trafficUsage": MessageLookupByLibrary.simpleMessage("流量统计"),
+    "trafficUsed": MessageLookupByLibrary.simpleMessage("流量使用"),
     "tun": MessageLookupByLibrary.simpleMessage("虚拟网卡"),
     "tunDesc": MessageLookupByLibrary.simpleMessage("仅在管理员模式生效"),
     "turnOff": MessageLookupByLibrary.simpleMessage("关闭"),
@@ -562,7 +602,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("上传"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage("通过URL获取配置文件"),
-    "urlTip": m13,
+    "urlTip": m15,
     "useHosts": MessageLookupByLibrary.simpleMessage("使用Hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("使用系统Hosts"),
     "userCenter": MessageLookupByLibrary.simpleMessage("用户中心"),
@@ -583,7 +623,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage("WebDAV配置"),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("白名单模式"),
     "years": MessageLookupByLibrary.simpleMessage("年"),
-    "yearsAgo": m14,
+    "yearsAgo": m16,
     "zh_CN": MessageLookupByLibrary.simpleMessage("中文简体"),
   };
 }

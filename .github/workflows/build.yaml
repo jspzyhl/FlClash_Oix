@@ -8,6 +8,7 @@ on:
 env:
   IS_STABLE: ${{ !contains(github.ref, '-') }}
   GO_VERSION: '1.26'
+  MSYS_NO_PATHCONV: 1
 
 jobs:
   version:
@@ -136,8 +137,9 @@ jobs:
         env:
           FLUTTER_VERSION_NUMBER: ${{ needs.version.outputs.version_number }}
           FLUTTER_BUILD_NUMBER: ${{ needs.version.outputs.build_number }}
-          OIX_API_DOMAIN: ${{ secrets.OIX_API_DOMAIN }}
-          OIX_API_ROUTER: ${{ secrets.OIX_API_ROUTER }}
+          BASE_DOMAIN: ${{ secrets.BASE_DOMAIN }}
+          API_DOMAIN: ${{ secrets.API_DOMAIN }}
+          API_ROUTER: ${{ secrets.API_ROUTER }}
         run: |
           set -e
           BUILD_ARGS="${{ matrix.platform }}"
@@ -261,12 +263,12 @@ jobs:
         if: success() && env.IS_STABLE == 'true'
         continue-on-error: true
         run: |
-          API_KEY="${{ secrets.OIX_KEY }}"
-          API_URL="https://${{ secrets.OIX_API_DOMAIN }}/api/v1/version/update"
+          API_KEY="${{ secrets.API_KEY }}"
+          API_URL="https://${{ secrets.API_DOMAIN }}/api/v1/version/update"
           FULL_VERSION="${{ needs.version.outputs.full_version }}"
           
           if [ -z "$API_KEY" ]; then
-            echo "⚠️  Skipping version update: OIX_KEY secret not configured"
+            echo "⚠️  Skipping version update: API_KEY secret not configured"
             exit 0
           fi
           

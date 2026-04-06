@@ -1,4 +1,5 @@
 class secrets {
-  static const String OIX_API_DOMAIN = String.fromEnvironment('OIX_API_DOMAIN');
-  static const String OIX_API_ROUTER = String.fromEnvironment('OIX_API_ROUTER');
+  static const String BASE_DOMAIN = String.fromEnvironment('BASE_DOMAIN');
+  static const String API_DOMAIN = String.fromEnvironment('API_DOMAIN');
+  static const String API_ROUTER = String.fromEnvironment('API_ROUTER');
 }
