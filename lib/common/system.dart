@@ -31,6 +31,16 @@ class System {
 
   bool get isLinux => Platform.isLinux;
 
+  Future<void> hideFile(String path) async {
+    try {
+      if (isWindows) {
+        await Process.run('attrib', ['+h', path]);
+      } else if (isMacOS) {
+        await Process.run('chflags', ['hidden', path]);
+      }
+    } catch (_) {}
+  }
+
   Future<int> get version async {
     final deviceInfo = await DeviceInfoPlugin().deviceInfo;
     return switch (Platform.operatingSystem) {

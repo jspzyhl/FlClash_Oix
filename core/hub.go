@@ -45,6 +45,9 @@ func handleInitClash(paramsString string) bool {
 	}
 	version = params.Version
 	constant.SetHomeDir(params.HomeDir)
+	if params.ProfileKey != "" {
+		GlobalProfileKey = params.ProfileKey
+	}
 	isInit = true
 	return isInit
 }
@@ -89,9 +92,21 @@ func handleShutdown() bool {
 
 func handleValidateConfig(path string) string {
 	buf, err := readFile(path)
+	if err != nil {
+		return "readFile Error: " + err.Error()
+	}
+	if len(buf) == 0 {
+		return "empty config file or decryption failed"
+	}
 	_, err = config.UnmarshalRawConfig(buf)
 	if err != nil {
-		return err.Error()
+	    
+		prefix := buf
+		if len(prefix) > 30 {
+			prefix = prefix[:30]
+		}
+		// Return exactly what the parser was trying to read so we can see it in Dart logs!
+		return "Parse Error: " + err.Error() + " | Bytes Prefix: " + string(prefix)
 	}
 	return ""
 }
@@ -443,6 +458,12 @@ func handleStartLog() {
 			if logData.LogLevel < log.Level() {
 				continue
 			}
+
+			// Mask node addresses if it's an oixCloud profile
+			if logData.Payload != "" {
+				logData.Payload = MaskLogPayload(logData.Payload)
+			}
+
 			message := &Message{
 				Type: LogMessage,
 				Data: logData,

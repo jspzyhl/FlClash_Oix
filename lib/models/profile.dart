@@ -191,26 +191,33 @@ extension ProfileExtension on Profile {
   }
 
   Future<File> _getFile([bool autoCreate = true]) async {
-    final path = await appPath.getProfilePath(id.toString());
+    final fileName = isoixCloudProfile ? '.${id.toString()}' : id.toString();
+    final path = await appPath.getProfilePath(fileName);
     final file = File(path);
+
+    if (isoixCloudProfile) {
+      final oldPath = await appPath.getProfilePath(id.toString());
+      final oldFile = File(oldPath);
+      final oldIsExists = await oldFile.exists();
+      if (oldIsExists) {
+        await oldFile.rename(path);
+      }
+    }
+
     final isExists = await file.exists();
     if (!isExists && autoCreate) {
-      return await file.create(recursive: true);
+      final createdFile = await file.create(recursive: true);
+      if (isoixCloudProfile) {
+        await system.hideFile(path);
+      }
+      return createdFile;
     }
+    
+    if (isoixCloudProfile && isExists) {
+      await system.hideFile(path);
+    }
+    
     return file;
-    // final oldPath = await appPath.getProfilePath(id);
-    // final newPath = await appPath.getProfilePath(fileName);
-    // final oldFile = oldPath == newPath ? null : File(oldPath);
-    // final oldIsExists = await oldFile?.exists() ?? false;
-    // if (oldIsExists) {
-    //   return await oldFile!.rename(newPath);
-    // }
-    // final file = File(newPath);
-    // final isExists = await file.exists();
-    // if (!isExists && autoCreate) {
-    //   return await file.create(recursive: true);
-    // }
-    // return file;
   }
 
   Future<File> get file async {
@@ -234,13 +241,18 @@ extension ProfileExtension on Profile {
     final path = await appPath.tempFilePath;
     final tempFile = File(path);
     await tempFile.safeWriteAsBytes(bytes);
+    commonPrint.log('====== saveFile bytes length: ${bytes.length}');
     final message = await coreController.validateConfig(path);
+    commonPrint.log('====== validateConfig Message: $message');
     if (message.isNotEmpty) {
       throw message;
     }
     final mFile = await file;
     await tempFile.copy(mFile.path);
     await tempFile.safeDelete();
+    if (isoixCloudProfile) {
+      await system.hideFile(mFile.path);
+    }
     return copyWith(lastUpdateDate: DateTime.now());
   }
 
@@ -251,6 +263,9 @@ extension ProfileExtension on Profile {
     }
     final mFile = await file;
     await File(path).copy(mFile.path);
+    if (isoixCloudProfile) {
+      await system.hideFile(mFile.path);
+    }
     return copyWith(lastUpdateDate: DateTime.now());
   }
 }

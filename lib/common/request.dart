@@ -130,7 +130,10 @@ class Request {
 
       if (!hasUpdate) return null;
 
-      return <String, dynamic>{'tag_name': remoteVersion, 'body': ''};
+      return <String, dynamic>{
+        'tag_name': 'v${globalState.packageInfo.version}+$remoteVersion',
+        'body': ''
+      };
     } catch (e) {
       commonPrint.log('checkForUpdate failed', logLevel: LogLevel.warning);
       return null;

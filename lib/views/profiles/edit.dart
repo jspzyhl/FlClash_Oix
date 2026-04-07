@@ -188,12 +188,14 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   Future<void> _editProfileFile() async {
     if (_rawText == null) {
-      final profilePath = await appPath.getProfilePath(
-        widget.profile.id.toString(),
-      );
-      final file = File(profilePath);
+      final file = await widget.profile.file;
       if (await file.exists()) {
-        _rawText = await file.readAsString();
+        if (widget.profile.isoixCloudProfile) {
+          final configMap = await coreController.getConfig(file.path);
+          _rawText = await encodeYamlTask(configMap);
+        } else {
+          _rawText = await file.readAsString();
+        }
       }
     }
     if (!mounted) return;

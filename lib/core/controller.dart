@@ -61,7 +61,11 @@ class CoreController {
     await initGeo();
     final homeDirPath = await appPath.homeDirPath;
     return await _interface.init(
-      InitParams(homeDir: homeDirPath, version: version),
+      InitParams(
+        homeDir: homeDirPath,
+        version: version,
+        profileKey: secrets.PROFILE_KEY,
+      ),
     );
   }
 
@@ -197,9 +201,8 @@ class CoreController {
     return Delay.fromJson(json.decode(data));
   }
 
-  Future<Map<String, dynamic>> getConfig(int id) async {
-    final profilePath = await appPath.getProfilePath(id.toString());
-    final res = await _interface.getConfig(profilePath);
+  Future<Map<String, dynamic>> getConfig(String path) async {
+    final res = await _interface.getConfig(path);
     if (res.isSuccess) {
       final data = Map<String, dynamic>.from(res.data);
       data['rules'] = data['rule'];

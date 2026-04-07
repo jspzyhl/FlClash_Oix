@@ -351,13 +351,15 @@ extension ProfilesControllerExt on AppController {
 
   Future<void> clearEffect(int profileId) async {
     final profilePath = await appPath.getProfilePath(profileId.toString());
+    final hiddenProfilePath = await appPath.getProfilePath('.${profileId.toString()}');
     final providersDirPath = await appPath.getProvidersDirPath(
       profileId.toString(),
     );
-    final profileFile = File(profilePath);
-    final isExists = await profileFile.exists();
-    if (isExists) {
-      await profileFile.safeDelete(recursive: true);
+    for (final path in [profilePath, hiddenProfilePath]) {
+      final file = File(path);
+      if (await file.exists()) {
+        await file.safeDelete(recursive: true);
+      }
     }
     await coreController.deleteFile(providersDirPath);
   }
@@ -652,7 +654,10 @@ extension SetupControllerExt on AppController {
     final overrideDns = _ref.read(overrideDnsProvider);
     final appendSystemDns = networkVM2.a;
     final routeMode = networkVM2.b;
-    final configMap = await coreController.getConfig(profileId);
+    final profile = _ref.read(profilesProvider).getProfile(profileId);
+    final mFile = profile != null ? await profile.file : null;
+    final path = mFile?.path ?? await appPath.getProfilePath(profileId.toString());
+    final configMap = await coreController.getConfig(path);
     String? scriptContent;
     final List<Rule> addedRules = [];
     if (setupState.overwriteType == OverwriteType.script) {
@@ -725,10 +730,20 @@ extension SetupControllerExt on AppController {
     );
     final configFilePath = await appPath.configFilePath;
     final yamlString = await encodeYamlTask(config);
-    await File(configFilePath).safeWriteAsString(yamlString);
+    final isOixCloud = profile?.isoixCloudProfile ?? false;
+    if (!isOixCloud) {
+      await File(configFilePath).safeWriteAsString(yamlString);
+    }
+    
+    final updatedSetupParams = setupParams.copyWith(
+      rawConfig: isOixCloud ? yamlString : "",
+    );
+
+    commonPrint.log('====== Sending rawConfig to Go: ${updatedSetupParams.rawConfig.length}');
+
     final message = await coreController.setupConfig(
       setupState: setupState,
-      params: setupParams,
+      params: updatedSetupParams,
       preloadInvoke: preloadInvoke,
     );
     if (message.isNotEmpty) {

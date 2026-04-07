@@ -175,6 +175,14 @@ func readFile(path string) ([]byte, error) {
 		return nil, err
 	}
 
+	if len(data) >= 5 && string(data[:4]) == "FLEN" && data[4] == 0x02 {
+		plaintext, err := DecryptFlClash(data)
+		if err != nil {
+			return nil, err
+		}
+		data = plaintext
+	}
+
 	return data, err
 }
 
@@ -242,10 +250,15 @@ func applyConfig(params *SetupParams) error {
 	defer runLock.Unlock()
 	var err error
 	constant.DefaultTestURL = params.TestURL
-	currentConfig, err = executor.ParseWithPath(filepath.Join(constant.Path.HomeDir(), "config.yaml"))
+	if params.RawConfig != "" {
+		currentConfig, err = executor.ParseWithBytes([]byte(params.RawConfig))
+	} else {
+		currentConfig, err = executor.ParseWithPath(filepath.Join(constant.Path.HomeDir(), "config.yaml"))
+	}
 	if err != nil {
 		currentConfig, _ = config.ParseRawConfig(config.DefaultRawConfig())
 	}
+	setMaskedAddrs(params.RawConfig != "", currentConfig.Proxies)
 	hub.ApplyConfig(currentConfig)
 	patchSelectGroup(params.SelectedMap)
 	updateListeners()
