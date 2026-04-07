@@ -596,8 +596,7 @@ SharedState sharedState(Ref ref) {
   );
   final appSettingVM3 = ref.watch(
     appSettingProvider.select(
-      (state) =>
-          VM2(state.onlyStatisticsProxy, state.testUrl),
+      (state) => VM2(state.onlyStatisticsProxy, state.testUrl),
     ),
   );
   final bypassDomain = ref.watch(

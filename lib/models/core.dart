@@ -10,7 +10,7 @@ abstract class SetupParams with _$SetupParams {
   const factory SetupParams({
     @JsonKey(name: 'selected-map') required Map<String, String> selectedMap,
     @JsonKey(name: 'test-url') required String testUrl,
-    @Default("") @JsonKey(name: 'raw-config') String rawConfig,
+    @Default('') @JsonKey(name: 'raw-config') String rawConfig,
   }) = _SetupParams;
 
   factory SetupParams.fromJson(Map<String, dynamic> json) =>
@@ -62,7 +62,7 @@ abstract class InitParams with _$InitParams {
   const factory InitParams({
     @JsonKey(name: 'home-dir') required String homeDir,
     required int version,
-    @Default("") @JsonKey(name: 'profile-key') String profileKey,
+    @Default('') @JsonKey(name: 'profile-key') String profileKey,
   }) = _InitParams;
 
   factory InitParams.fromJson(Map<String, Object?> json) =>

@@ -41,7 +41,7 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
     });
 
     final error = await CloudApiService().checkServiceHealth();
-    
+
     if (mounted) {
       setState(() {
         _isCheckingService = false;
@@ -68,18 +68,34 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
         _buildHealthButton(),
         if (accountState.isLoggedIn) ...[
           IconButton(
-            icon: accountState.isRefreshing 
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+            icon: accountState.isRefreshing
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(Icons.refresh),
             tooltip: AppLocalizations.current.refresh,
-            onPressed: accountState.isRefreshing ? null : () => ref.read(cloudAccountProvider.notifier).refreshProfile(force: true),
+            onPressed: accountState.isRefreshing
+                ? null
+                : () => ref
+                      .read(cloudAccountProvider.notifier)
+                      .refreshProfile(force: true),
           ),
           IconButton(
-            icon: accountState.isSyncing 
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+            icon: accountState.isSyncing
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(Icons.sync_alt),
             tooltip: AppLocalizations.current.sync,
-            onPressed: accountState.isSyncing ? null : () => ref.read(cloudAccountProvider.notifier).syncManagedConfig(),
+            onPressed: accountState.isSyncing
+                ? null
+                : () => ref
+                      .read(cloudAccountProvider.notifier)
+                      .syncManagedConfig(),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -88,7 +104,9 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
           ),
         ],
       ],
-      body: accountState.isLoggedIn ? _buildLoggedIn(accountState) : _buildLoggedOut(),
+      body: accountState.isLoggedIn
+          ? _buildLoggedIn(accountState)
+          : _buildLoggedOut(),
     );
   }
 
@@ -107,8 +125,12 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
     }
 
     return IconButton(
-      icon: _isCheckingService 
-          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+      icon: _isCheckingService
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
           : Icon(icon, color: color),
       onPressed: _checkHealth,
       tooltip: _serviceError ?? AppLocalizations.current.checkApi,
@@ -124,7 +146,8 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
       child: Column(
         children: [
           CloudProfileCard(profile: state.profile!),
-          if (state.latestNotification != null && state.latestNotification!.cleanMessage.isNotEmpty) ...[
+          if (state.latestNotification != null &&
+              state.latestNotification!.cleanMessage.isNotEmpty) ...[
             const SizedBox(height: 16),
             CommonCard(
               child: Padding(
@@ -134,14 +157,24 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.campaign, color: context.colorScheme.primary),
+                        Icon(
+                          Icons.campaign,
+                          color: context.colorScheme.primary,
+                        ),
                         const SizedBox(width: 8),
-                        Text(AppLocalizations.current.announcement, style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        Text(
+                          AppLocalizations.current.announcement,
+                          style: context.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const Spacer(),
                         if (state.latestNotification?.publishTime != null)
                           Text(
                             "${state.latestNotification!.publishTime.year}-${state.latestNotification!.publishTime.month.toString().padLeft(2, '0')}-${state.latestNotification!.publishTime.day.toString().padLeft(2, '0')}",
-                            style: context.textTheme.bodySmall?.copyWith(color: context.colorScheme.onSurfaceVariant),
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: context.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                       ],
                     ),
@@ -167,18 +200,30 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.cloud_off, size: 80, color: context.colorScheme.primary.withValues(alpha: 0.5)),
+          Icon(
+            Icons.cloud_off,
+            size: 80,
+            color: context.colorScheme.primary.withValues(alpha: 0.5),
+          ),
           const SizedBox(height: 24),
-          Text(AppLocalizations.current.loggedOutViewTitle, style: context.textTheme.headlineMedium),
+          Text(
+            AppLocalizations.current.loggedOutViewTitle,
+            style: context.textTheme.headlineMedium,
+          ),
           const SizedBox(height: 12),
           Text(
             AppLocalizations.current.loggedOutViewDesc,
-            style: context.textTheme.bodyLarge?.copyWith(color: context.colorScheme.onSurface.withValues(alpha: 0.6)),
+            style: context.textTheme.bodyLarge?.copyWith(
+              color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
           ),
           const SizedBox(height: 32),
           FilledButton.icon(
             onPressed: () {
-              showDialog(context: context, builder: (_) => const CloudLoginPage());
+              showDialog(
+                context: context,
+                builder: (_) => const CloudLoginPage(),
+              );
             },
             icon: const Icon(Icons.login),
             label: Text(AppLocalizations.current.loginTitle),
@@ -195,8 +240,14 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
         title: Text(AppLocalizations.current.logoutTitle),
         content: Text(AppLocalizations.current.logoutContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(AppLocalizations.current.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(AppLocalizations.current.confirm)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppLocalizations.current.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(AppLocalizations.current.confirm),
+          ),
         ],
       ),
     );

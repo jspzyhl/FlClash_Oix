@@ -7,19 +7,14 @@ import '../state.dart';
 class TooltipText extends StatelessWidget {
   final Text text;
 
-  const TooltipText({
-    super.key,
-    required this.text,
-  });
+  const TooltipText({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, container) {
         final maxWidth = container.maxWidth;
-        final size = globalState.measure.computeTextSize(
-          text,
-        );
+        final size = globalState.measure.computeTextSize(text);
         if (maxWidth < size.width) {
           return Tooltip(
             triggerMode: TooltipTriggerMode.longPress,
@@ -57,26 +52,21 @@ class EmojiText extends StatelessWidget {
       if (match.start > lastMatchEnd) {
         spans.add(
           TextSpan(
-              text: text.substring(lastMatchEnd, match.start), style: style),
+            text: text.substring(lastMatchEnd, match.start),
+            style: style,
+          ),
         );
       }
       spans.add(
         TextSpan(
           text: match.group(0),
-          style: style?.copyWith(
-            fontFamily: FontFamily.twEmoji.value,
-          ),
+          style: style?.copyWith(fontFamily: FontFamily.twEmoji.value),
         ),
       );
       lastMatchEnd = match.end;
     }
     if (lastMatchEnd < text.length) {
-      spans.add(
-        TextSpan(
-          text: text.substring(lastMatchEnd),
-          style: style,
-        ),
-      );
+      spans.add(TextSpan(text: text.substring(lastMatchEnd), style: style));
     }
 
     return spans;
@@ -88,9 +78,7 @@ class EmojiText extends StatelessWidget {
       textScaler: MediaQuery.of(context).textScaler,
       maxLines: maxLines,
       overflow: overflow ?? TextOverflow.clip,
-      text: TextSpan(
-        children: _buildTextSpans(text),
-      ),
+      text: TextSpan(children: _buildTextSpans(text)),
     );
   }
 }

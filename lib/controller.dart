@@ -274,12 +274,21 @@ extension ProfilesControllerExt on AppController {
   }
 
   Future<void> updateProfiles() async {
-    for (final profile in _ref.read(profilesProvider)) {
+    final List<Profile> profiles = _ref.read(profilesProvider);
+    final List<Future<void>> tasks = [];
+    for (final profile in profiles) {
       if (profile.type == ProfileType.file) {
         continue;
       }
-      await updateProfile(profile);
+      tasks.add(() async {
+        try {
+          await updateProfile(profile);
+        } catch (e, s) {
+          commonPrint.log('Failed to update profile ${profile.id}: $e\n$s');
+        }
+      }());
     }
+    await Future.wait(tasks);
   }
 
   Future<void> updateProfile(
@@ -351,7 +360,9 @@ extension ProfilesControllerExt on AppController {
 
   Future<void> clearEffect(int profileId) async {
     final profilePath = await appPath.getProfilePath(profileId.toString());
-    final hiddenProfilePath = await appPath.getProfilePath('.${profileId.toString()}');
+    final hiddenProfilePath = await appPath.getProfilePath(
+      '.${profileId.toString()}',
+    );
     final providersDirPath = await appPath.getProvidersDirPath(
       profileId.toString(),
     );
@@ -656,7 +667,8 @@ extension SetupControllerExt on AppController {
     final routeMode = networkVM2.b;
     final profile = _ref.read(profilesProvider).getProfile(profileId);
     final mFile = profile != null ? await profile.file : null;
-    final path = mFile?.path ?? await appPath.getProfilePath(profileId.toString());
+    final path =
+        mFile?.path ?? await appPath.getProfilePath(profileId.toString());
     final configMap = await coreController.getConfig(path);
     String? scriptContent;
     final List<Rule> addedRules = [];
@@ -734,12 +746,14 @@ extension SetupControllerExt on AppController {
     if (!isOixCloud) {
       await File(configFilePath).safeWriteAsString(yamlString);
     }
-    
+
     final updatedSetupParams = setupParams.copyWith(
-      rawConfig: isOixCloud ? yamlString : "",
+      rawConfig: isOixCloud ? yamlString : '',
     );
 
-    commonPrint.log('====== Sending rawConfig to Go: ${updatedSetupParams.rawConfig.length}');
+    commonPrint.log(
+      '====== Sending rawConfig to Go: ${updatedSetupParams.rawConfig.length}',
+    );
 
     final message = await coreController.setupConfig(
       setupState: setupState,

@@ -4,13 +4,14 @@ import (
 	"net"
 	"strings"
 	"sync"
+
 	"github.com/metacubex/mihomo/constant"
 )
 
 var (
-	maskedAddrs []string
 	maskLock    sync.RWMutex
 	isOixCloud  bool
+	logReplacer *strings.Replacer
 )
 
 func setMaskedAddrs(isOix bool, proxies map[string]constant.Proxy) {
@@ -18,12 +19,13 @@ func setMaskedAddrs(isOix bool, proxies map[string]constant.Proxy) {
 	defer maskLock.Unlock()
 
 	isOixCloud = isOix
-	maskedAddrs = nil
+	logReplacer = nil
 	if !isOix {
 		return
 	}
 
 	seen := make(map[string]bool)
+	var replacerArgs []string
 	for _, proxy := range proxies {
 		addr := proxy.Addr()
 		host, _, e := net.SplitHostPort(addr)
@@ -36,19 +38,20 @@ func setMaskedAddrs(isOix bool, proxies map[string]constant.Proxy) {
 
 		if val != "" && len(val) >= 4 && val != "127.0.0.1" && val != "localhost" && !seen[val] {
 			seen[val] = true
-			maskedAddrs = append(maskedAddrs, val)
+			replacerArgs = append(replacerArgs, val, "***")
 		}
+	}
+
+	if len(replacerArgs) > 0 {
+		logReplacer = strings.NewReplacer(replacerArgs...)
 	}
 }
 
 func MaskLogPayload(payload string) string {
 	maskLock.RLock()
 	defer maskLock.RUnlock()
-	if !isOixCloud || len(maskedAddrs) == 0 {
+	if !isOixCloud || logReplacer == nil {
 		return payload
 	}
-	for _, target := range maskedAddrs {
-		payload = strings.ReplaceAll(payload, target, "***")
-	}
-	return payload
+	return logReplacer.Replace(payload)
 }

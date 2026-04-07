@@ -140,6 +140,7 @@ jobs:
           BASE_DOMAIN: ${{ secrets.BASE_DOMAIN }}
           API_DOMAIN: ${{ secrets.API_DOMAIN }}
           API_ROUTER: ${{ secrets.API_ROUTER }}
+          PROFILE_KEY: ${{ secrets.PROFILE_KEY }}
         run: |
           set -e
           BUILD_ARGS="${{ matrix.platform }}"

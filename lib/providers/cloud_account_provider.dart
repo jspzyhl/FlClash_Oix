@@ -19,42 +19,50 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('cloud_token');
-    
+
     if (token != null && token.isNotEmpty) {
       CloudProfile? cachedProfile;
       CloudNotification? cachedNotification;
-      
+
       try {
         final profileStr = prefs.getString('cloud_profile');
         if (profileStr != null) {
           cachedProfile = CloudProfile.fromJson(jsonDecode(profileStr));
         }
-        
+
         final notificationStr = prefs.getString('cloud_notification');
         if (notificationStr != null) {
-          cachedNotification = CloudNotification.fromJson(jsonDecode(notificationStr));
+          cachedNotification = CloudNotification.fromJson(
+            jsonDecode(notificationStr),
+          );
         }
       } catch (_) {}
 
       state = state.copyWith(
-        token: token, 
+        token: token,
         isLoggedIn: true,
         profile: cachedProfile,
         latestNotification: cachedNotification,
       );
-      
+
       CloudApiService().setToken(token);
-      
+
       // refresh asynchronously without blocking
       refreshProfile();
     }
   }
 
-  Future<void> _saveCache(CloudProfile profile, CloudNotification? notification) async {
+  Future<void> _saveCache(
+    CloudProfile profile,
+    CloudNotification? notification,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('cloud_profile', jsonEncode(profile.toJson()));
     if (notification != null) {
-      await prefs.setString('cloud_notification', jsonEncode(notification.toJson()));
+      await prefs.setString(
+        'cloud_notification',
+        jsonEncode(notification.toJson()),
+      );
     }
   }
 
@@ -65,16 +73,19 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     await prefs.remove('cloud_service_config_params');
   }
 
-  Future<void> signInWithPassword({required String email, required String password}) async {
+  Future<void> signInWithPassword({
+    required String email,
+    required String password,
+  }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final result = await CloudApiService().login(email, password);
       final token = result.token;
-      
+
       CloudApiService().setToken(token);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('cloud_token', token);
-      
+
       _lastRefreshTime = DateTime.now();
       await _saveCache(result.profile, result.announcement);
       state = state.copyWith(
@@ -87,7 +98,10 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
       final managedUrl = await CloudApiService().getManagedUrl();
       if (managedUrl != null && managedUrl.isNotEmpty) {
-        final injectedUrl = await _injectDefaultParams(managedUrl, result.profile);
+        final injectedUrl = await _injectDefaultParams(
+          managedUrl,
+          result.profile,
+        );
         await importManagedProfile(injectedUrl);
       }
     } catch (e) {
@@ -102,10 +116,10 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     try {
       CloudApiService().setToken(token);
       final userInfo = await CloudApiService().getUserInfo();
-      
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('cloud_token', token);
-      
+
       await _saveCache(userInfo.profile, userInfo.announcement);
       state = state.copyWith(
         isLoading: false,
@@ -117,7 +131,10 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
       final managedUrl = await CloudApiService().getManagedUrl();
       if (managedUrl != null && managedUrl.isNotEmpty) {
-        final injectedUrl = await _injectDefaultParams(managedUrl, userInfo.profile);
+        final injectedUrl = await _injectDefaultParams(
+          managedUrl,
+          userInfo.profile,
+        );
         await importManagedProfile(injectedUrl);
       }
     } catch (e) {
@@ -129,18 +146,22 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
   Future<void> refreshProfile({bool force = false}) async {
     if (!state.isLoggedIn) return;
-    
+
     if (!force && _lastRefreshTime != null) {
-      if (DateTime.now().difference(_lastRefreshTime!) < const Duration(minutes: 30)) {
+      if (DateTime.now().difference(_lastRefreshTime!) <
+          const Duration(minutes: 30)) {
         return;
       }
     }
-    
+
     state = state.copyWith(isRefreshing: true, error: null);
     try {
       final userInfo = await CloudApiService().getUserInfo();
       _lastRefreshTime = DateTime.now();
-      await _saveCache(userInfo.profile, userInfo.announcement ?? state.latestNotification);
+      await _saveCache(
+        userInfo.profile,
+        userInfo.announcement ?? state.latestNotification,
+      );
       state = state.copyWith(
         isRefreshing: false,
         profile: userInfo.profile,
@@ -151,7 +172,10 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     }
   }
 
-  Future<String> _injectDefaultParams(String baseUrl, CloudProfile profile) async {
+  Future<String> _injectDefaultParams(
+    String baseUrl,
+    CloudProfile profile,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final hasSavedParams = prefs.containsKey('cloud_service_config_params');
     String savedParams = prefs.getString('cloud_service_config_params') ?? '';
@@ -167,7 +191,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       }
       await prefs.setString('cloud_service_config_params', savedParams);
     }
-    
+
     if (savedParams.isNotEmpty) {
       String base = baseUrl;
       String ext = '';
@@ -177,9 +201,9 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
         base = base.substring(0, base.length - ext.length);
       }
       if (base.contains('?')) {
-         if (!base.endsWith('?')) base += '&';
+        if (!base.endsWith('?')) base += '&';
       } else {
-         base += '?';
+        base += '?';
       }
       var newUrl = base + savedParams;
       newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
@@ -191,21 +215,33 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
   Future<void> syncManagedConfig() async {
     if (!state.isLoggedIn) return;
-    
+
     state = state.copyWith(isSyncing: true, error: null);
     try {
-      final existingProfiles = ref.read(profilesProvider).where((p) => p.isoixCloudProfile).toList();
-      if (existingProfiles.isEmpty) {
-        final managedUrl = await CloudApiService().getManagedUrl();
-        if (managedUrl != null && managedUrl.isNotEmpty && state.profile != null) {
-          final injectedUrl = await _injectDefaultParams(managedUrl, state.profile!);
+      final existingProfiles = ref
+          .read(profilesProvider)
+          .where((p) => p.isoixCloudProfile)
+          .toList();
+      final managedUrl = await CloudApiService().getManagedUrl();
+      if (managedUrl != null && managedUrl.isNotEmpty && state.profile != null) {
+        final injectedUrl = await _injectDefaultParams(managedUrl, state.profile!);
+        if (existingProfiles.isEmpty) {
           final profile = await appController.addProfileFormURL(injectedUrl);
           if (profile != null) {
             ref.read(currentProfileIdProvider.notifier).value = profile.id;
           }
+        } else {
+          for (final p in existingProfiles) {
+            if (p.url != injectedUrl) {
+              appController.putProfile(p.copyWith(url: injectedUrl));
+            }
+          }
+          await appController.updateProfiles();
         }
       } else {
-        await appController.updateProfiles();
+        if (existingProfiles.isNotEmpty) {
+          await appController.updateProfiles();
+        }
       }
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -215,12 +251,22 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   }
 
   Future<void> importManagedProfile(String url) async {
-    final existingProfiles = ref.read(profilesProvider).where((p) => p.isoixCloudProfile).toList();
+    final existingProfiles = ref
+        .read(profilesProvider)
+        .where((p) => p.isoixCloudProfile)
+        .toList();
     if (existingProfiles.isEmpty) {
       final profile = await appController.addProfileFormURL(url);
       if (profile != null) {
         ref.read(currentProfileIdProvider.notifier).value = profile.id;
       }
+    } else {
+      for (final p in existingProfiles) {
+        if (p.url != url) {
+          appController.putProfile(p.copyWith(url: url));
+        }
+      }
+      await appController.updateProfiles();
     }
   }
 
@@ -228,15 +274,21 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('cloud_token');
     await _clearCache();
-    
+
     CloudApiService().setToken(null);
     state = const CloudAccountState();
 
-    final existingProfiles = ref.read(profilesProvider).where((p) => p.isoixCloudProfile).toList();
+    final existingProfiles = ref
+        .read(profilesProvider)
+        .where((p) => p.isoixCloudProfile)
+        .toList();
     for (final p in existingProfiles) {
       await appController.deleteProfile(p.id);
     }
   }
 }
 
-final cloudAccountProvider = NotifierProvider<CloudAccountNotifier, CloudAccountState>(CloudAccountNotifier.new);
+final cloudAccountProvider =
+    NotifierProvider<CloudAccountNotifier, CloudAccountState>(
+      CloudAccountNotifier.new,
+    );

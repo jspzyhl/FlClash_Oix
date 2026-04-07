@@ -172,7 +172,8 @@ extension ProfileExtension on Profile {
 
   bool get isoixCloudProfile {
     final profileUrl = url.toLowerCase();
-    final hasDomainMatch = secrets.API_DOMAIN.trim().isNotEmpty &&
+    final hasDomainMatch =
+        secrets.API_DOMAIN.trim().isNotEmpty &&
         profileUrl.contains(secrets.API_DOMAIN.trim());
     return label.contains('oixCloud') || hasDomainMatch;
   }
@@ -212,11 +213,11 @@ extension ProfileExtension on Profile {
       }
       return createdFile;
     }
-    
+
     if (isoixCloudProfile && isExists) {
       await system.hideFile(path);
     }
-    
+
     return file;
   }
 

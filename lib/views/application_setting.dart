@@ -212,7 +212,6 @@ class OpenLogsItem extends ConsumerWidget {
   }
 }
 
-
 class AutoCheckUpdateItem extends ConsumerWidget {
   const AutoCheckUpdateItem({super.key});
 

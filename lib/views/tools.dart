@@ -55,10 +55,7 @@ class _ToolViewState extends ConsumerState<ToolsView> {
   List<Widget> _getOtherList(bool enableDeveloperMode) {
     return generateSection(
       title: context.appLocalizations.other,
-      items: [
-        if (enableDeveloperMode) _DeveloperItem(),
-        _InfoItem(),
-      ],
+      items: [if (enableDeveloperMode) _DeveloperItem(), _InfoItem()],
     );
   }
 

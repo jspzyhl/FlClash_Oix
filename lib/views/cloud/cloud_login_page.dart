@@ -82,7 +82,9 @@ class _CloudLoginPageState extends ConsumerState<CloudLoginPage> {
             const SizedBox(height: 24),
             SegmentedButton<_LoginMode>(
               selected: {_loginMode},
-              onSelectionChanged: isLoading ? null : (v) => setState(() => _loginMode = v.first),
+              onSelectionChanged: isLoading
+                  ? null
+                  : (v) => setState(() => _loginMode = v.first),
               segments: [
                 ButtonSegment(
                   value: _LoginMode.token,
@@ -108,14 +110,20 @@ class _CloudLoginPageState extends ConsumerState<CloudLoginPage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed: isLoading ? null : () => Navigator.of(context).pop(),
+                  onPressed: isLoading
+                      ? null
+                      : () => Navigator.of(context).pop(),
                   child: Text(AppLocalizations.current.cancel),
                 ),
                 const SizedBox(width: 12),
                 FilledButton(
                   onPressed: isLoading ? null : _handleLogin,
                   child: isLoading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : Text(AppLocalizations.current.loginTitle),
                 ),
               ],
@@ -138,7 +146,9 @@ class _CloudLoginPageState extends ConsumerState<CloudLoginPage> {
             border: const OutlineInputBorder(),
           ),
           keyboardType: TextInputType.emailAddress,
-          validator: (v) => v?.isEmpty == true ? AppLocalizations.current.emailValidation : null,
+          validator: (v) => v?.isEmpty == true
+              ? AppLocalizations.current.emailValidation
+              : null,
         ),
         const SizedBox(height: 16),
         TextFormField(
@@ -150,11 +160,16 @@ class _CloudLoginPageState extends ConsumerState<CloudLoginPage> {
             prefixIcon: const Icon(Icons.lock_outline),
             border: const OutlineInputBorder(),
             suffixIcon: IconButton(
-              icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              icon: Icon(
+                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+              ),
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
             ),
           ),
-          validator: (v) => v?.isEmpty == true ? AppLocalizations.current.passwordValidation : null,
+          validator: (v) => v?.isEmpty == true
+              ? AppLocalizations.current.passwordValidation
+              : null,
         ),
       ],
     );
@@ -169,7 +184,8 @@ class _CloudLoginPageState extends ConsumerState<CloudLoginPage> {
         labelText: AppLocalizations.current.tokenLabel,
         border: const OutlineInputBorder(),
       ),
-      validator: (v) => v?.isEmpty == true ? AppLocalizations.current.tokenValidation : null,
+      validator: (v) =>
+          v?.isEmpty == true ? AppLocalizations.current.tokenValidation : null,
     );
   }
 }

@@ -424,11 +424,13 @@ class BuildCommand extends Command {
     final baseDomain = Platform.environment['BASE_DOMAIN']?.trim();
     final oixApiDomain = Platform.environment['API_DOMAIN']?.trim();
     final apiManagedRouter = Platform.environment['API_ROUTER']?.trim();
+    final profileKey = Platform.environment['PROFILE_KEY']?.trim();
     
     var dartDefines = '--build-dart-define=APP_ENV=$env';
     if (baseDomain != null && baseDomain.isNotEmpty) dartDefines += ' --build-dart-define=BASE_DOMAIN=$baseDomain';
     if (oixApiDomain != null && oixApiDomain.isNotEmpty) dartDefines += ' --build-dart-define=API_DOMAIN=$oixApiDomain';
     if (apiManagedRouter != null && apiManagedRouter.isNotEmpty) dartDefines += ' --build-dart-define=API_ROUTER=$apiManagedRouter';
+    if (profileKey != null && profileKey.isNotEmpty) dartDefines += ' --build-dart-define=PROFILE_KEY=$profileKey';
 
     await Build.exec(
       name: name,
@@ -453,11 +455,13 @@ class BuildCommand extends Command {
     final baseDomain = Platform.environment['BASE_DOMAIN']?.trim();
     final oixApiDomain = Platform.environment['API_DOMAIN']?.trim();
     final apiManagedRouter = Platform.environment['API_ROUTER']?.trim();
+    final profileKey = Platform.environment['PROFILE_KEY']?.trim();
     
     var dartDefines = '--dart-define=APP_ENV=$env';
     if (baseDomain != null && baseDomain.isNotEmpty) dartDefines += ' --dart-define=BASE_DOMAIN=$baseDomain';
     if (oixApiDomain != null && oixApiDomain.isNotEmpty) dartDefines += ' --dart-define=API_DOMAIN=$oixApiDomain';
     if (apiManagedRouter != null && apiManagedRouter.isNotEmpty) dartDefines += ' --dart-define=API_ROUTER=$apiManagedRouter';
+    if (profileKey != null && profileKey.isNotEmpty) dartDefines += ' --dart-define=PROFILE_KEY=$profileKey';
 
     await Build.exec(
       name: name,

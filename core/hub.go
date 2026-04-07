@@ -100,7 +100,7 @@ func handleValidateConfig(path string) string {
 	}
 	_, err = config.UnmarshalRawConfig(buf)
 	if err != nil {
-	    
+
 		prefix := buf
 		if len(prefix) > 30 {
 			prefix = prefix[:30]

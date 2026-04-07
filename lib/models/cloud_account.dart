@@ -18,7 +18,8 @@ abstract class CloudProfile with _$CloudProfile {
     required String points,
   }) = _CloudProfile;
 
-  factory CloudProfile.fromJson(Map<String, dynamic> json) => _$CloudProfileFromJson(json);
+  factory CloudProfile.fromJson(Map<String, dynamic> json) =>
+      _$CloudProfileFromJson(json);
 }
 
 @freezed
@@ -28,7 +29,8 @@ abstract class CloudNotification with _$CloudNotification {
     required DateTime publishTime,
   }) = _CloudNotification;
 
-  factory CloudNotification.fromJson(Map<String, dynamic> json) => _$CloudNotificationFromJson(json);
+  factory CloudNotification.fromJson(Map<String, dynamic> json) =>
+      _$CloudNotificationFromJson(json);
 }
 
 @freezed
@@ -44,4 +46,3 @@ abstract class CloudAccountState with _$CloudAccountState {
     String? error,
   }) = _CloudAccountState;
 }
-

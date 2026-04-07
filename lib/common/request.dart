@@ -123,8 +123,10 @@ class Request {
 
       if (remoteVersion == null) return null;
 
-      final currentBuildNumber = int.tryParse(globalState.packageInfo.buildNumber) ?? 0;
-      final remoteBuildNumber = int.tryParse(remoteVersion.split('+').last) ?? 0;
+      final currentBuildNumber =
+          int.tryParse(globalState.packageInfo.buildNumber) ?? 0;
+      final remoteBuildNumber =
+          int.tryParse(remoteVersion.split('+').last) ?? 0;
 
       final hasUpdate = remoteBuildNumber > currentBuildNumber;
 
@@ -132,7 +134,7 @@ class Request {
 
       return <String, dynamic>{
         'tag_name': 'v${globalState.packageInfo.version}+$remoteVersion',
-        'body': ''
+        'body': '',
       };
     } catch (e) {
       commonPrint.log('checkForUpdate failed', logLevel: LogLevel.warning);

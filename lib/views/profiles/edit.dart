@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fl_clash/common/common.dart';
@@ -70,7 +69,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     text = text.replaceAll(RegExp(r'&+'), '&');
     if (text == '&') text = '';
     if (text.isNotEmpty && !text.startsWith('&')) {
-      text = '&' + text;
+      text = '&$text';
     }
     await prefs.setString('cloud_service_config_params', text);
 
@@ -84,14 +83,14 @@ class _EditProfileViewState extends State<EditProfileView> {
         base = base.substring(0, base.length - ext.length);
       }
       if (base.contains('?')) {
-         if (!base.endsWith('?')) base += '&';
+        if (!base.endsWith('?')) base += '&';
       } else {
-         base += '?';
+        base += '?';
       }
       var newUrl = base + text;
       newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
       newUrl += ext;
-      
+
       final profile = currentProfile.copyWith(url: newUrl);
       appController.putProfile(profile);
       await appController.updateProfile(profile, showLoading: true);
@@ -117,14 +116,16 @@ class _EditProfileViewState extends State<EditProfileView> {
   Future<void> _handleConfirm() async {
     if (!_formKey.currentState!.validate()) return;
     var profile = widget.profile.copyWith(
-      url: widget.profile.isoixCloudProfile ? widget.profile.url : _urlController.text,
+      url: widget.profile.isoixCloudProfile
+          ? widget.profile.url
+          : _urlController.text,
       label: _labelController.text,
       autoUpdate: _autoUpdate,
       autoUpdateDuration: Duration(
         minutes: int.parse(_autoUpdateDurationController.text),
       ),
     );
-    
+
     if (widget.profile.isoixCloudProfile) {
       await appController.safeRun(() async {
         await _saveoixParams(profile);
@@ -134,7 +135,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       }
       return;
     }
-    
+
     final hasUpdate = widget.profile.url != profile.url;
     if (_fileData != null) {
       if (profile.type == ProfileType.url && _autoUpdate) {
@@ -203,29 +204,35 @@ class _EditProfileViewState extends State<EditProfileView> {
       widget.profile.id.toString(),
     ]);
     final isoixCloud = widget.profile.isoixCloudProfile;
-    final displayContent = isoixCloud ? _rawText!.maskProfileContent : _rawText!;
+    final displayContent = isoixCloud
+        ? _rawText!.maskProfileContent
+        : _rawText!;
 
     final editorPage = EditorPage(
       title: title,
       content: displayContent,
-      onSave: isoixCloud ? null : (context, _, content) {
-        _handleSaveEdit(context, content);
-      },
-      onPop: isoixCloud ? null : (context, _, content) async {
-        if (content == _rawText) {
-          return true;
-        }
-        final res = await globalState.showMessage(
-          title: title,
-          message: TextSpan(text: appLocalizations.hasCacheChange),
-        );
-        if (res == true && context.mounted) {
-          _handleSaveEdit(context, content);
-        } else {
-          return true;
-        }
-        return false;
-      },
+      onSave: isoixCloud
+          ? null
+          : (context, _, content) {
+              _handleSaveEdit(context, content);
+            },
+      onPop: isoixCloud
+          ? null
+          : (context, _, content) async {
+              if (content == _rawText) {
+                return true;
+              }
+              final res = await globalState.showMessage(
+                title: title,
+                message: TextSpan(text: appLocalizations.hasCacheChange),
+              );
+              if (res == true && context.mounted) {
+                _handleSaveEdit(context, content);
+              } else {
+                return true;
+              }
+              return false;
+            },
     );
     final data = await BaseNavigator.push<String>(context, editorPage);
     if (data == null) {
@@ -358,44 +365,44 @@ class _EditProfileViewState extends State<EditProfileView> {
           valueListenable: _fileInfoNotifier,
           builder: (_, fileInfo, _) {
             return FadeThroughBox(
-            alignment: Alignment.centerLeft,
-            child: fileInfo == null
-                ? Container()
-                : ListItem(
-                    title: Text(appLocalizations.profile),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 4),
-                        Text(fileInfo.desc),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          runSpacing: 6,
-                          spacing: 12,
-                          children: [
-                            CommonChip(
-                              avatar: const Icon(Icons.edit),
-                              label: appLocalizations.edit,
-                              onPressed: _editProfileFile,
-                            ),
-                            CommonChip(
-                              avatar: const Icon(Icons.upload),
-                              label: appLocalizations.upload,
-                              onPressed: _uploadProfileFile,
-                            ),
-                          ],
-                        ),
-                      ],
+              alignment: Alignment.centerLeft,
+              child: fileInfo == null
+                  ? Container()
+                  : ListItem(
+                      title: Text(appLocalizations.profile),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Text(fileInfo.desc),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            runSpacing: 6,
+                            spacing: 12,
+                            children: [
+                              CommonChip(
+                                avatar: const Icon(Icons.edit),
+                                label: appLocalizations.edit,
+                                onPressed: _editProfileFile,
+                              ),
+                              CommonChip(
+                                avatar: const Icon(Icons.upload),
+                                label: appLocalizations.upload,
+                                onPressed: _uploadProfileFile,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-          );
-        },
-      ),
+            );
+          },
+        ),
       if (isoixCloud) ...[
         ValueListenableBuilder(
           valueListenable: _oixParamsController,
           builder: (context, value, child) {
-            final isOverseas = value.text.contains(RegExp(r"(^|&)lv=1($|&)"));
+            final isOverseas = value.text.contains(RegExp(r'(^|&)lv=1($|&)'));
             return ListItem(
               title: TextFormField(
                 textInputAction: TextInputAction.next,

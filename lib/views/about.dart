@@ -112,9 +112,7 @@ class AboutView extends StatelessWidget {
                   onEnterDeveloperMode: () {
                     ref
                         .read(appSettingProvider.notifier)
-                        .update(
-                          (state) => state.copyWith(developerMode: true),
-                        );
+                        .update((state) => state.copyWith(developerMode: true));
                     context.showNotifier(
                       appLocalizations.developerModeEnableTip,
                     );
