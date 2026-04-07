@@ -30,6 +30,21 @@ class Request {
         return client;
       },
     );
+
+    final interceptor = InterceptorsWrapper(
+      onRequest: (options, handler) {
+        if (secrets.API_DOMAIN.isNotEmpty && secrets.API_DOMAIN_IP.isNotEmpty) {
+          if (options.uri.host == secrets.API_DOMAIN.trim()) {
+            options.headers['Host'] = secrets.API_DOMAIN.trim();
+            options.path = options.uri.replace(host: secrets.API_DOMAIN_IP.trim()).toString();
+          }
+        }
+        return handler.next(options);
+      },
+    );
+
+    dio.interceptors.add(interceptor);
+    _clashDio.interceptors.add(interceptor);
   }
 
   Future<Response<T>> _getWithRedirect<T>(

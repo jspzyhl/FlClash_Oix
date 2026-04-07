@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
+import 'dart:io';
 import 'dart:convert';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/models/models.dart';
@@ -19,7 +21,22 @@ class CloudApiService {
             'User-Agent': 'FlClash for oixCloud',
           },
         ),
+      ) {
+    if (secrets.API_DOMAIN.isNotEmpty && secrets.API_DOMAIN_IP.isNotEmpty) {
+      _dio.httpClientAdapter = IOHttpClientAdapter(
+        createHttpClient: () {
+          final client = HttpClient();
+          client.connectionFactory = (Uri uri, String? proxyHost, int? proxyPort) {
+            if (uri.host == secrets.API_DOMAIN.trim()) {
+              return Socket.startConnect(secrets.API_DOMAIN_IP.trim(), uri.port);
+            }
+            return Socket.startConnect(proxyHost ?? uri.host, proxyPort ?? uri.port);
+          };
+          return client;
+        },
       );
+    }
+  }
 
   static final CloudApiService _instance = CloudApiService._();
   factory CloudApiService() => _instance;
