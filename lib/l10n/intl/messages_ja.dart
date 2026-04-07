@@ -304,6 +304,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "geoipCode": MessageLookupByLibrary.simpleMessage("GeoIPコード"),
     "getOriginRules": MessageLookupByLibrary.simpleMessage("元のルールを取得"),
+    "getProfileSuccess": MessageLookupByLibrary.simpleMessage(
+      "プロファイルの取得に成功しました",
+    ),
     "global": MessageLookupByLibrary.simpleMessage("グローバル"),
     "go": MessageLookupByLibrary.simpleMessage("移動"),
     "goDownload": MessageLookupByLibrary.simpleMessage("ダウンロードへ"),
@@ -618,6 +621,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "標準モード、基本設定を上書きし、シンプルなルール追加機能を提供",
     ),
     "start": MessageLookupByLibrary.simpleMessage("開始"),
+    "startCorePromptContent": MessageLookupByLibrary.simpleMessage(
+      "プロファイルが正常にインポートされました。今すぐ起動しますか？",
+    ),
+    "startCorePromptTitle": MessageLookupByLibrary.simpleMessage("プロンプト"),
+    "startSuccess": MessageLookupByLibrary.simpleMessage("起動しました"),
     "startVpn": MessageLookupByLibrary.simpleMessage("VPNを開始中..."),
     "status": MessageLookupByLibrary.simpleMessage("ステータス"),
     "statusDesc": MessageLookupByLibrary.simpleMessage("無効時はシステムDNSを使用"),
@@ -648,6 +656,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "threeColumns": MessageLookupByLibrary.simpleMessage("3列"),
     "tight": MessageLookupByLibrary.simpleMessage("密"),
     "time": MessageLookupByLibrary.simpleMessage("時間"),
+    "timeSyncTip": MessageLookupByLibrary.simpleMessage(
+      "プロキシプロトコルは、デバイスの時刻が世界標準時（UTC）と30秒以内の誤差である必要があります。デバイスの時刻が正確であることを確認してください。",
+    ),
     "tip": MessageLookupByLibrary.simpleMessage("ヒント"),
     "todayUsed": MessageLookupByLibrary.simpleMessage("今日の使用量"),
     "toggle": MessageLookupByLibrary.simpleMessage("トグル"),

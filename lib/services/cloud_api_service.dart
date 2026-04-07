@@ -15,6 +15,9 @@ class CloudApiService {
           receiveTimeout: const Duration(seconds: 15),
           followRedirects: true,
           validateStatus: (status) => status != null && status < 500,
+          headers: {
+            'User-Agent': 'FlClash for oixCloud',
+          },
         ),
       );
 

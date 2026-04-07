@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/services/cloud_api_service.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/providers/database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CloudAccountNotifier extends Notifier<CloudAccountState> {
@@ -95,6 +98,8 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
         profile: result.profile,
         latestNotification: result.announcement,
       );
+      
+      globalState.showNotifier(AppLocalizations.current.loginSuccess);
 
       final managedUrl = await CloudApiService().getManagedUrl();
       if (managedUrl != null && managedUrl.isNotEmpty) {
@@ -102,7 +107,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
           managedUrl,
           result.profile,
         );
-        await importManagedProfile(injectedUrl);
+        importManagedProfile(injectedUrl);
       }
     } catch (e) {
       CloudApiService().setToken(null);
@@ -129,13 +134,15 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
         latestNotification: userInfo.announcement,
       );
 
+      globalState.showNotifier(AppLocalizations.current.loginSuccess);
+
       final managedUrl = await CloudApiService().getManagedUrl();
       if (managedUrl != null && managedUrl.isNotEmpty) {
         final injectedUrl = await _injectDefaultParams(
           managedUrl,
           userInfo.profile,
         );
-        await importManagedProfile(injectedUrl);
+        importManagedProfile(injectedUrl);
       }
     } catch (e) {
       CloudApiService().setToken(null);
@@ -261,12 +268,20 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
         ref.read(currentProfileIdProvider.notifier).value = profile.id;
       }
     } else {
+      bool updated = false;
       for (final p in existingProfiles) {
-        if (p.url != url) {
-          appController.putProfile(p.copyWith(url: url));
+        final profileToUpdate = p.url != url ? p.copyWith(url: url) : p;
+        try {
+          await appController.updateProfile(profileToUpdate, showLoading: true);
+          updated = true;
+        } catch (e) {
+          globalState.showNotifier(e.toString());
         }
       }
-      await appController.updateProfiles();
+      if (updated) {
+        globalState.showNotifier(AppLocalizations.current.getProfileSuccess);
+        await appController.requestStartCore();
+      }
     }
   }
 

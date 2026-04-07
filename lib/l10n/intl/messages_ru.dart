@@ -418,6 +418,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "getOriginRules": MessageLookupByLibrary.simpleMessage(
       "Получить оригинальные правила",
     ),
+    "getProfileSuccess": MessageLookupByLibrary.simpleMessage(
+      "Профиль успешно получен",
+    ),
     "global": MessageLookupByLibrary.simpleMessage("Глобальный"),
     "go": MessageLookupByLibrary.simpleMessage("Перейти"),
     "goDownload": MessageLookupByLibrary.simpleMessage("Перейти к загрузке"),
@@ -856,6 +859,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "Стандартный режим, переопределение базовой конфигурации, предоставление возможности простого добавления правил",
     ),
     "start": MessageLookupByLibrary.simpleMessage("Старт"),
+    "startCorePromptContent": MessageLookupByLibrary.simpleMessage(
+      "Профиль успешно импортирован. Хотите запустить ядро сейчас?",
+    ),
+    "startCorePromptTitle": MessageLookupByLibrary.simpleMessage("Подсказка"),
+    "startSuccess": MessageLookupByLibrary.simpleMessage("Запущено успешно"),
     "startVpn": MessageLookupByLibrary.simpleMessage("Запуск VPN..."),
     "status": MessageLookupByLibrary.simpleMessage("Статус"),
     "statusDesc": MessageLookupByLibrary.simpleMessage(
@@ -894,6 +902,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "threeColumns": MessageLookupByLibrary.simpleMessage("Три столбца"),
     "tight": MessageLookupByLibrary.simpleMessage("Плотный"),
     "time": MessageLookupByLibrary.simpleMessage("Время"),
+    "timeSyncTip": MessageLookupByLibrary.simpleMessage(
+      "Протокол прокси требует, чтобы время устройства не отличалось от времени UTC более чем на 30 секунд. Пожалуйста, убедитесь, что время на вашем устройстве точное.",
+    ),
     "tip": MessageLookupByLibrary.simpleMessage("подсказка"),
     "todayUsed": MessageLookupByLibrary.simpleMessage("Использовано сегодня"),
     "toggle": MessageLookupByLibrary.simpleMessage("Переключить"),

@@ -3764,6 +3764,36 @@ class AppLocalizations {
     return Intl.message('Login', name: 'loginTitle', desc: '', args: []);
   }
 
+  /// `Prompt`
+  String get startCorePromptTitle {
+    return Intl.message(
+      'Prompt',
+      name: 'startCorePromptTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Profile has been successfully imported. Do you want to start the core now?`
+  String get startCorePromptContent {
+    return Intl.message(
+      'Profile has been successfully imported. Do you want to start the core now?',
+      name: 'startCorePromptContent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The proxy protocol requires the device time and UTC time to be synchronized within a 30-second error margin. Please ensure your device time is accurate.`
+  String get timeSyncTip {
+    return Intl.message(
+      'The proxy protocol requires the device time and UTC time to be synchronized within a 30-second error margin. Please ensure your device time is accurate.',
+      name: 'timeSyncTip',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Logout`
   String get logoutTitle {
     return Intl.message('Logout', name: 'logoutTitle', desc: '', args: []);
@@ -3784,6 +3814,26 @@ class AppLocalizations {
     return Intl.message(
       'Login Successful',
       name: 'loginSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Profile imported successfully`
+  String get getProfileSuccess {
+    return Intl.message(
+      'Profile imported successfully',
+      name: 'getProfileSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Started successfully`
+  String get startSuccess {
+    return Intl.message(
+      'Started successfully',
+      name: 'startSuccess',
       desc: '',
       args: [],
     );

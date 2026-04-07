@@ -310,6 +310,28 @@ extension ProfilesControllerExt on AppController {
     }
   }
 
+  Future<void> requestStartCore() async {
+    if (!this.isStart) {
+      final res = await globalState.showMessage(
+        title: appLocalizations.startCorePromptTitle,
+        message: TextSpan(
+          children: [
+            TextSpan(text: appLocalizations.startCorePromptContent),
+            const TextSpan(text: '\n\n', style: TextStyle(fontSize: 12)),
+            TextSpan(
+              text: appLocalizations.timeSyncTip,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+      if (res == true) {
+        updateStatus(true);
+        globalState.showNotifier(appLocalizations.startSuccess);
+      }
+    }
+  }
+
   Future<Profile?> addProfileFormURL(String url) async {
     if (globalState.navigatorKey.currentState?.canPop() ?? false) {
       globalState.navigatorKey.currentState?.popUntil((route) => route.isFirst);
@@ -320,6 +342,8 @@ extension ProfilesControllerExt on AppController {
     }, title: appLocalizations.addProfile);
     if (profile != null) {
       putProfile(profile);
+      globalState.showNotifier(appLocalizations.getProfileSuccess);
+      await requestStartCore();
     }
     return profile;
   }
@@ -345,6 +369,8 @@ extension ProfilesControllerExt on AppController {
     }, title: appLocalizations.addProfile);
     if (profile != null) {
       putProfile(profile);
+      globalState.showNotifier(appLocalizations.getProfileSuccess);
+      await requestStartCore();
     }
   }
 

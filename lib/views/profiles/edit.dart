@@ -127,12 +127,12 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
 
     if (widget.profile.isoixCloudProfile) {
-      await appController.safeRun(() async {
-        await _saveoixParams(profile);
-      });
       if (mounted) {
         Navigator.of(context).pop();
       }
+      appController.safeRun(() async {
+        await _saveoixParams(profile);
+      });
       return;
     }
 

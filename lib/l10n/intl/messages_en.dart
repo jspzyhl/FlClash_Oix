@@ -399,6 +399,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "getOriginRules": MessageLookupByLibrary.simpleMessage(
       "Get original rules",
     ),
+    "getProfileSuccess": MessageLookupByLibrary.simpleMessage(
+      "Profile imported successfully",
+    ),
     "global": MessageLookupByLibrary.simpleMessage("Global"),
     "go": MessageLookupByLibrary.simpleMessage("Go"),
     "goDownload": MessageLookupByLibrary.simpleMessage("Go to download"),
@@ -803,6 +806,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "Standard mode, override basic configuration, provide simple rule addition capability",
     ),
     "start": MessageLookupByLibrary.simpleMessage("Start"),
+    "startCorePromptContent": MessageLookupByLibrary.simpleMessage(
+      "Profile has been successfully imported. Do you want to start the core now?",
+    ),
+    "startCorePromptTitle": MessageLookupByLibrary.simpleMessage("Prompt"),
+    "startSuccess": MessageLookupByLibrary.simpleMessage(
+      "Started successfully",
+    ),
     "startVpn": MessageLookupByLibrary.simpleMessage("Starting VPN..."),
     "status": MessageLookupByLibrary.simpleMessage("Status"),
     "statusDesc": MessageLookupByLibrary.simpleMessage(
@@ -841,6 +851,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "threeColumns": MessageLookupByLibrary.simpleMessage("Three columns"),
     "tight": MessageLookupByLibrary.simpleMessage("Tight"),
     "time": MessageLookupByLibrary.simpleMessage("Time"),
+    "timeSyncTip": MessageLookupByLibrary.simpleMessage(
+      "The proxy protocol requires the device time and UTC time to be synchronized within a 30-second error margin. Please ensure your device time is accurate.",
+    ),
     "tip": MessageLookupByLibrary.simpleMessage("tip"),
     "todayUsed": MessageLookupByLibrary.simpleMessage("Today\'s Usage"),
     "toggle": MessageLookupByLibrary.simpleMessage("Toggle"),
