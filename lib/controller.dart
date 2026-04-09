@@ -663,15 +663,42 @@ extension SetupControllerExt on AppController {
     if (!force && !await needSetup()) {
       return;
     }
-    await loadingRun(
+    final res = await loadingRun<bool>(
       () async {
         await _setupConfig(preloadInvoke);
         await updateGroups();
         await updateProviders();
+
+        final groups = _ref.read(groupsProvider);
+        if (groups.isEmpty) {
+          throw appLocalizations.noProxy;
+        }
+
+        final hasProxy = groups.any(
+          (g) => g.all.any((p) {
+            return ![
+              'Selector',
+              'URLTest',
+              'Fallback',
+              'LoadBalance',
+              'Direct',
+              'Reject',
+              'Pass',
+            ].contains(p.type);
+          }),
+        );
+
+        if (!hasProxy) {
+          throw appLocalizations.noProxy;
+        }
+        return true;
       },
       silence: true,
       tag: !silence ? LoadingTag.proxies : null,
     );
+    if (res != true && _ref.read(isStartProvider)) {
+      updateStatus(false);
+    }
   }
 
   Future<Map<String, dynamic>> getProfile({
