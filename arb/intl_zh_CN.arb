@@ -467,6 +467,8 @@
   "backupAndRestore": "备份与恢复",
   "backupAndRestoreDesc": "通过WebDAV或者文件同步数据",
   "restore": "恢复",
+  "restoreDefault": "恢复默认",
+  "optionalParameters": "可选项参数",
   "restoreSuccess": "恢复成功",
   "restoreFromWebDAVDesc": "通过WebDAV恢复数据",
   "restoreFromFileDesc": "通过文件恢复数据",

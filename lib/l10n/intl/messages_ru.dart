@@ -608,6 +608,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlyStatisticsProxyDesc": MessageLookupByLibrary.simpleMessage(
       "При включении будет учитываться только трафик прокси",
     ),
+    "optionalParameters": MessageLookupByLibrary.simpleMessage(
+      "Дополнительные параметры",
+    ),
     "options": MessageLookupByLibrary.simpleMessage("Опции"),
     "other": MessageLookupByLibrary.simpleMessage("Другое"),
     "otherContributors": MessageLookupByLibrary.simpleMessage(
@@ -774,6 +777,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "restore": MessageLookupByLibrary.simpleMessage("Восстановить"),
     "restoreAllData": MessageLookupByLibrary.simpleMessage(
       "Восстановить все данные",
+    ),
+    "restoreDefault": MessageLookupByLibrary.simpleMessage(
+      "Восстановить по умолчанию",
     ),
     "restoreException": MessageLookupByLibrary.simpleMessage(
       "Ошибка восстановления",

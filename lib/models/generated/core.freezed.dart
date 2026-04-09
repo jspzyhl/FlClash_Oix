@@ -211,7 +211,7 @@ return $default(_that.selectedMap,_that.testUrl,_that.rawConfig);case _:
 @JsonSerializable()
 
 class _SetupParams implements SetupParams {
-  const _SetupParams({@JsonKey(name: 'selected-map') required final  Map<String, String> selectedMap, @JsonKey(name: 'test-url') required this.testUrl, @JsonKey(name: 'raw-config') this.rawConfig = ""}): _selectedMap = selectedMap;
+  const _SetupParams({@JsonKey(name: 'selected-map') required final  Map<String, String> selectedMap, @JsonKey(name: 'test-url') required this.testUrl, @JsonKey(name: 'raw-config') this.rawConfig = ''}): _selectedMap = selectedMap;
   factory _SetupParams.fromJson(Map<String, dynamic> json) => _$SetupParamsFromJson(json);
 
  final  Map<String, String> _selectedMap;
@@ -1114,7 +1114,7 @@ return $default(_that.homeDir,_that.version,_that.profileKey);case _:
 @JsonSerializable()
 
 class _InitParams implements InitParams {
-  const _InitParams({@JsonKey(name: 'home-dir') required this.homeDir, required this.version, @JsonKey(name: 'profile-key') this.profileKey = ""});
+  const _InitParams({@JsonKey(name: 'home-dir') required this.homeDir, required this.version, @JsonKey(name: 'profile-key') this.profileKey = ''});
   factory _InitParams.fromJson(Map<String, dynamic> json) => _$InitParamsFromJson(json);
 
 @override@JsonKey(name: 'home-dir') final  String homeDir;

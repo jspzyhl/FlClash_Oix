@@ -475,6 +475,8 @@
   "backupAndRestore": "Резервное копирование и восстановление",
   "backupAndRestoreDesc": "Синхронизация данных через WebDAV или файлы",
   "restore": "Восстановить",
+  "restoreDefault": "Восстановить по умолчанию",
+  "optionalParameters": "Дополнительные параметры",
   "restoreSuccess": "Восстановление успешно",
   "restoreFromWebDAVDesc": "Восстановить данные через WebDAV",
   "restoreFromFileDesc": "Восстановить данные из файла",

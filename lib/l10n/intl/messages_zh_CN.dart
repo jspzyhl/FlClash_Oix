@@ -386,6 +386,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlyStatisticsProxyDesc": MessageLookupByLibrary.simpleMessage(
       "开启后，将只统计代理流量",
     ),
+    "optionalParameters": MessageLookupByLibrary.simpleMessage("可选项参数"),
     "options": MessageLookupByLibrary.simpleMessage("选项"),
     "other": MessageLookupByLibrary.simpleMessage("其他"),
     "otherContributors": MessageLookupByLibrary.simpleMessage("其他贡献者"),
@@ -491,6 +492,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "restartCoreTip": MessageLookupByLibrary.simpleMessage("您确定要重启核心吗？"),
     "restore": MessageLookupByLibrary.simpleMessage("恢复"),
     "restoreAllData": MessageLookupByLibrary.simpleMessage("恢复所有数据"),
+    "restoreDefault": MessageLookupByLibrary.simpleMessage("恢复默认"),
     "restoreException": MessageLookupByLibrary.simpleMessage("恢复异常"),
     "restoreFromFileDesc": MessageLookupByLibrary.simpleMessage("通过文件恢复数据"),
     "restoreFromWebDAVDesc": MessageLookupByLibrary.simpleMessage(

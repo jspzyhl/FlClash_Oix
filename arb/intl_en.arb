@@ -466,6 +466,8 @@
   "backupAndRestore": "Backup and Restore",
   "backupAndRestoreDesc": "Sync data via WebDAV or files",
   "restore": "Restore",
+  "restoreDefault": "Restore Default",
+  "optionalParameters": "Optional Parameters",
   "restoreSuccess": "Restore success",
   "restoreFromWebDAVDesc": "Restore data via WebDAV",
   "restoreFromFileDesc": "Restore data via file",

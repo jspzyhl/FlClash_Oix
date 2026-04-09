@@ -671,6 +671,7 @@ extension SetupControllerExt on AppController {
 
         final groups = _ref.read(groupsProvider);
         if (groups.isEmpty) {
+          if (!_ref.read(initProvider)) return false;
           throw appLocalizations.noProxy;
         }
 
@@ -689,6 +690,7 @@ extension SetupControllerExt on AppController {
         );
 
         if (!hasProxy) {
+          if (!_ref.read(initProvider)) return false;
           throw appLocalizations.noProxy;
         }
         return true;

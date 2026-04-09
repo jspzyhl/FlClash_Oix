@@ -467,6 +467,8 @@
   "backupAndRestore": "バックアップと復元",
   "backupAndRestoreDesc": "WebDAVまたはファイルを介してデータを同期する",
   "restore": "復元",
+  "restoreDefault": "デフォルトに戻す",
+  "optionalParameters": "オプションパラメータ",
   "restoreSuccess": "復元に成功しました",
   "restoreFromWebDAVDesc": "WebDAVを介してデータを復元する",
   "restoreFromFileDesc": "ファイルを介してデータを復元する",

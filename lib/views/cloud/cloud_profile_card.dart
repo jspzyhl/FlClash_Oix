@@ -40,6 +40,7 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
 
   Future<void> _updateSync(String newParams) async {
     final prefs = await SharedPreferences.getInstance();
+    final oldParams = prefs.getString('cloud_service_config_params') ?? '';
     var text = newParams;
     text = text.replaceAll(RegExp(r'&+'), '&');
     if (text == '&') text = '';
@@ -59,6 +60,7 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
     if (clashProfileList.isNotEmpty) {
       final clashProfile = clashProfileList.first;
       final baseUrl = await CloudApiService().getManagedUrl();
+      String fallbackUrl = clashProfile.url;
       if (baseUrl != null) {
         String base = baseUrl;
         String ext = '';
@@ -74,7 +76,45 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
         }
         var newUrl = base + text;
         newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
+        if (newUrl.endsWith('&')) {
+          newUrl = newUrl.substring(0, newUrl.length - 1);
+        }
+        if (newUrl.endsWith('?')) {
+          newUrl = newUrl.substring(0, newUrl.length - 1);
+        }
         newUrl += ext;
+        final newProfile = clashProfile.copyWith(url: newUrl);
+        appController.putProfile(newProfile);
+        await appController.safeRun(() async {
+          await appController.updateProfile(newProfile, showLoading: true);
+        });
+      } else {
+        if (oldParams.isNotEmpty && fallbackUrl.contains(oldParams)) {
+          fallbackUrl = fallbackUrl.replaceAll(oldParams, '');
+        }
+
+        String base = fallbackUrl;
+        String ext = '';
+        final extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(base);
+        if (extMatch != null) {
+          ext = extMatch.group(0)!;
+          base = base.substring(0, base.length - ext.length);
+        }
+        if (base.contains('?')) {
+          if (!base.endsWith('?')) base += '&';
+        } else {
+          base += '?';
+        }
+        var newUrl = base + text;
+        newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
+        if (newUrl.endsWith('&')) {
+          newUrl = newUrl.substring(0, newUrl.length - 1);
+        }
+        if (newUrl.endsWith('?')) {
+          newUrl = newUrl.substring(0, newUrl.length - 1);
+        }
+        newUrl += ext;
+
         final newProfile = clashProfile.copyWith(url: newUrl);
         appController.putProfile(newProfile);
         await appController.safeRun(() async {

@@ -9,7 +9,7 @@ part of '../core.dart';
 _SetupParams _$SetupParamsFromJson(Map<String, dynamic> json) => _SetupParams(
   selectedMap: Map<String, String>.from(json['selected-map'] as Map),
   testUrl: json['test-url'] as String,
-  rawConfig: json['raw-config'] as String? ?? "",
+  rawConfig: json['raw-config'] as String? ?? '',
 );
 
 Map<String, dynamic> _$SetupParamsToJson(_SetupParams instance) =>
@@ -116,7 +116,7 @@ Map<String, dynamic> _$VpnOptionsToJson(_VpnOptions instance) =>
 _InitParams _$InitParamsFromJson(Map<String, dynamic> json) => _InitParams(
   homeDir: json['home-dir'] as String,
   version: (json['version'] as num).toInt(),
-  profileKey: json['profile-key'] as String? ?? "",
+  profileKey: json['profile-key'] as String? ?? '',
 );
 
 Map<String, dynamic> _$InitParamsToJson(_InitParams instance) =>

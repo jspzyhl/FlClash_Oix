@@ -577,6 +577,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlyStatisticsProxyDesc": MessageLookupByLibrary.simpleMessage(
       "When turned on, only statistics proxy traffic",
     ),
+    "optionalParameters": MessageLookupByLibrary.simpleMessage(
+      "Optional Parameters",
+    ),
     "options": MessageLookupByLibrary.simpleMessage("Options"),
     "other": MessageLookupByLibrary.simpleMessage("Other"),
     "otherContributors": MessageLookupByLibrary.simpleMessage(
@@ -728,6 +731,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "restore": MessageLookupByLibrary.simpleMessage("Restore"),
     "restoreAllData": MessageLookupByLibrary.simpleMessage("Restore all data"),
+    "restoreDefault": MessageLookupByLibrary.simpleMessage("Restore Default"),
     "restoreException": MessageLookupByLibrary.simpleMessage(
       "Recovery exception",
     ),

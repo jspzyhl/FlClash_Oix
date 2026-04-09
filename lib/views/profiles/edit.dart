@@ -1,3 +1,6 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_clash/providers/cloud_account_provider.dart';
+
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -13,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_clash/services/cloud_api_service.dart';
 
-class EditProfileView extends StatefulWidget {
+class EditProfileView extends ConsumerStatefulWidget {
   final Profile profile;
   final BuildContext context;
 
@@ -24,10 +27,10 @@ class EditProfileView extends StatefulWidget {
   });
 
   @override
-  State<EditProfileView> createState() => _EditProfileViewState();
+  ConsumerState<EditProfileView> createState() => _EditProfileViewState();
 }
 
-class _EditProfileViewState extends State<EditProfileView> {
+class _EditProfileViewState extends ConsumerState<EditProfileView> {
   late final TextEditingController _labelController;
   late final TextEditingController _urlController;
   late final TextEditingController _autoUpdateDurationController;
@@ -65,6 +68,7 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   Future<void> _saveoixParams(Profile currentProfile) async {
     final prefs = await SharedPreferences.getInstance();
+    final oldParams = prefs.getString('cloud_service_config_params') ?? '';
     var text = _oixParamsController.text;
     text = text.replaceAll(RegExp(r'&+'), '&');
     if (text == '&') text = '';
@@ -73,31 +77,56 @@ class _EditProfileViewState extends State<EditProfileView> {
     }
     await prefs.setString('cloud_service_config_params', text);
 
-    final baseUrl = await CloudApiService().getManagedUrl();
-    if (baseUrl != null) {
-      String base = baseUrl;
+    String buildUrlWithParams(String base, String params) {
       String ext = '';
-      final extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(base);
+      var extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(base);
       if (extMatch != null) {
         ext = extMatch.group(0)!;
         base = base.substring(0, base.length - ext.length);
+      } else {
+        int qIndex = base.indexOf('?');
+        if (qIndex != -1) {
+          String withoutQuery = base.substring(0, qIndex);
+          extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(withoutQuery);
+          if (extMatch != null) {
+            ext = extMatch.group(0)!;
+            base =
+                withoutQuery.substring(0, withoutQuery.length - ext.length) +
+                base.substring(qIndex);
+          }
+        }
       }
       if (base.contains('?')) {
         if (!base.endsWith('?')) base += '&';
       } else {
         base += '?';
       }
-      var newUrl = base + text;
+      var newUrl = base + params;
       newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
-      newUrl += ext;
-
-      final profile = currentProfile.copyWith(url: newUrl);
-      appController.putProfile(profile);
-      await appController.updateProfile(profile, showLoading: true);
-    } else {
-      appController.putProfile(currentProfile);
-      await appController.updateProfile(currentProfile, showLoading: true);
+      if (newUrl.endsWith('&')) {
+        newUrl = newUrl.substring(0, newUrl.length - 1);
+      }
+      if (newUrl.endsWith('?')) {
+        newUrl = newUrl.substring(0, newUrl.length - 1);
+      }
+      return newUrl + ext;
     }
+
+    final baseUrl = await CloudApiService().getManagedUrl();
+    String base;
+    if (baseUrl != null) {
+      base = baseUrl;
+    } else {
+      base = currentProfile.url;
+      if (oldParams.isNotEmpty && base.contains(oldParams)) {
+        base = base.replaceAll(oldParams, '');
+      }
+    }
+
+    final newUrl = buildUrlWithParams(base, text);
+    final profile = currentProfile.copyWith(url: newUrl);
+    appController.putProfile(profile);
+    await appController.updateProfile(profile, showLoading: true);
   }
 
   Future<void> _updateFileInfo() async {
@@ -286,6 +315,13 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   @override
   Widget build(BuildContext context) {
+    final cloudState = ref.watch(cloudAccountProvider);
+    final subscription = cloudState.profile?.subscription ?? '';
+    final isAdvancedPlan =
+        subscription.isNotEmpty &&
+        subscription != 'Default' &&
+        !subscription.contains('Bronze') &&
+        !subscription.contains('Silver');
     final isoixCloud = widget.profile.isoixCloudProfile;
     final items = [
       ListItem(
@@ -398,29 +434,32 @@ class _EditProfileViewState extends State<EditProfileView> {
             );
           },
         ),
-      if (isoixCloud) ...[
-        ValueListenableBuilder(
-          valueListenable: _oixParamsController,
-          builder: (context, value, child) {
-            final isOverseas = value.text.contains(RegExp(r'(^|&)lv=1($|&)'));
-            return ListItem(
-              title: TextFormField(
-                textInputAction: TextInputAction.next,
-                controller: _oixParamsController,
-                maxLines: 3,
-                minLines: 1,
-                enabled: !isOverseas,
-                style: const TextStyle(fontFamily: 'monospace'),
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: '可选项参数',
-                  hintText: '&area=hk',
-                ),
-              ),
-            );
-          },
+      if (isoixCloud)
+        ListItem(
+          title: TextFormField(
+            textInputAction: TextInputAction.next,
+            controller: _oixParamsController,
+            maxLines: 3,
+            minLines: 1,
+            style: const TextStyle(fontFamily: 'monospace'),
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              labelText: appLocalizations.optionalParameters,
+              hintText: '&area=hk',
+            ),
+          ),
+          trailing: isAdvancedPlan
+              ? IconButton(
+                  icon: const Icon(Icons.restore),
+                  tooltip: appLocalizations.restoreDefault,
+                  onPressed: () {
+                    String text = _oixParamsController.text;
+                    text = text.replaceAll(RegExp(r'&type=[^&]*'), '');
+                    _oixParamsController.text = '$text&type=love';
+                  },
+                )
+              : null,
         ),
-      ],
     ];
     return CommonPopScope(
       onPop: (context) {

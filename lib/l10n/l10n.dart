@@ -3649,6 +3649,26 @@ class AppLocalizations {
     return Intl.message('Restore', name: 'restore', desc: '', args: []);
   }
 
+  /// `Restore Default`
+  String get restoreDefault {
+    return Intl.message(
+      'Restore Default',
+      name: 'restoreDefault',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Optional Parameters`
+  String get optionalParameters {
+    return Intl.message(
+      'Optional Parameters',
+      name: 'optionalParameters',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Restore success`
   String get restoreSuccess {
     return Intl.message(
