@@ -70,12 +70,55 @@ extension StringExtension on String {
   }
 
   String get maskProfileContent {
-    return replaceAllMapped(
+    final content = replaceAllMapped(
       RegExp(r'(^|\s)(server|password|uuid):([ \t]*)([^\r\n]+)'),
       (match) {
         return '${match.group(1)}${match.group(2)}:${match.group(3)}******';
       },
     );
+
+    final lines = content.split('\n');
+    final newLines = <String>[];
+    bool inPolicy = false;
+    int policyIndent = 0;
+
+    for (final line in lines) {
+      if (inPolicy) {
+        if (line.trim().isEmpty) {
+          newLines.add(line);
+          continue;
+        }
+        final indent = line.length - line.trimLeft().length;
+        if (indent > policyIndent) {
+          continue;
+        } else {
+          inPolicy = false;
+        }
+      }
+
+      if (!inPolicy) {
+        final trimLine = line.trim();
+        final isTarget = trimLine == 'nameserver-policy:' || trimLine.startsWith('nameserver-policy: ');
+        if (isTarget) {
+          inPolicy = true;
+          policyIndent = line.length - line.trimLeft().length;
+          final isInline = trimLine.length > 'nameserver-policy:'.length;
+          final hasCr = line.endsWith('\r');
+          final cr = hasCr ? '\r' : '';
+
+          if (isInline) {
+            newLines.add('${line.substring(0, policyIndent)}nameserver-policy: ******$cr');
+            inPolicy = false;
+          } else {
+            newLines.add(line);
+            newLines.add('${' ' * (policyIndent + 2)}\'******\': \'******\'$cr');
+          }
+        } else {
+          newLines.add(line);
+        }
+      }
+    }
+    return newLines.join('\n');
   }
 
   String toMd5() {
