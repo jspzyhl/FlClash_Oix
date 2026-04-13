@@ -17,6 +17,58 @@ extension StringExtension on String {
     return parts.length > 1 ? parts : this;
   }
 
+  String appendUrlParams(String params) {
+    if (params.isEmpty) return this;
+    String base = this;
+    String ext = '';
+
+    // First, check if there's a file extension at the end without query strings
+    int qIndex = base.indexOf('?');
+    if (qIndex != -1) {
+      String withoutQuery = base.substring(0, qIndex);
+      var extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(withoutQuery);
+      if (extMatch != null) {
+        ext = extMatch.group(0)!;
+        base =
+            withoutQuery.substring(0, withoutQuery.length - ext.length) +
+            base.substring(qIndex);
+      }
+      if (ext.isEmpty) {
+        var queryExtMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(base);
+        if (queryExtMatch != null) {
+          ext = queryExtMatch.group(0)!;
+          if (ext.length <= 6) {
+            base = base.substring(0, base.length - ext.length);
+          } else {
+            ext = '';
+          }
+        }
+      }
+    } else {
+      var extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(base);
+      if (extMatch != null) {
+        ext = extMatch.group(0)!;
+        base = base.substring(0, base.length - ext.length);
+      }
+    }
+
+    if (base.contains('?')) {
+      if (!base.endsWith('?')) base += '&';
+    } else {
+      base += '?';
+    }
+
+    var newUrl = base + params;
+    newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
+    if (newUrl.endsWith('&')) {
+      newUrl = newUrl.substring(0, newUrl.length - 1);
+    }
+    if (newUrl.endsWith('?')) {
+      newUrl = newUrl.substring(0, newUrl.length - 1);
+    }
+    return newUrl + ext;
+  }
+
   int compareToLower(String other) {
     return toLowerCase().compareTo(other.toLowerCase());
   }
@@ -71,7 +123,9 @@ extension StringExtension on String {
 
   String get maskProfileContent {
     final content = replaceAllMapped(
-      RegExp(r'(^|\s)(server|password|uuid):([ \t]*)([^\r\n]+)'),
+      RegExp(
+        r'(^|\s)(server|password|uuid|port|host|sni|servername|ws-path|ws-headers|public-key|private-key|short-id):([ \t]*)([^\r\n]+)',
+      ),
       (match) {
         return '${match.group(1)}${match.group(2)}:${match.group(3)}******';
       },
@@ -98,7 +152,9 @@ extension StringExtension on String {
 
       if (!inPolicy) {
         final trimLine = line.trim();
-        final isTarget = trimLine == 'nameserver-policy:' || trimLine.startsWith('nameserver-policy: ');
+        final isTarget =
+            trimLine == 'nameserver-policy:' ||
+            trimLine.startsWith('nameserver-policy: ');
         if (isTarget) {
           inPolicy = true;
           policyIndent = line.length - line.trimLeft().length;
@@ -107,11 +163,15 @@ extension StringExtension on String {
           final cr = hasCr ? '\r' : '';
 
           if (isInline) {
-            newLines.add('${line.substring(0, policyIndent)}nameserver-policy: ******$cr');
+            newLines.add(
+              '${line.substring(0, policyIndent)}nameserver-policy: ******$cr',
+            );
             inPolicy = false;
           } else {
             newLines.add(line);
-            newLines.add('${' ' * (policyIndent + 2)}\'******\': \'******\'$cr');
+            newLines.add(
+              '${' ' * (policyIndent + 2)}\'******\': \'******\'$cr',
+            );
           }
         } else {
           newLines.add(line);

@@ -421,16 +421,16 @@ class BuildCommand extends Command {
     
     // Use custom artifact name template to exclude version number and -setup suffix
     const artifactNameTemplate = 'flclash-{{platform}}{{#description}}-{{description}}{{/description}}.{{ext}}';
+    final profileKey = Platform.environment['PROFILE_KEY']?.trim();
     final baseDomain = Platform.environment['BASE_DOMAIN']?.trim();
     final oixApiDomain = Platform.environment['API_DOMAIN']?.trim();
-    final apiManagedRouter = Platform.environment['API_ROUTER']?.trim();
-    final profileKey = Platform.environment['PROFILE_KEY']?.trim();
+    final flclashKey = Platform.environment['FLCLASH_KEY']?.trim();
     
     var dartDefines = '--build-dart-define=APP_ENV=$env';
+    if (profileKey != null && profileKey.isNotEmpty) dartDefines += ' --build-dart-define=PROFILE_KEY=$profileKey';
     if (baseDomain != null && baseDomain.isNotEmpty) dartDefines += ' --build-dart-define=BASE_DOMAIN=$baseDomain';
     if (oixApiDomain != null && oixApiDomain.isNotEmpty) dartDefines += ' --build-dart-define=API_DOMAIN=$oixApiDomain';
-    if (apiManagedRouter != null && apiManagedRouter.isNotEmpty) dartDefines += ' --build-dart-define=API_ROUTER=$apiManagedRouter';
-    if (profileKey != null && profileKey.isNotEmpty) dartDefines += ' --build-dart-define=PROFILE_KEY=$profileKey';
+    if (flclashKey != null && flclashKey.isNotEmpty) dartDefines += ' --build-dart-define=FLCLASH_KEY=$flclashKey';
 
     await Build.exec(
       name: name,
@@ -452,16 +452,16 @@ class BuildCommand extends Command {
       await _updatePubspecVersion(versionNumber, buildNumber);
     }
     
+    final profileKey = Platform.environment['PROFILE_KEY']?.trim();
     final baseDomain = Platform.environment['BASE_DOMAIN']?.trim();
     final oixApiDomain = Platform.environment['API_DOMAIN']?.trim();
-    final apiManagedRouter = Platform.environment['API_ROUTER']?.trim();
-    final profileKey = Platform.environment['PROFILE_KEY']?.trim();
+    final flclashKey = Platform.environment['FLCLASH_KEY']?.trim();
     
     var dartDefines = '--dart-define=APP_ENV=$env';
+    if (profileKey != null && profileKey.isNotEmpty) dartDefines += ' --dart-define=PROFILE_KEY=$profileKey';
     if (baseDomain != null && baseDomain.isNotEmpty) dartDefines += ' --dart-define=BASE_DOMAIN=$baseDomain';
     if (oixApiDomain != null && oixApiDomain.isNotEmpty) dartDefines += ' --dart-define=API_DOMAIN=$oixApiDomain';
-    if (apiManagedRouter != null && apiManagedRouter.isNotEmpty) dartDefines += ' --dart-define=API_ROUTER=$apiManagedRouter';
-    if (profileKey != null && profileKey.isNotEmpty) dartDefines += ' --dart-define=PROFILE_KEY=$profileKey';
+    if (flclashKey != null && flclashKey.isNotEmpty) dartDefines += ' --dart-define=FLCLASH_KEY=$flclashKey';
 
     await Build.exec(
       name: name,

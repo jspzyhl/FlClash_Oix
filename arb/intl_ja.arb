@@ -518,5 +518,9 @@
   "apiUnavailable": "API利用不可",
   "refreshSuccess": "更新完了",
   "revokeAccessToken": "アクセストークンを削除",
-  "refresh": "更新"
+  "refresh": "更新",
+  "overseasNetworkEnvironment": "海外ネットワーク環境",
+  "overseasNetworkEnvironmentDesc": "中国本土外にいる場合はこのオプションをオンにしてください",
+  "tcpFastOpen": "TCP Fast Open",
+  "tcpFastOpenDesc": "TCPの接続確立を高速化するには、このオプションをオンにしてください"
 }

@@ -58,18 +58,38 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   Future<void> _loadoixParams() async {
     if (!widget.profile.isoixCloudProfile) return;
     final prefs = await SharedPreferences.getInstance();
-    final savedParams = prefs.getString('cloud_service_config_params') ?? '';
-    if (mounted) {
-      setState(() {
-        _oixParamsController.text = savedParams;
-      });
+    final rawParams = prefs.getString('cloud_service_config_params') ?? '';
+    final tfoObj = prefs.getBool('cloud_service_tfo');
+
+    final parseResult = CloudConfigHelper.parseTfoParams(rawParams, tfoObj);
+    final cleanParams = parseResult.params;
+    final displayParams =
+        cleanParams.isNotEmpty ? '&$cleanParams' : cleanParams;
+
+    if (parseResult.needsUpdate) {
+      await prefs.setBool('cloud_service_tfo', parseResult.tfoEnabled);
+      await prefs.setString('cloud_service_config_params', displayParams);
+      _oixParamsController.text = displayParams;
+      _saveoixParams(widget.profile);
+    } else {
+      if (mounted) {
+        setState(() {
+          _oixParamsController.text = displayParams;
+        });
+      }
     }
   }
 
   Future<void> _saveoixParams(Profile currentProfile) async {
     final prefs = await SharedPreferences.getInstance();
     final oldParams = prefs.getString('cloud_service_config_params') ?? '';
+    final oldTfoEnabled = prefs.getBool('cloud_service_tfo') ?? true;
+
     var text = _oixParamsController.text;
+    text = text.replaceAll(
+      RegExp(r'&tfo=(true|false)'),
+      '',
+    ); // cleanly remove if manually typed
     text = text.replaceAll(RegExp(r'&+'), '&');
     if (text == '&') text = '';
     if (text.isNotEmpty && !text.startsWith('&')) {
@@ -77,40 +97,10 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     }
     await prefs.setString('cloud_service_config_params', text);
 
-    String buildUrlWithParams(String base, String params) {
-      String ext = '';
-      var extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(base);
-      if (extMatch != null) {
-        ext = extMatch.group(0)!;
-        base = base.substring(0, base.length - ext.length);
-      } else {
-        int qIndex = base.indexOf('?');
-        if (qIndex != -1) {
-          String withoutQuery = base.substring(0, qIndex);
-          extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(withoutQuery);
-          if (extMatch != null) {
-            ext = extMatch.group(0)!;
-            base =
-                withoutQuery.substring(0, withoutQuery.length - ext.length) +
-                base.substring(qIndex);
-          }
-        }
-      }
-      if (base.contains('?')) {
-        if (!base.endsWith('?')) base += '&';
-      } else {
-        base += '?';
-      }
-      var newUrl = base + params;
-      newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
-      if (newUrl.endsWith('&')) {
-        newUrl = newUrl.substring(0, newUrl.length - 1);
-      }
-      if (newUrl.endsWith('?')) {
-        newUrl = newUrl.substring(0, newUrl.length - 1);
-      }
-      return newUrl + ext;
-    }
+    final tfoEnabled = prefs.getBool('cloud_service_tfo') ?? true;
+    final paramWithTfo = text + (tfoEnabled ? '&tfo=true' : '&tfo=false');
+    final oldParamWithTfo =
+        oldParams + (oldTfoEnabled ? '&tfo=true' : '&tfo=false');
 
     final baseUrl = await CloudApiService().getManagedUrl();
     String base;
@@ -118,12 +108,22 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       base = baseUrl;
     } else {
       base = currentProfile.url;
-      if (oldParams.isNotEmpty && base.contains(oldParams)) {
-        base = base.replaceAll(oldParams, '');
+      if (oldParamWithTfo.isNotEmpty) {
+        if (base.contains(oldParamWithTfo)) {
+          base = base.replaceAll(oldParamWithTfo, '');
+        } else {
+          final asQuery = '?' + oldParamWithTfo.substring(1);
+          if (base.contains(asQuery)) {
+            base = base.replaceAll(asQuery, '?');
+          }
+        }
+        if (base.endsWith('?') || base.endsWith('&')) {
+          base = base.substring(0, base.length - 1);
+        }
       }
     }
 
-    final newUrl = buildUrlWithParams(base, text);
+    final newUrl = base.appendUrlParams(paramWithTfo);
     final profile = currentProfile.copyWith(url: newUrl);
     appController.putProfile(profile);
     await appController.updateProfile(profile, showLoading: true);

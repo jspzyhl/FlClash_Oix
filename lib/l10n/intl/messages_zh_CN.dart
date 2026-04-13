@@ -399,6 +399,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "overrideMode": MessageLookupByLibrary.simpleMessage("覆写模式"),
     "overrideOriginRules": MessageLookupByLibrary.simpleMessage("覆盖原始规则"),
     "overrideScript": MessageLookupByLibrary.simpleMessage("覆写脚本"),
+    "overseasNetworkEnvironment": MessageLookupByLibrary.simpleMessage(
+      "海外网络环境",
+    ),
+    "overseasNetworkEnvironmentDesc": MessageLookupByLibrary.simpleMessage(
+      "如果您当前位于中国大陆以外地区，请开启此选项",
+    ),
     "overwriteTypeCustom": MessageLookupByLibrary.simpleMessage("自定义"),
     "overwriteTypeCustomDesc": MessageLookupByLibrary.simpleMessage(
       "自定义模式，支持完全自定义修改代理组以及规则",
@@ -573,6 +579,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "tabAnimationDesc": MessageLookupByLibrary.simpleMessage("仅在移动视图中有效"),
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP并发"),
     "tcpConcurrentDesc": MessageLookupByLibrary.simpleMessage("开启后允许TCP并发"),
+    "tcpFastOpen": MessageLookupByLibrary.simpleMessage("TCP Fast Open"),
+    "tcpFastOpenDesc": MessageLookupByLibrary.simpleMessage(
+      "开启此选项以加速 TCP 连接建立",
+    ),
     "testUrl": MessageLookupByLibrary.simpleMessage("测速链接"),
     "textScale": MessageLookupByLibrary.simpleMessage("文本缩放"),
     "theme": MessageLookupByLibrary.simpleMessage("主题"),

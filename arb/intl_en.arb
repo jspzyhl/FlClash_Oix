@@ -516,5 +516,9 @@
   "apiUnavailable": "API Unavailable",
   "refreshSuccess": "Refresh Complete",
   "revokeAccessToken": "Revoke Access Token",
-  "refresh": "Refresh"
+  "refresh": "Refresh",
+  "overseasNetworkEnvironment": "Overseas Network Environment",
+  "overseasNetworkEnvironmentDesc": "Turn on this option if you are currently outside mainland China",
+  "tcpFastOpen": "TCP Fast Open",
+  "tcpFastOpenDesc": "Enable this option to accelerate TCP connection establishment"
 }

@@ -40,7 +40,12 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
       _serviceError = null;
     });
 
-    final error = await CloudApiService().checkServiceHealth();
+    String? error;
+    try {
+      await CloudApiService().checkServiceHealth();
+    } catch (e) {
+      error = e.toString();
+    }
 
     if (mounted) {
       setState(() {

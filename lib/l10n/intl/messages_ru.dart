@@ -639,6 +639,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "overrideScript": MessageLookupByLibrary.simpleMessage(
       "Скрипт переопределения",
     ),
+    "overseasNetworkEnvironment": MessageLookupByLibrary.simpleMessage(
+      "Зарубежная сетевая среда",
+    ),
+    "overseasNetworkEnvironmentDesc": MessageLookupByLibrary.simpleMessage(
+      "Включите эту опцию, если вы находитесь за пределами материкового Китая",
+    ),
     "overwriteTypeCustom": MessageLookupByLibrary.simpleMessage(
       "Пользовательский",
     ),
@@ -896,6 +902,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP параллелизм"),
     "tcpConcurrentDesc": MessageLookupByLibrary.simpleMessage(
       "Включение позволит использовать параллелизм TCP",
+    ),
+    "tcpFastOpen": MessageLookupByLibrary.simpleMessage("TCP Fast Open"),
+    "tcpFastOpenDesc": MessageLookupByLibrary.simpleMessage(
+      "Включите эту опцию для ускорения установки TCP-соединения",
     ),
     "testUrl": MessageLookupByLibrary.simpleMessage("Тест URL"),
     "textScale": MessageLookupByLibrary.simpleMessage("Масштабирование текста"),

@@ -21,6 +21,7 @@ class CloudProfileCard extends ConsumerStatefulWidget {
 
 class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
   String _savedParams = '';
+  bool _tfoEnabled = true;
 
   @override
   void initState() {
@@ -30,28 +31,46 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
 
   Future<void> _loadoixParams() async {
     final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getString('cloud_service_config_params') ?? '';
-    if (mounted) {
-      setState(() {
-        _savedParams = value;
-      });
+    var value = prefs.getString('cloud_service_config_params') ?? '';
+    final tfoObj = prefs.getBool('cloud_service_tfo');
+
+    final result = CloudConfigHelper.parseTfoParams(value, tfoObj);
+    var newParams = result.params;
+    if (newParams.isNotEmpty) newParams = '&$newParams';
+
+    if (result.needsUpdate) {
+      _updateSync(newParams, tfoEnabled: result.tfoEnabled);
+    } else {
+      if (mounted) {
+        setState(() {
+          _savedParams = newParams;
+          _tfoEnabled = result.tfoEnabled;
+        });
+      }
     }
   }
 
-  Future<void> _updateSync(String newParams) async {
+  Future<void> _updateSync(String newParams, {bool? tfoEnabled}) async {
     final prefs = await SharedPreferences.getInstance();
     final oldParams = prefs.getString('cloud_service_config_params') ?? '';
-    var text = newParams;
-    text = text.replaceAll(RegExp(r'&+'), '&');
-    if (text == '&') text = '';
-    if (text.isNotEmpty && !text.startsWith('&')) {
-      text = '&$text';
-    }
+    final oldTfoEnabled = prefs.getBool('cloud_service_tfo') ?? true;
+    final currentTfo = tfoEnabled ?? _tfoEnabled;
+
+    final result = CloudConfigHelper.parseTfoParams(newParams, currentTfo);
+    var text = result.params;
+    if (text.isNotEmpty) text = '&$text';
 
     setState(() {
       _savedParams = text;
+      _tfoEnabled = currentTfo;
     });
+
     await prefs.setString('cloud_service_config_params', text);
+    await prefs.setBool('cloud_service_tfo', currentTfo);
+
+    final paramWithTfo = text + (currentTfo ? '&tfo=true' : '&tfo=false');
+    final oldParamWithTfo =
+        oldParams + (oldTfoEnabled ? '&tfo=true' : '&tfo=false');
 
     final clashProfileList = ref
         .read(profilesProvider)
@@ -59,68 +78,38 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
         .toList();
     if (clashProfileList.isNotEmpty) {
       final clashProfile = clashProfileList.first;
-      final baseUrl = await CloudApiService().getManagedUrl();
-      String fallbackUrl = clashProfile.url;
-      if (baseUrl != null) {
-        String base = baseUrl;
-        String ext = '';
-        final extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(base);
-        if (extMatch != null) {
-          ext = extMatch.group(0)!;
-          base = base.substring(0, base.length - ext.length);
-        }
-        if (base.contains('?')) {
-          if (!base.endsWith('?')) base += '&';
-        } else {
-          base += '?';
-        }
-        var newUrl = base + text;
-        newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
-        if (newUrl.endsWith('&')) {
-          newUrl = newUrl.substring(0, newUrl.length - 1);
-        }
-        if (newUrl.endsWith('?')) {
-          newUrl = newUrl.substring(0, newUrl.length - 1);
-        }
-        newUrl += ext;
-        final newProfile = clashProfile.copyWith(url: newUrl);
-        appController.putProfile(newProfile);
-        await appController.safeRun(() async {
+      await appController.safeRun(
+        () async {
+          final baseUrl = await CloudApiService().getManagedUrl();
+          String fallbackUrl = clashProfile.url;
+          final Profile newProfile;
+          if (baseUrl != null) {
+            final newUrl = baseUrl.appendUrlParams(paramWithTfo);
+            commonPrint.log('[_updateSync] download url updated | clashIsStart:${appController.isStart}');
+            newProfile = clashProfile.copyWith(url: newUrl);
+          } else {
+            if (oldParamWithTfo.isNotEmpty) {
+              if (fallbackUrl.contains(oldParamWithTfo)) {
+                fallbackUrl = fallbackUrl.replaceAll(oldParamWithTfo, '');
+              } else {
+                final asQuery = '?' + oldParamWithTfo.substring(1);
+                if (fallbackUrl.contains(asQuery)) {
+                  fallbackUrl = fallbackUrl.replaceAll(asQuery, '?');
+                }
+              }
+              if (fallbackUrl.endsWith('?') || fallbackUrl.endsWith('&')) {
+                fallbackUrl = fallbackUrl.substring(0, fallbackUrl.length - 1);
+              }
+            }
+            final newUrl = fallbackUrl.appendUrlParams(paramWithTfo);
+            commonPrint.log('[_updateSync] fallback url updated | clashIsStart:${appController.isStart}');
+            newProfile = clashProfile.copyWith(url: newUrl);
+          }
+          appController.putProfile(newProfile);
           await appController.updateProfile(newProfile, showLoading: true);
-        });
-      } else {
-        if (oldParams.isNotEmpty && fallbackUrl.contains(oldParams)) {
-          fallbackUrl = fallbackUrl.replaceAll(oldParams, '');
-        }
-
-        String base = fallbackUrl;
-        String ext = '';
-        final extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(base);
-        if (extMatch != null) {
-          ext = extMatch.group(0)!;
-          base = base.substring(0, base.length - ext.length);
-        }
-        if (base.contains('?')) {
-          if (!base.endsWith('?')) base += '&';
-        } else {
-          base += '?';
-        }
-        var newUrl = base + text;
-        newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
-        if (newUrl.endsWith('&')) {
-          newUrl = newUrl.substring(0, newUrl.length - 1);
-        }
-        if (newUrl.endsWith('?')) {
-          newUrl = newUrl.substring(0, newUrl.length - 1);
-        }
-        newUrl += ext;
-
-        final newProfile = clashProfile.copyWith(url: newUrl);
-        appController.putProfile(newProfile);
-        await appController.safeRun(() async {
-          await appController.updateProfile(newProfile, showLoading: true);
-        });
-      }
+        },
+        title: AppLocalizations.current.update,
+      );
     }
   }
 
@@ -220,10 +209,12 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
               const Divider(height: 16),
               ListItem.switchItem(
                 padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-                title: const Text('海外网络环境'),
-                subtitle: const Text(
-                  '如果您当前位于中国大陆以外地区，请开启此选项',
-                  style: TextStyle(fontSize: 12),
+                title: Text(
+                  AppLocalizations.current.overseasNetworkEnvironment,
+                ),
+                subtitle: Text(
+                  AppLocalizations.current.overseasNetworkEnvironmentDesc,
+                  style: const TextStyle(fontSize: 12),
                 ),
                 delegate: SwitchDelegate<bool>(
                   value: isOverseas,
@@ -242,6 +233,21 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
                       }
                     }
                     _updateSync(text);
+                  },
+                ),
+              ),
+              const Divider(height: 16),
+              ListItem.switchItem(
+                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                title: Text(AppLocalizations.current.tcpFastOpen),
+                subtitle: Text(
+                  AppLocalizations.current.tcpFastOpenDesc,
+                  style: const TextStyle(fontSize: 12),
+                ),
+                delegate: SwitchDelegate<bool>(
+                  value: _tfoEnabled,
+                  onChanged: (val) {
+                    _updateSync(_savedParams, tfoEnabled: val);
                   },
                 ),
               ),

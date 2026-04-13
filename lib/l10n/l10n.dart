@@ -4088,6 +4088,46 @@ class AppLocalizations {
   String get refresh {
     return Intl.message('Refresh', name: 'refresh', desc: '', args: []);
   }
+
+  /// `Overseas Network Environment`
+  String get overseasNetworkEnvironment {
+    return Intl.message(
+      'Overseas Network Environment',
+      name: 'overseasNetworkEnvironment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Turn on this option if you are currently outside mainland China`
+  String get overseasNetworkEnvironmentDesc {
+    return Intl.message(
+      'Turn on this option if you are currently outside mainland China',
+      name: 'overseasNetworkEnvironmentDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `TCP Fast Open`
+  String get tcpFastOpen {
+    return Intl.message(
+      'TCP Fast Open',
+      name: 'tcpFastOpen',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable this option to accelerate TCP connection establishment`
+  String get tcpFastOpenDesc {
+    return Intl.message(
+      'Enable this option to accelerate TCP connection establishment',
+      name: 'tcpFastOpenDesc',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

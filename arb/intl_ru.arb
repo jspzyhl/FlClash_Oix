@@ -526,5 +526,9 @@
   "apiUnavailable": "API недоступно",
   "refreshSuccess": "Обновление завершено",
   "revokeAccessToken": "Отозвать токен доступа",
-  "refresh": "Обновить"
+  "refresh": "Обновить",
+  "overseasNetworkEnvironment": "Зарубежная сетевая среда",
+  "overseasNetworkEnvironmentDesc": "Включите эту опцию, если вы находитесь за пределами материкового Китая",
+  "tcpFastOpen": "TCP Fast Open",
+  "tcpFastOpenDesc": "Включите эту опцию для ускорения установки TCP-соединения"
 }

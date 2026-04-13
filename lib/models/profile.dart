@@ -171,11 +171,9 @@ extension ProfileExtension on Profile {
   String get realLabel => label.takeFirstValid([id.toString()]);
 
   bool get isoixCloudProfile {
-    final profileUrl = url.toLowerCase();
-    final hasDomainMatch =
-        secrets.API_DOMAIN.trim().isNotEmpty &&
-        profileUrl.contains(secrets.API_DOMAIN.trim());
-    return label.contains('oixCloud') || hasDomainMatch;
+    final apiDomain = secrets.API_DOMAIN.trim();
+    if (apiDomain.isEmpty) return false;
+    return url.toLowerCase().contains(apiDomain.toLowerCase());
   }
 
   String get fileName => '$id.yaml';

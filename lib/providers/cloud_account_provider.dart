@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/services/cloud_api_service.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/providers/database.dart';
+import 'package:fl_clash/common/common.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/state.dart';
@@ -98,7 +98,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
         profile: result.profile,
         latestNotification: result.announcement,
       );
-      
+
       globalState.showNotifier(AppLocalizations.current.loginSuccess);
 
       final managedUrl = await CloudApiService().getManagedUrl();
@@ -196,28 +196,29 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       } else {
         savedParams = '&type=love';
       }
+    }
+
+    final tfoObj = prefs.getBool('cloud_service_tfo');
+    final parseResult = CloudConfigHelper.parseTfoParams(savedParams, tfoObj);
+    bool tfoEnabled = parseResult.tfoEnabled;
+    bool needsUpdate = parseResult.needsUpdate;
+    savedParams = parseResult.params;
+    if (savedParams.isNotEmpty) savedParams = '&$savedParams';
+
+    if (needsUpdate) {
+      await prefs.setBool('cloud_service_tfo', tfoEnabled);
+    }
+
+    if (!hasSavedParams ||
+        savedParams != (prefs.getString('cloud_service_config_params') ?? '')) {
       await prefs.setString('cloud_service_config_params', savedParams);
     }
 
-    if (savedParams.isNotEmpty) {
-      String base = baseUrl;
-      String ext = '';
-      final extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(base);
-      if (extMatch != null) {
-        ext = extMatch.group(0)!;
-        base = base.substring(0, base.length - ext.length);
-      }
-      if (base.contains('?')) {
-        if (!base.endsWith('?')) base += '&';
-      } else {
-        base += '?';
-      }
-      var newUrl = base + savedParams;
-      newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
-      newUrl += ext;
-      return newUrl;
-    }
-    return baseUrl;
+    return CloudConfigHelper.buildUrlWithParams(
+      baseUrl,
+      savedParams,
+      tfoEnabled,
+    );
   }
 
   Future<void> syncManagedConfig() async {
@@ -230,8 +231,13 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
           .where((p) => p.isoixCloudProfile)
           .toList();
       final managedUrl = await CloudApiService().getManagedUrl();
-      if (managedUrl != null && managedUrl.isNotEmpty && state.profile != null) {
-        final injectedUrl = await _injectDefaultParams(managedUrl, state.profile!);
+      if (managedUrl != null &&
+          managedUrl.isNotEmpty &&
+          state.profile != null) {
+        final injectedUrl = await _injectDefaultParams(
+          managedUrl,
+          state.profile!,
+        );
         if (existingProfiles.isEmpty) {
           final profile = await appController.addProfileFormURL(injectedUrl);
           if (profile != null) {

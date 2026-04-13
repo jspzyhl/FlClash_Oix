@@ -457,6 +457,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "overrideMode": MessageLookupByLibrary.simpleMessage("上書きモード"),
     "overrideOriginRules": MessageLookupByLibrary.simpleMessage("元のルールを上書き"),
     "overrideScript": MessageLookupByLibrary.simpleMessage("上書きスクリプト"),
+    "overseasNetworkEnvironment": MessageLookupByLibrary.simpleMessage(
+      "海外ネットワーク環境",
+    ),
+    "overseasNetworkEnvironmentDesc": MessageLookupByLibrary.simpleMessage(
+      "中国本土外にいる場合はこのオプションをオンにしてください",
+    ),
     "overwriteTypeCustom": MessageLookupByLibrary.simpleMessage("カスタム"),
     "overwriteTypeCustomDesc": MessageLookupByLibrary.simpleMessage(
       "カスタムモード、プロキシグループとルールを完全にカスタマイズ可能",
@@ -649,6 +655,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "tabAnimationDesc": MessageLookupByLibrary.simpleMessage("モバイル表示でのみ有効"),
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP並列処理"),
     "tcpConcurrentDesc": MessageLookupByLibrary.simpleMessage("TCP並列処理を許可"),
+    "tcpFastOpen": MessageLookupByLibrary.simpleMessage("TCP Fast Open"),
+    "tcpFastOpenDesc": MessageLookupByLibrary.simpleMessage(
+      "TCPの接続確立を高速化するには、このオプションをオンにしてください",
+    ),
     "testUrl": MessageLookupByLibrary.simpleMessage("URLテスト"),
     "textScale": MessageLookupByLibrary.simpleMessage("テキストスケーリング"),
     "theme": MessageLookupByLibrary.simpleMessage("テーマ"),

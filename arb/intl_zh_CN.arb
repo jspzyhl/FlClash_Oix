@@ -517,5 +517,9 @@
   "apiUnavailable": "API 异常",
   "refreshSuccess": "刷新完成",
   "revokeAccessToken": "删除 Access Token",
-  "refresh": "刷新"
+  "refresh": "刷新",
+  "overseasNetworkEnvironment": "海外网络环境",
+  "overseasNetworkEnvironmentDesc": "如果您当前位于中国大陆以外地区，请开启此选项",
+  "tcpFastOpen": "TCP Fast Open",
+  "tcpFastOpenDesc": "开启此选项以加速 TCP 连接建立"
 }

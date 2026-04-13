@@ -137,10 +137,10 @@ jobs:
         env:
           FLUTTER_VERSION_NUMBER: ${{ needs.version.outputs.version_number }}
           FLUTTER_BUILD_NUMBER: ${{ needs.version.outputs.build_number }}
+          PROFILE_KEY: ${{ secrets.PROFILE_KEY }}
           BASE_DOMAIN: ${{ secrets.BASE_DOMAIN }}
           API_DOMAIN: ${{ secrets.API_DOMAIN }}
-          API_ROUTER: ${{ secrets.API_ROUTER }}
-          PROFILE_KEY: ${{ secrets.PROFILE_KEY }}
+          FLCLASH_KEY: ${{ secrets.FLCLASH_KEY }}
         run: |
           set -e
           BUILD_ARGS="${{ matrix.platform }}"
@@ -264,7 +264,7 @@ jobs:
         if: success() && env.IS_STABLE == 'true'
         continue-on-error: true
         run: |
-          API_KEY="${{ secrets.API_KEY }}"
+          API_KEY="${{ secrets.FLCLASH_KEY }}"
           API_URL="https://${{ secrets.API_DOMAIN }}/api/v1/version/update"
           FULL_VERSION="${{ needs.version.outputs.full_version }}"
           

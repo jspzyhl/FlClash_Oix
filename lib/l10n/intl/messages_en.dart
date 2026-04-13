@@ -602,6 +602,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Override the original rule",
     ),
     "overrideScript": MessageLookupByLibrary.simpleMessage("Override script"),
+    "overseasNetworkEnvironment": MessageLookupByLibrary.simpleMessage(
+      "Overseas Network Environment",
+    ),
+    "overseasNetworkEnvironmentDesc": MessageLookupByLibrary.simpleMessage(
+      "Turn on this option if you are currently outside mainland China",
+    ),
     "overwriteTypeCustom": MessageLookupByLibrary.simpleMessage("Custom"),
     "overwriteTypeCustomDesc": MessageLookupByLibrary.simpleMessage(
       "Custom mode, fully customize proxy groups and rules",
@@ -843,6 +849,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP concurrent"),
     "tcpConcurrentDesc": MessageLookupByLibrary.simpleMessage(
       "Enabling it will allow TCP concurrency",
+    ),
+    "tcpFastOpen": MessageLookupByLibrary.simpleMessage("TCP Fast Open"),
+    "tcpFastOpenDesc": MessageLookupByLibrary.simpleMessage(
+      "Enable this option to accelerate TCP connection establishment",
     ),
     "testUrl": MessageLookupByLibrary.simpleMessage("Test url"),
     "textScale": MessageLookupByLibrary.simpleMessage("Text Scaling"),
