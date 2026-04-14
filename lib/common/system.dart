@@ -52,7 +52,7 @@ class System {
   }
 
   Future<bool> checkIsAdmin() async {
-    final corePath = appPath.corePath.replaceAll(' ', '\\\\ ');
+    final corePath = appPath.corePath;
     if (system.isWindows) {
       final result = await windows?.checkService();
       return result == WindowsHelperServiceStatus.running;
@@ -78,7 +78,7 @@ class System {
     if (system.isAndroid) {
       return AuthorizeCode.error;
     }
-    final corePath = appPath.corePath.replaceAll(' ', '\\\\ ');
+    final corePath = appPath.corePath;
     final isAdmin = await checkIsAdmin();
     if (isAdmin) {
       return AuthorizeCode.none;
@@ -93,10 +93,12 @@ class System {
     }
 
     if (system.isMacOS) {
-      final shell = 'chown root:admin $corePath; chmod +sx $corePath';
+      final escapedPath = corePath.replaceAll("'", "'\\''");
+      final bashString = "chown root:admin '$escapedPath' && chmod +sx '$escapedPath'";
+      final appleScriptString = bashString.replaceAll('\\', '\\\\').replaceAll('"', '\\"');
       final arguments = [
         '-e',
-        'do shell script "$shell" with administrator privileges',
+        'do shell script "$appleScriptString" with administrator privileges',
       ];
       final result = await Process.run('osascript', arguments);
       if (result.exitCode != 0) {
