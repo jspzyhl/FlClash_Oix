@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/providers/database.dart';
-import 'package:fl_clash/services/cloud_api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CloudProfileCard extends ConsumerStatefulWidget {
@@ -39,21 +38,20 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
     if (newParams.isNotEmpty) newParams = '&$newParams';
 
     if (result.needsUpdate) {
-      _updateSync(newParams, tfoEnabled: result.tfoEnabled);
-    } else {
-      if (mounted) {
-        setState(() {
-          _savedParams = newParams;
-          _tfoEnabled = result.tfoEnabled;
-        });
-      }
+      await prefs.setString('cloud_service_config_params', newParams);
+      await prefs.setBool('cloud_service_tfo', result.tfoEnabled);
+    }
+    
+    if (mounted) {
+      setState(() {
+        _savedParams = newParams;
+        _tfoEnabled = result.tfoEnabled;
+      });
     }
   }
 
   Future<void> _updateSync(String newParams, {bool? tfoEnabled}) async {
     final prefs = await SharedPreferences.getInstance();
-    final oldParams = prefs.getString('cloud_service_config_params') ?? '';
-    final oldTfoEnabled = prefs.getBool('cloud_service_tfo') ?? true;
     final currentTfo = tfoEnabled ?? _tfoEnabled;
 
     final result = CloudConfigHelper.parseTfoParams(newParams, currentTfo);
@@ -68,46 +66,16 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
     await prefs.setString('cloud_service_config_params', text);
     await prefs.setBool('cloud_service_tfo', currentTfo);
 
-    final paramWithTfo = text + (currentTfo ? '&tfo=true' : '&tfo=false');
-    final oldParamWithTfo =
-        oldParams + (oldTfoEnabled ? '&tfo=true' : '&tfo=false');
-
     final clashProfileList = ref
         .read(profilesProvider)
         .where((p) => p.isoixCloudProfile)
         .toList();
     if (clashProfileList.isNotEmpty) {
-      final clashProfile = clashProfileList.first;
       await appController.safeRun(
-        () async {
-          final baseUrl = await CloudApiService().getManagedUrl();
-          String fallbackUrl = clashProfile.url;
-          final Profile newProfile;
-          if (baseUrl != null) {
-            final newUrl = baseUrl.appendUrlParams(paramWithTfo);
-            commonPrint.log('[_updateSync] download url updated | clashIsStart:${appController.isStart}');
-            newProfile = clashProfile.copyWith(url: newUrl);
-          } else {
-            if (oldParamWithTfo.isNotEmpty) {
-              if (fallbackUrl.contains(oldParamWithTfo)) {
-                fallbackUrl = fallbackUrl.replaceAll(oldParamWithTfo, '');
-              } else {
-                final asQuery = '?' + oldParamWithTfo.substring(1);
-                if (fallbackUrl.contains(asQuery)) {
-                  fallbackUrl = fallbackUrl.replaceAll(asQuery, '?');
-                }
-              }
-              if (fallbackUrl.endsWith('?') || fallbackUrl.endsWith('&')) {
-                fallbackUrl = fallbackUrl.substring(0, fallbackUrl.length - 1);
-              }
-            }
-            final newUrl = fallbackUrl.appendUrlParams(paramWithTfo);
-            commonPrint.log('[_updateSync] fallback url updated | clashIsStart:${appController.isStart}');
-            newProfile = clashProfile.copyWith(url: newUrl);
-          }
-          appController.putProfile(newProfile);
-          await appController.updateProfile(newProfile, showLoading: true);
-        },
+        () => appController.updateProfile(
+          clashProfileList.first,
+          showLoading: true,
+        ),
         title: AppLocalizations.current.update,
       );
     }

@@ -14,7 +14,6 @@ import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:fl_clash/services/cloud_api_service.dart';
 
 class EditProfileView extends ConsumerStatefulWidget {
   final Profile profile;
@@ -35,6 +34,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   late final TextEditingController _urlController;
   late final TextEditingController _autoUpdateDurationController;
   late final TextEditingController _oixParamsController;
+  String _defaultParams = '';
   late bool _autoUpdate;
   String? _rawText;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -59,6 +59,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     if (!widget.profile.isoixCloudProfile) return;
     final prefs = await SharedPreferences.getInstance();
     final rawParams = prefs.getString('cloud_service_config_params') ?? '';
+    final defaultParamsStr = prefs.getString('cloud_service_default_params') ?? '';
     final tfoObj = prefs.getBool('cloud_service_tfo');
 
     final parseResult = CloudConfigHelper.parseTfoParams(rawParams, tfoObj);
@@ -68,22 +69,19 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
     if (parseResult.needsUpdate) {
       await prefs.setBool('cloud_service_tfo', parseResult.tfoEnabled);
-      await prefs.setString('cloud_service_config_params', displayParams);
-      _oixParamsController.text = displayParams;
-      _saveoixParams(widget.profile);
-    } else {
-      if (mounted) {
-        setState(() {
-          _oixParamsController.text = displayParams;
-        });
-      }
+      await prefs.setString('cloud_service_config_params', cleanParams);
+    }
+
+    if (mounted) {
+      setState(() {
+        _defaultParams = defaultParamsStr.isNotEmpty ? defaultParamsStr : displayParams;
+        _oixParamsController.text = displayParams;
+      });
     }
   }
 
   Future<void> _saveoixParams(Profile currentProfile) async {
     final prefs = await SharedPreferences.getInstance();
-    final oldParams = prefs.getString('cloud_service_config_params') ?? '';
-    final oldTfoEnabled = prefs.getBool('cloud_service_tfo') ?? true;
 
     var text = _oixParamsController.text;
     text = text.replaceAll(
@@ -97,36 +95,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     }
     await prefs.setString('cloud_service_config_params', text);
 
-    final tfoEnabled = prefs.getBool('cloud_service_tfo') ?? true;
-    final paramWithTfo = text + (tfoEnabled ? '&tfo=true' : '&tfo=false');
-    final oldParamWithTfo =
-        oldParams + (oldTfoEnabled ? '&tfo=true' : '&tfo=false');
-
-    final baseUrl = await CloudApiService().getManagedUrl();
-    String base;
-    if (baseUrl != null) {
-      base = baseUrl;
-    } else {
-      base = currentProfile.url;
-      if (oldParamWithTfo.isNotEmpty) {
-        if (base.contains(oldParamWithTfo)) {
-          base = base.replaceAll(oldParamWithTfo, '');
-        } else {
-          final asQuery = '?' + oldParamWithTfo.substring(1);
-          if (base.contains(asQuery)) {
-            base = base.replaceAll(asQuery, '?');
-          }
-        }
-        if (base.endsWith('?') || base.endsWith('&')) {
-          base = base.substring(0, base.length - 1);
-        }
-      }
-    }
-
-    final newUrl = base.appendUrlParams(paramWithTfo);
-    final profile = currentProfile.copyWith(url: newUrl);
-    appController.putProfile(profile);
-    await appController.updateProfile(profile, showLoading: true);
+    await appController.updateProfile(currentProfile, showLoading: true);
   }
 
   Future<void> _updateFileInfo() async {
@@ -148,7 +117,9 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       url: widget.profile.isoixCloudProfile
           ? widget.profile.url
           : _urlController.text,
-      label: _labelController.text,
+      label: widget.profile.isoixCloudProfile
+          ? widget.profile.label
+          : _labelController.text,
       autoUpdate: _autoUpdate,
       autoUpdateDuration: Duration(
         minutes: int.parse(_autoUpdateDurationController.text),
@@ -229,6 +200,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       }
     }
     if (!mounted) return;
+    if (_rawText == null) return;
     final title = widget.profile.label.takeFirstValid([
       widget.profile.id.toString(),
     ]);
@@ -309,8 +281,8 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     _fileInfoNotifier.dispose();
     _autoUpdateDurationController.dispose();
     _oixParamsController.dispose();
-    super.dispose();
     appController.autoApplyProfile();
+    super.dispose();
   }
 
   @override
@@ -453,9 +425,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                   icon: const Icon(Icons.restore),
                   tooltip: appLocalizations.restoreDefault,
                   onPressed: () {
-                    String text = _oixParamsController.text;
-                    text = text.replaceAll(RegExp(r'&type=[^&]*'), '');
-                    _oixParamsController.text = '$text&type=love';
+                    _oixParamsController.text = _defaultParams;
                   },
                 )
               : null,

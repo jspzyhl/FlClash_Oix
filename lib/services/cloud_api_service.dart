@@ -128,7 +128,10 @@ class CloudApiService {
 
   Future<void> checkServiceHealth() async {
     try {
-      final res = await _dio.get('https://${secrets.API_DOMAIN.trim()}/check');
+      final res = await _dio.get(
+        'https://${secrets.API_DOMAIN.trim()}/check',
+        options: Options(extra: {'skipAuth': true}),
+      );
       if (res.statusCode != _httpOk) {
         throw Exception('Service unavailable (Status: ${res.statusCode})');
       }
@@ -276,17 +279,36 @@ class CloudApiService {
     return _parseUserInfo(responseDto.data!);
   }
 
-  Future<String?> getManagedUrl() async {
-    final res = await _dio.post(
-      '/managed/flclash',
-      options: Options(headers: {'X-Flclash-Key': secrets.FLCLASH_KEY.trim()}),
-    );
-    final responseDto = CloudApiResponse.fromJson(res.data);
-
-    if (responseDto.isSuccess && responseDto.smart != null) {
-      return responseDto.smart;
+  Future<(Uint8List, String?)> fetchManagedConfig(String paramString) async {
+    final queryParameters = <String, dynamic>{};
+    final cleaned = paramString.startsWith('&')
+        ? paramString.substring(1)
+        : paramString;
+    if (cleaned.isNotEmpty) {
+      Uri.splitQueryString(cleaned).forEach((k, v) {
+        queryParameters[k] = v;
+      });
     }
-    return null;
+
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/managed/flclash/direct',
+      queryParameters: queryParameters,
+      options: Options(
+        headers: {'X-Flclash-Key': secrets.FLCLASH_KEY.trim()},
+        responseType: ResponseType.json,
+      ),
+    );
+
+    if (res.statusCode != 200) {
+      throw Exception('Server returned ${res.statusCode}');
+    }
+
+    final configB64 = res.data?['config'] as String?;
+    final userinfo = res.data?['userinfo'] as String?;
+    if (configB64 == null || configB64.isEmpty) {
+      throw Exception('Empty config returned from server');
+    }
+    return (base64Decode(configB64), userinfo);
   }
 }
 
@@ -308,6 +330,7 @@ class RetryInterceptor extends Interceptor {
     if (_shouldRetry(err) && retryCount < retries) {
       retryCount++;
       extra['retryCount'] = retryCount;
+      extra['skipAuth'] = true;
 
       final delay = Duration(
         milliseconds: 500 * pow(2, retryCount).toInt(),

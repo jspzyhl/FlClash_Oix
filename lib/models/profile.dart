@@ -5,12 +5,20 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'clash_config.dart';
 import 'state.dart';
 
 part 'generated/profile.freezed.dart';
 part 'generated/profile.g.dart';
+
+typedef FetchManagedConfigCallback = Future<(Uint8List, String?)> Function(String paramString);
+FetchManagedConfigCallback? _fetchManagedConfigCallback;
+
+void registerFetchManagedConfig(FetchManagedConfigCallback callback) {
+  _fetchManagedConfigCallback = callback;
+}
 
 @freezed
 abstract class SubscriptionInfo with _$SubscriptionInfo {
@@ -30,7 +38,9 @@ abstract class SubscriptionInfo with _$SubscriptionInfo {
     Map<String, int?> map = {};
     for (final i in list) {
       final keyValue = i.trim().split('=');
-      map[keyValue[0]] = int.tryParse(keyValue[1]);
+      if (keyValue.length >= 2) {
+        map[keyValue[0]] = int.tryParse(keyValue[1]);
+      }
     }
     return SubscriptionInfo(
       upload: map['upload'] ?? 0,
@@ -171,6 +181,7 @@ extension ProfileExtension on Profile {
   String get realLabel => label.takeFirstValid([id.toString()]);
 
   bool get isoixCloudProfile {
+    if (url == 'oixcloud://managed') return true;
     final apiDomain = secrets.API_DOMAIN.trim();
     if (apiDomain.isEmpty) return false;
     return url.toLowerCase().contains(apiDomain.toLowerCase());
@@ -224,6 +235,20 @@ extension ProfileExtension on Profile {
   }
 
   Future<Profile> update() async {
+    if (isoixCloudProfile) {
+      final prefs = await SharedPreferences.getInstance();
+      final savedParams = prefs.getString('cloud_service_config_params') ?? '';
+      final tfoEnabled = prefs.getBool('cloud_service_tfo') ?? true;
+      final paramWithTfo = savedParams + (tfoEnabled ? '&tfo=true' : '&tfo=false');
+      final fetch = _fetchManagedConfigCallback;
+      if (fetch == null) throw Exception('fetchManagedConfig not registered');
+      final (bytes, userinfo) = await fetch(paramWithTfo);
+      final profileWithLabel = label.isNotEmpty ? this : copyWith(label: 'oixCloud');
+      return profileWithLabel
+          .copyWith(subscriptionInfo: SubscriptionInfo.formHString(userinfo))
+          .saveFile(bytes);
+    }
+
     final response = await request.getFileResponseForUrl(url);
     final disposition = response.headers.value('content-disposition');
     final userinfo = response.headers.value('subscription-userinfo');

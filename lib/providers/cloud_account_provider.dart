@@ -101,13 +101,9 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
       globalState.showNotifier(AppLocalizations.current.loginSuccess);
 
-      final managedUrl = await CloudApiService().getManagedUrl();
-      if (managedUrl != null && managedUrl.isNotEmpty) {
-        final injectedUrl = await _injectDefaultParams(
-          managedUrl,
-          result.profile,
-        );
-        importManagedProfile(injectedUrl);
+      if (state.isLoggedIn) {
+        final injectedUrl = await _injectDefaultParams(result.profile);
+        await importManagedProfile(injectedUrl);
       }
     } catch (e) {
       CloudApiService().setToken(null);
@@ -136,13 +132,9 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
       globalState.showNotifier(AppLocalizations.current.loginSuccess);
 
-      final managedUrl = await CloudApiService().getManagedUrl();
-      if (managedUrl != null && managedUrl.isNotEmpty) {
-        final injectedUrl = await _injectDefaultParams(
-          managedUrl,
-          userInfo.profile,
-        );
-        importManagedProfile(injectedUrl);
+      if (state.isLoggedIn) {
+        final injectedUrl = await _injectDefaultParams(userInfo.profile);
+        await importManagedProfile(injectedUrl);
       }
     } catch (e) {
       CloudApiService().setToken(null);
@@ -179,10 +171,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     }
   }
 
-  Future<String> _injectDefaultParams(
-    String baseUrl,
-    CloudProfile profile,
-  ) async {
+  Future<String> _injectDefaultParams(CloudProfile profile) async {
     final prefs = await SharedPreferences.getInstance();
     final hasSavedParams = prefs.containsKey('cloud_service_config_params');
     String savedParams = prefs.getString('cloud_service_config_params') ?? '';
@@ -214,11 +203,11 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       await prefs.setString('cloud_service_config_params', savedParams);
     }
 
-    return CloudConfigHelper.buildUrlWithParams(
-      baseUrl,
-      savedParams,
-      tfoEnabled,
-    );
+    if (!hasSavedParams) {
+      await prefs.setString('cloud_service_default_params', savedParams);
+    }
+
+    return 'oixcloud://managed';
   }
 
   Future<void> syncManagedConfig() async {
@@ -230,31 +219,22 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
           .read(profilesProvider)
           .where((p) => p.isoixCloudProfile)
           .toList();
-      final managedUrl = await CloudApiService().getManagedUrl();
-      if (managedUrl != null &&
-          managedUrl.isNotEmpty &&
-          state.profile != null) {
-        final injectedUrl = await _injectDefaultParams(
-          managedUrl,
-          state.profile!,
-        );
+      
+      if (state.profile != null) {
+        final injectedUrl = await _injectDefaultParams(state.profile!);
         if (existingProfiles.isEmpty) {
           final profile = await appController.addProfileFormURL(injectedUrl);
           if (profile != null) {
             ref.read(currentProfileIdProvider.notifier).value = profile.id;
           }
         } else {
-          for (final p in existingProfiles) {
-            if (p.url != injectedUrl) {
-              appController.putProfile(p.copyWith(url: injectedUrl));
-            }
+          for (int i = 1; i < existingProfiles.length; i++) {
+            await appController.deleteProfile(existingProfiles[i].id);
           }
           await appController.updateProfiles();
         }
-      } else {
-        if (existingProfiles.isNotEmpty) {
-          await appController.updateProfiles();
-        }
+      } else if (existingProfiles.isNotEmpty) {
+        await appController.updateProfiles();
       }
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -274,16 +254,21 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
         ref.read(currentProfileIdProvider.notifier).value = profile.id;
       }
     } else {
-      bool updated = false;
-      for (final p in existingProfiles) {
-        final profileToUpdate = p.url != url ? p.copyWith(url: url) : p;
-        try {
-          await appController.updateProfile(profileToUpdate, showLoading: true);
-          updated = true;
-        } catch (e) {
-          globalState.showNotifier(e.toString());
-        }
+      for (int i = 1; i < existingProfiles.length; i++) {
+        await appController.deleteProfile(existingProfiles[i].id);
       }
+
+      bool updated = false;
+      try {
+        await appController.updateProfile(
+          existingProfiles.first,
+          showLoading: true,
+        );
+        updated = true;
+      } catch (e) {
+        globalState.showNotifier(e.toString());
+      }
+
       if (updated) {
         globalState.showNotifier(AppLocalizations.current.getProfileSuccess);
         await appController.requestStartCore();
