@@ -61,9 +61,8 @@ class ApplicationState extends ConsumerState<Application> {
   }
 
   void _autoUpdateProfilesTask() {
-    _autoUpdateProfilesTaskTimer = Timer(const Duration(minutes: 20), () async {
+    _autoUpdateProfilesTaskTimer = Timer.periodic(const Duration(minutes: 20), (timer) async {
       await appController.autoUpdateProfiles();
-      _autoUpdateProfilesTask();
     });
   }
 
@@ -108,6 +107,54 @@ class ApplicationState extends ConsumerState<Application> {
     return StatusManager(child: ThemeManager(child: child));
   }
 
+  ThemeData _getAppTheme(ThemeData theme) {
+    return theme.copyWith(
+      listTileTheme: const ListTileThemeData(
+        mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.click),
+      ),
+      checkboxTheme: const CheckboxThemeData(
+        mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.click),
+      ),
+      radioTheme: const RadioThemeData(
+        mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.click),
+      ),
+      switchTheme: const SwitchThemeData(
+        mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.click),
+      ),
+      sliderTheme: const SliderThemeData(
+        mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.click),
+      ),
+      textButtonTheme: const TextButtonThemeData(
+        style: ButtonStyle(
+          mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.click),
+        ),
+      ),
+      filledButtonTheme: const FilledButtonThemeData(
+        style: ButtonStyle(
+          mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.click),
+        ),
+      ),
+      elevatedButtonTheme: const ElevatedButtonThemeData(
+        style: ButtonStyle(
+          mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.click),
+        ),
+      ),
+      outlinedButtonTheme: const OutlinedButtonThemeData(
+        style: ButtonStyle(
+          mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.click),
+        ),
+      ),
+      iconButtonTheme: const IconButtonThemeData(
+        style: ButtonStyle(
+          mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.click),
+        ),
+      ),
+      navigationBarTheme: const NavigationBarThemeData(
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      ),
+    );
+  }
+
   @override
   Widget build(context) {
     return Consumer(
@@ -139,22 +186,22 @@ class ApplicationState extends ConsumerState<Application> {
           locale: utils.getLocaleForString(locale),
           supportedLocales: AppLocalizations.delegate.supportedLocales,
           themeMode: themeProps.themeMode,
-          theme: ThemeData(
+          theme: _getAppTheme(ThemeData(
             useMaterial3: true,
             pageTransitionsTheme: _pageTransitionsTheme,
             colorScheme: _getAppColorScheme(
               brightness: Brightness.light,
               primaryColor: themeProps.primaryColor,
             ),
-          ),
-          darkTheme: ThemeData(
+          )),
+          darkTheme: _getAppTheme(ThemeData(
             useMaterial3: true,
             pageTransitionsTheme: _pageTransitionsTheme,
             colorScheme: _getAppColorScheme(
               brightness: Brightness.dark,
               primaryColor: themeProps.primaryColor,
             ).toPureBlack(themeProps.pureBlack),
-          ),
+          )),
           home: child!,
         );
       },

@@ -211,6 +211,7 @@ class Request {
   }
 
   Future<bool> startCoreByHelper(String arg) async {
+    if (!await pingHelper()) return false;
     try {
       final response = await dio
           .post(
@@ -230,6 +231,7 @@ class Request {
   }
 
   Future<bool> stopCoreByHelper() async {
+    if (!await pingHelper()) return false;
     try {
       final response = await dio
           .post(

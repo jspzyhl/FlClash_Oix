@@ -67,7 +67,7 @@
         <activity
             android:name=".TempActivity"
             android:excludeFromRecents="true"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/TransparentTheme">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
@@ -100,7 +100,7 @@
         <receiver
             android:name=".BroadcastReceiver"
             android:enabled="true"
-            android:exported="true"
+            android:exported="false"
             android:permission="${applicationId}.permission.RECEIVE_BROADCASTS">
             <intent-filter>
                 <action android:name="${applicationId}.intent.action.SERVICE_CREATED" />

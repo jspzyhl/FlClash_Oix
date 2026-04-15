@@ -6,12 +6,22 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:flutter/services.dart';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'generated/app.g.dart';
 
+mixin NotifierMixin<T> {
+  T get state;
+  set state(T val);
+
+  T get value => state;
+  set value(T val) => state = val;
+  void update(T Function(T state) cb) => state = cb(state);
+}
+
 @riverpod
-class RealTunEnable extends _$RealTunEnable with AutoDisposeNotifierMixin {
+class RealTunEnable extends _$RealTunEnable with NotifierMixin<bool> {
   @override
   bool build() {
     return false;
@@ -19,31 +29,31 @@ class RealTunEnable extends _$RealTunEnable with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
-class Logs extends _$Logs with AutoDisposeNotifierMixin {
+class Logs extends _$Logs with NotifierMixin<FixedList<Log>> {
   @override
   FixedList<Log> build() {
     return FixedList(0);
   }
 
   void addLog(Log value) {
-    this.value = state.copyWith()..add(value);
+    state = state.copyWith()..add(value);
   }
 }
 
 @Riverpod(keepAlive: true)
-class Requests extends _$Requests with AutoDisposeNotifierMixin {
+class Requests extends _$Requests with NotifierMixin<FixedList<TrackerInfo>> {
   @override
   FixedList<TrackerInfo> build() {
     return FixedList(0);
   }
 
   void addRequest(TrackerInfo value) {
-    this.value = state.copyWith()..add(value);
+    state = state.copyWith()..add(value);
   }
 }
 
 @Riverpod(keepAlive: true)
-class Providers extends _$Providers with AutoDisposeNotifierMixin {
+class Providers extends _$Providers with NotifierMixin<List<ExternalProvider>> {
   @override
   List<ExternalProvider> build() {
     return [];
@@ -51,15 +61,15 @@ class Providers extends _$Providers with AutoDisposeNotifierMixin {
 
   void setProvider(ExternalProvider? provider) {
     if (provider == null) return;
-    final index = value.indexWhere((item) => item.name == provider.name);
+    final index = state.indexWhere((item) => item.name == provider.name);
     if (index == -1) return;
-    final newState = List<ExternalProvider>.from(value)..[index] = provider;
-    value = newState;
+    final newState = List<ExternalProvider>.from(state)..[index] = provider;
+    state = newState;
   }
 }
 
 @Riverpod(keepAlive: true)
-class Packages extends _$Packages with AutoDisposeNotifierMixin {
+class Packages extends _$Packages with NotifierMixin<List<Package>> {
   @override
   List<Package> build() {
     return [];
@@ -68,7 +78,7 @@ class Packages extends _$Packages with AutoDisposeNotifierMixin {
 
 @Riverpod(keepAlive: true)
 class SystemBrightness extends _$SystemBrightness
-    with AutoDisposeNotifierMixin {
+    with NotifierMixin<Brightness> {
   @override
   Brightness build() {
     return Brightness.dark;
@@ -76,23 +86,23 @@ class SystemBrightness extends _$SystemBrightness
 }
 
 @Riverpod(keepAlive: true)
-class Traffics extends _$Traffics with AutoDisposeNotifierMixin {
+class Traffics extends _$Traffics with NotifierMixin<FixedList<Traffic>> {
   @override
   FixedList<Traffic> build() {
     return FixedList(0);
   }
 
   void addTraffic(Traffic value) {
-    this.value = state.copyWith()..add(value);
+    state = state.copyWith()..add(value);
   }
 
   void clear() {
-    value = state.copyWith()..clear();
+    state = state.copyWith()..clear();
   }
 }
 
 @Riverpod(keepAlive: true)
-class TotalTraffic extends _$TotalTraffic with AutoDisposeNotifierMixin {
+class TotalTraffic extends _$TotalTraffic with NotifierMixin<Traffic> {
   @override
   Traffic build() {
     return Traffic();
@@ -100,7 +110,7 @@ class TotalTraffic extends _$TotalTraffic with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
-class LocalIp extends _$LocalIp with AutoDisposeNotifierMixin {
+class LocalIp extends _$LocalIp with NotifierMixin<String?> {
   @override
   String? build() {
     return null;
@@ -108,7 +118,7 @@ class LocalIp extends _$LocalIp with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
-class RunTime extends _$RunTime with AutoDisposeNotifierMixin {
+class RunTime extends _$RunTime with NotifierMixin<int?> {
   @override
   int? build() {
     return null;
@@ -116,7 +126,7 @@ class RunTime extends _$RunTime with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
-class ViewSize extends _$ViewSize with AutoDisposeNotifierMixin {
+class ViewSize extends _$ViewSize with NotifierMixin<Size> {
   @override
   Size build() {
     return Size.zero;
@@ -124,7 +134,7 @@ class ViewSize extends _$ViewSize with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
-class SideWidth extends _$SideWidth with AutoDisposeNotifierMixin {
+class SideWidth extends _$SideWidth with NotifierMixin<double> {
   @override
   double build() {
     return 0;
@@ -152,7 +162,7 @@ double viewHeight(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
-class Init extends _$Init with AutoDisposeNotifierMixin {
+class Init extends _$Init with NotifierMixin<bool> {
   @override
   bool build() {
     return false;
@@ -161,7 +171,7 @@ class Init extends _$Init with AutoDisposeNotifierMixin {
 
 @Riverpod(keepAlive: true)
 class CurrentPageLabel extends _$CurrentPageLabel
-    with AutoDisposeNotifierMixin {
+    with NotifierMixin<PageLabel> {
   @override
   PageLabel build() {
     return PageLabel.dashboard;
@@ -169,7 +179,7 @@ class CurrentPageLabel extends _$CurrentPageLabel
 }
 
 @Riverpod(keepAlive: true)
-class SortNum extends _$SortNum with AutoDisposeNotifierMixin {
+class SortNum extends _$SortNum with NotifierMixin<int> {
   @override
   int build() {
     return 0;
@@ -179,7 +189,7 @@ class SortNum extends _$SortNum with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
-class CheckIpNum extends _$CheckIpNum with AutoDisposeNotifierMixin {
+class CheckIpNum extends _$CheckIpNum with NotifierMixin<int> {
   @override
   int build() {
     return 0;
@@ -189,7 +199,7 @@ class CheckIpNum extends _$CheckIpNum with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
-class BackBlock extends _$BackBlock with AutoDisposeNotifierMixin {
+class BackBlock extends _$BackBlock with NotifierMixin<bool> {
   @override
   bool build() {
     return false;
@@ -197,7 +207,7 @@ class BackBlock extends _$BackBlock with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
-class Version extends _$Version with AutoDisposeNotifierMixin {
+class Version extends _$Version with NotifierMixin<int> {
   @override
   int build() {
     return 0;
@@ -205,7 +215,7 @@ class Version extends _$Version with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
-class Groups extends _$Groups with AutoDisposeNotifierMixin {
+class Groups extends _$Groups with NotifierMixin<List<Group>> {
   @override
   List<Group> build() {
     return [];
@@ -213,7 +223,7 @@ class Groups extends _$Groups with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
-class DelayDataSource extends _$DelayDataSource with AutoDisposeNotifierMixin {
+class DelayDataSource extends _$DelayDataSource with NotifierMixin<DelayMap> {
   @override
   DelayMap build() {
     return {};
@@ -226,14 +236,14 @@ class DelayDataSource extends _$DelayDataSource with AutoDisposeNotifierMixin {
         newDelayMap[delay.url] = {};
       }
       newDelayMap[delay.url]![delay.name] = delay.value;
-      value = newDelayMap;
+      state = newDelayMap;
     }
   }
 }
 
 @Riverpod(keepAlive: true)
 class SystemUiOverlayStyleState extends _$SystemUiOverlayStyleState
-    with AutoDisposeNotifierMixin {
+    with NotifierMixin<SystemUiOverlayStyle> {
   @override
   SystemUiOverlayStyle build() {
     return SystemUiOverlayStyle();
@@ -241,7 +251,7 @@ class SystemUiOverlayStyleState extends _$SystemUiOverlayStyleState
 }
 
 @Riverpod(name: 'coreStatusProvider', keepAlive: true)
-class _CoreStatus extends _$CoreStatus with AutoDisposeNotifierMixin {
+class _CoreStatus extends _$CoreStatus with NotifierMixin<CoreStatus> {
   @override
   CoreStatus build() {
     return CoreStatus.disconnected;
@@ -249,7 +259,7 @@ class _CoreStatus extends _$CoreStatus with AutoDisposeNotifierMixin {
 }
 
 @riverpod
-class Query extends _$Query with AutoDisposeNotifierMixin {
+class Query extends _$Query with NotifierMixin<String> {
   @override
   String build(QueryTag tag) {
     return '';
@@ -257,7 +267,7 @@ class Query extends _$Query with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
-class Loading extends _$Loading with AutoDisposeNotifierMixin {
+class Loading extends _$Loading with NotifierMixin<bool> {
   DateTime? _start;
   Timer? _timer;
 
@@ -270,32 +280,32 @@ class Loading extends _$Loading with AutoDisposeNotifierMixin {
     _timer?.cancel();
     _timer = null;
     _start = DateTime.now();
-    value = true;
+    state = true;
   }
 
   Future<void> stop() async {
     if (_start == null) {
-      value = false;
+      state = false;
       return;
     }
     final startedAt = _start!;
     final elapsed = DateTime.now().difference(_start!).inMilliseconds;
     const minDuration = 1000;
     if (elapsed >= minDuration) {
-      value = false;
+      state = false;
       return;
     }
     _timer = Timer(Duration(milliseconds: minDuration - elapsed), () {
       if (_start != startedAt) {
         return;
       }
-      value = false;
+      state = false;
     });
   }
 }
 
 @riverpod
-class SelectedItems extends _$SelectedItems with AutoDisposeNotifierMixin {
+class SelectedItems extends _$SelectedItems with NotifierMixin<Set<dynamic>> {
   @override
   Set<dynamic> build(String key) {
     return {};
@@ -303,7 +313,7 @@ class SelectedItems extends _$SelectedItems with AutoDisposeNotifierMixin {
 }
 
 @riverpod
-class SelectedItem extends _$SelectedItem with AutoDisposeNotifierMixin {
+class SelectedItem extends _$SelectedItem with NotifierMixin<dynamic> {
   @override
   dynamic build(String key) {
     return null;
@@ -311,7 +321,7 @@ class SelectedItem extends _$SelectedItem with AutoDisposeNotifierMixin {
 }
 
 @riverpod
-class IsUpdating extends _$IsUpdating with AutoDisposeNotifierMixin {
+class IsUpdating extends _$IsUpdating with NotifierMixin<bool> {
   @override
   bool build(String name) {
     return false;
@@ -320,7 +330,7 @@ class IsUpdating extends _$IsUpdating with AutoDisposeNotifierMixin {
 
 @Riverpod(keepAlive: true)
 class NetworkDetection extends _$NetworkDetection
-    with AutoDisposeNotifierMixin {
+    with NotifierMixin<NetworkDetectionState> {
   bool? _preIsStart;
   CancelToken? _cancelToken;
   int _startMillisecondsEpoch = 0;

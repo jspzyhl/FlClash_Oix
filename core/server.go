@@ -6,8 +6,10 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"strconv"
+	"time"
 )
 
 var conn net.Conn
@@ -39,13 +41,22 @@ func startServer(arg string) {
 
 	_, err := strconv.Atoi(arg)
 
-	if err != nil {
-		conn, err = net.Dial("unix", arg)
-	} else {
-		conn, err = net.Dial("tcp", fmt.Sprintf("127.0.0.1:%s", arg))
+	var dialErr error
+	for i := 0; i < 5; i++ {
+		if err != nil {
+			conn, dialErr = net.Dial("unix", arg)
+		} else {
+			conn, dialErr = net.Dial("tcp", fmt.Sprintf("127.0.0.1:%s", arg))
+		}
+		if dialErr == nil {
+			break
+		}
+		time.Sleep(time.Second)
 	}
-	if err != nil {
-		panic(err.Error())
+
+	if dialErr != nil {
+		log.Println("Connection failed:", dialErr)
+		return
 	}
 
 	defer func(conn net.Conn) {

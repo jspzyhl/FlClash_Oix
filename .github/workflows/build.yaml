@@ -123,7 +123,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: master
-          flutter-version: 3.35.7
+          flutter-version: 3.41.6
           cache: true
 
       - name: Get Flutter Dependency
@@ -160,6 +160,8 @@ jobs:
           overwrite: true
 
   changelog:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     needs: [ version, build ]
     steps:
@@ -176,7 +178,8 @@ jobs:
           
           tags=($(git tag --merged HEAD --sort=-creatordate))
           
-          temp="NEW_CHANGELOG.md" > "$temp"
+          temp="NEW_CHANGELOG.md"
+          > "$temp"
           
           for i in "${!tags[@]}"; do
               curr="${tags[i]}"
@@ -235,7 +238,8 @@ jobs:
         run: |
           tags=($(git tag --merged HEAD --sort=-creatordate))
           preTag=$(curl -s "https://api.github.com/repos/pickrui/FlClash/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")' || echo "")
-          out="release.md" > "$out"
+          out="release.md"
+          > "$out"
           for i in "${!tags[@]}"; do
             curr="${tags[i]}"
             [[ "$curr" == "$preTag" ]] && break

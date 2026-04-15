@@ -40,6 +40,8 @@ class Tray {
     return 'assets/images/icon/status_3.$trayIconSuffix';
   }
 
+  String? _lastIconPath;
+
   Future _updateSystemTray({
     required bool isStart,
     required bool tunEnable,
@@ -47,10 +49,14 @@ class Tray {
     if (Platform.isLinux) {
       await trayManager.destroy();
     }
-    await trayManager.setIcon(
-      getTryIcon(isStart: isStart, tunEnable: tunEnable),
-      isTemplate: true,
-    );
+    final iconPath = getTryIcon(isStart: isStart, tunEnable: tunEnable);
+    if (_lastIconPath != iconPath) {
+      _lastIconPath = iconPath;
+      await trayManager.setIcon(
+        iconPath,
+        isTemplate: true,
+      );
+    }
     if (!Platform.isLinux) {
       await trayManager.setToolTip(appName);
     }
@@ -190,8 +196,12 @@ class Tray {
         tunEnable: trayState.tunEnable,
       );
     }
+    // _updateTrayTitle could be optimized too, but it's okay to call frequently since 
+    // it reflects traffic which changes quickly
     updateTrayTitle(showTrayTitle: trayState.showTrayTitle, traffic: traffic);
   }
+
+  String? _lastTitle;
 
   Future<void> updateTrayTitle({
     required bool showTrayTitle,
@@ -200,10 +210,10 @@ class Tray {
     if (!system.isMacOS) {
       return;
     }
-    if (!showTrayTitle) {
-      await trayManager.setTitle('');
-    } else {
-      await trayManager.setTitle(traffic.trayTitle);
+    final title = !showTrayTitle ? '' : traffic.trayTitle;
+    if (_lastTitle != title) {
+      _lastTitle = title;
+      await trayManager.setTitle(title);
     }
   }
 
