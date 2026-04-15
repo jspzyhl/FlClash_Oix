@@ -94,8 +94,11 @@ class System {
 
     if (system.isMacOS) {
       final escapedPath = corePath.replaceAll("'", "'\\''");
-      final bashString = "chown root:admin '$escapedPath' && chmod +sx '$escapedPath'";
-      final appleScriptString = bashString.replaceAll('\\', '\\\\').replaceAll('"', '\\"');
+      final bashString =
+          "chown root:admin '$escapedPath' && chmod +sx '$escapedPath'";
+      final appleScriptString = bashString
+          .replaceAll('\\', '\\\\')
+          .replaceAll('"', '\\"');
       final arguments = [
         '-e',
         'do shell script "$appleScriptString" with administrator privileges',

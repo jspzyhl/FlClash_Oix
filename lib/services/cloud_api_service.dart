@@ -74,7 +74,9 @@ class CloudApiService {
               _cachedToken!.isNotEmpty) {
             if (options.method == 'POST' || options.method == 'PUT') {
               if (options.data == null) {
-                options.data = FormData.fromMap({'access_token': _cachedToken!});
+                options.data = FormData.fromMap({
+                  'access_token': _cachedToken!,
+                });
               } else if (options.data is Map) {
                 options.data['access_token'] = _cachedToken;
               } else if (options.data is FormData) {

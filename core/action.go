@@ -158,14 +158,6 @@ func handleAction(action *Action, result ActionResult) {
 		}
 		result.success(configInfo)
 		return
-	case decryptBytesToYamlMethod:
-		data, err := decodeAndDecrypt(action.Data.(string))
-		if err != nil {
-			result.error(err)
-			return
-		}
-		result.success(string(data))
-		return
 	case closeConnectionMethod:
 		id := action.Data.(string)
 		result.success(handleCloseConnection(id))

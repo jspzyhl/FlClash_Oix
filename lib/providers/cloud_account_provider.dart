@@ -213,7 +213,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
           .read(profilesProvider)
           .where((p) => p.isoixCloudProfile)
           .toList();
-      
+
       if (state.profile != null) {
         final injectedUrl = await _injectDefaultParams(state.profile!);
         if (existingProfiles.isEmpty) {

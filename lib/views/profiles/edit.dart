@@ -59,7 +59,8 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     if (!widget.profile.isoixCloudProfile) return;
     final prefs = await SharedPreferences.getInstance();
     final rawParams = prefs.getString('cloud_service_config_params') ?? '';
-    final defaultParamsStr = prefs.getString('cloud_service_default_params') ?? '';
+    final defaultParamsStr =
+        prefs.getString('cloud_service_default_params') ?? '';
     final tfoObj = prefs.getBool('cloud_service_tfo');
 
     final parseResult = CloudConfigHelper.parseTfoParams(rawParams, tfoObj);
@@ -73,7 +74,9 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
     if (mounted) {
       setState(() {
-        _defaultParams = defaultParamsStr.isNotEmpty ? defaultParamsStr : displayParams;
+        _defaultParams = defaultParamsStr.isNotEmpty
+            ? defaultParamsStr
+            : displayParams;
         _oixParamsController.text = displayParams;
       });
     }
@@ -188,19 +191,13 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   }
 
   Future<void> _editProfileFile() async {
+    if (widget.profile.isoixCloudProfile) {
+      return;
+    }
     if (_rawText == null) {
-      if (widget.profile.isoixCloudProfile) {
-        final cachedBytes = oixCloudConfigCache[widget.profile.id];
-        if (cachedBytes != null) {
-          final base64String = base64Encode(cachedBytes);
-          final configMap = await coreController.getConfigFromBytes(base64String);
-          _rawText = await encodeYamlTask(configMap);
-        }
-      } else {
-        final file = await widget.profile.file;
-        if (await file.exists()) {
-          _rawText = await file.readAsString();
-        }
+      final file = await widget.profile.file;
+      if (await file.exists()) {
+        _rawText = await file.readAsString();
       }
     }
     if (!mounted) return;
@@ -208,36 +205,28 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     final title = widget.profile.label.takeFirstValid([
       widget.profile.id.toString(),
     ]);
-    final isoixCloud = widget.profile.isoixCloudProfile;
-    final displayContent = isoixCloud
-        ? _rawText!.maskProfileContent
-        : _rawText!;
 
     final editorPage = EditorPage(
       title: title,
-      content: displayContent,
-      onSave: isoixCloud
-          ? null
-          : (context, _, content) {
-              _handleSaveEdit(context, content);
-            },
-      onPop: isoixCloud
-          ? null
-          : (context, _, content) async {
-              if (content == _rawText) {
-                return true;
-              }
-              final res = await globalState.showMessage(
-                title: title,
-                message: TextSpan(text: appLocalizations.hasCacheChange),
-              );
-              if (res == true && context.mounted) {
-                _handleSaveEdit(context, content);
-              } else {
-                return true;
-              }
-              return false;
-            },
+      content: _rawText!,
+      onSave: (context, _, content) {
+        _handleSaveEdit(context, content);
+      },
+      onPop: (context, _, content) async {
+        if (content == _rawText) {
+          return true;
+        }
+        final res = await globalState.showMessage(
+          title: title,
+          message: TextSpan(text: appLocalizations.hasCacheChange),
+        );
+        if (res == true && context.mounted) {
+          _handleSaveEdit(context, content);
+        } else {
+          return true;
+        }
+        return false;
+      },
     );
     final data = await BaseNavigator.push<String>(context, editorPage);
     if (data == null) {

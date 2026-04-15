@@ -11,7 +11,7 @@ const defaultTun = Tun();
 const defaultDns = Dns();
 const defaultGeoXUrl = GeoXUrl();
 
-const defaultMixedPort = 8899;
+const defaultMixedPort = 7890;
 const defaultKeepAliveInterval = 30;
 
 const defaultBypassPrivateRouteAddress = [
@@ -442,8 +442,8 @@ abstract class ClashConfigSnippet with _$ClashConfigSnippet {
 abstract class ClashConfig with _$ClashConfig {
   const factory ClashConfig({
     @Default(defaultMixedPort) @JsonKey(name: 'mixed-port') int mixedPort,
-    @Default(6153) @JsonKey(name: 'socks-port') int socksPort,
-    @Default(6152) @JsonKey(name: 'port') int port,
+    @Default(0) @JsonKey(name: 'socks-port') int socksPort,
+    @Default(0) @JsonKey(name: 'port') int port,
     @Default(0) @JsonKey(name: 'redir-port') int redirPort,
     @Default(0) @JsonKey(name: 'tproxy-port') int tproxyPort,
     @Default(Mode.rule) Mode mode,

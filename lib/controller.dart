@@ -256,9 +256,8 @@ extension ProfilesControllerExt on AppController {
     for (final profile in _ref.read(profilesProvider)) {
       if (!profile.autoUpdate || profile.type == ProfileType.file) continue;
 
-      bool shouldUpdate = profile.lastUpdateDate
-              ?.add(profile.autoUpdateDuration)
-              .isBeforeNow ??
+      bool shouldUpdate =
+          profile.lastUpdateDate?.add(profile.autoUpdateDuration).isBeforeNow ??
           true;
 
       if (profile.isoixCloudProfile &&
@@ -734,8 +733,9 @@ extension SetupControllerExt on AppController {
     final routeMode = networkVM2.b;
     final profile = _ref.read(profilesProvider).getProfile(profileId);
     Map<String, dynamic> configMap;
-    final cachedBytes =
-        profile != null ? oixCloudConfigCache[profile.id] : null;
+    final cachedBytes = profile != null
+        ? oixCloudConfigCache[profile.id]
+        : null;
     if (cachedBytes != null) {
       final base64String = base64Encode(cachedBytes);
       configMap = await coreController.getConfigFromBytes(base64String);
@@ -1101,9 +1101,9 @@ extension BackupControllerExt on AppController {
   }
 
   Future<void> restore(RestoreOption option) async {
-    // Note: When restoring a backup, oixCloud profiles might be reloaded. 
-    // Since oixCloud cache is empty and tokens are not backed up (they reside in SharedPreferences), 
-    // restoring might prompt the user to login again when standard update fails. 
+    // Note: When restoring a backup, oixCloud profiles might be reloaded.
+    // Since oixCloud cache is empty and tokens are not backed up (they reside in SharedPreferences),
+    // restoring might prompt the user to login again when standard update fails.
     // This is an intended security design.
     final restoreDirPath = await appPath.restoreDirPath;
     final restoreDir = Directory(restoreDirPath);

@@ -40,7 +40,7 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
       await prefs.setString('cloud_service_config_params', newParams);
       await prefs.setBool('cloud_service_tfo', result.tfoEnabled);
     }
-    
+
     if (mounted) {
       setState(() {
         _savedParams = newParams;

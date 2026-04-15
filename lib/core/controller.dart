@@ -230,10 +230,6 @@ class CoreController {
     }
   }
 
-  Future<String> decryptBytesToYaml(String base64String) async {
-    return await _interface.decryptBytesToYaml(base64String);
-  }
-
   Future<Traffic> getTraffic(bool onlyStatisticsProxy) async {
     final trafficString = await _interface.getTraffic(onlyStatisticsProxy);
     if (trafficString.isEmpty) {

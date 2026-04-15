@@ -15,7 +15,8 @@ import 'state.dart';
 part 'generated/profile.freezed.dart';
 part 'generated/profile.g.dart';
 
-typedef FetchManagedConfigCallback = Future<(Uint8List, String?)> Function(String paramString);
+typedef FetchManagedConfigCallback =
+    Future<(Uint8List, String?)> Function(String paramString);
 FetchManagedConfigCallback? _fetchManagedConfigCallback;
 final Map<int, Uint8List> oixCloudConfigCache = {};
 
@@ -230,7 +231,8 @@ extension ProfileExtension on Profile {
       final prefs = await SharedPreferences.getInstance();
       final savedParams = prefs.getString('cloud_service_config_params') ?? '';
       final tfoEnabled = prefs.getBool('cloud_service_tfo') ?? true;
-      final paramWithTfo = savedParams + (tfoEnabled ? '&tfo=true' : '&tfo=false');
+      final paramWithTfo =
+          savedParams + (tfoEnabled ? '&tfo=true' : '&tfo=false');
       final fetch = _fetchManagedConfigCallback;
       if (fetch == null) throw Exception('fetchManagedConfig not registered');
       // Ensure token is injected even if CloudAccountNotifier._init() hasn't completed yet
@@ -239,7 +241,9 @@ extension ProfileExtension on Profile {
         CloudApiService().setToken(token);
       }
       final (bytes, userinfo) = await fetch(paramWithTfo);
-      final profileWithLabel = label.isNotEmpty ? this : copyWith(label: 'oixCloud');
+      final profileWithLabel = label.isNotEmpty
+          ? this
+          : copyWith(label: 'oixCloud');
       return profileWithLabel
           .copyWith(subscriptionInfo: SubscriptionInfo.formHString(userinfo))
           .saveFile(bytes);
@@ -260,7 +264,9 @@ extension ProfileExtension on Profile {
   Future<Profile> saveFile(Uint8List bytes) async {
     if (isoixCloudProfile) {
       final base64String = base64Encode(bytes);
-      final message = await coreController.validateConfigWithBytes(base64String);
+      final message = await coreController.validateConfigWithBytes(
+        base64String,
+      );
       commonPrint.log('validateConfigWithBytes result: "$message"');
       if (message.isNotEmpty) {
         commonPrint.log('validateConfig failed', logLevel: LogLevel.warning);

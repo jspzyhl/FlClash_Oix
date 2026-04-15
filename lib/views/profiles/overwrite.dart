@@ -29,34 +29,11 @@ class _OverwriteViewState extends ConsumerState<OverwriteView> {
     super.initState();
   }
 
-  Future<void> _handlePreview() async {
-    final profile = ref.read(profileProvider(widget.profileId));
-    if (profile == null) {
-      return;
-    }
-    final configMap = await appController.getProfileWithId(profile.id);
-    final content = await encodeYamlTask(configMap);
-    if (!mounted) {
-      return;
-    }
-    final previewPage = EditorPage(title: profile.realLabel, content: content);
-    BaseNavigator.push<String>(context, previewPage);
-  }
-
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider(widget.profileId));
     return CommonScaffold(
       title: appLocalizations.override,
-      actions: [
-        CommonMinFilledButtonTheme(
-          child: FilledButton(
-            onPressed: _handlePreview,
-            child: Text(appLocalizations.preview),
-          ),
-        ),
-        SizedBox(width: 8),
-      ],
       body: CustomScrollView(
         slivers: [_Title(widget.profileId), _Content(widget.profileId)],
       ),

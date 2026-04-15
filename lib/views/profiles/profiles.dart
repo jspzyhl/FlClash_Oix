@@ -187,24 +187,8 @@ class ProfileItem extends StatelessWidget {
   }
 
   Future<void> _handlePreview(BuildContext context) async {
-    String content;
-    if (profile.isoixCloudProfile) {
-      final cachedBytes = oixCloudConfigCache[profile.id];
-      if (cachedBytes == null) {
-        globalState.showNotifier('oixCloud profile cache miss');
-        return;
-      }
-      final base64String = base64Encode(cachedBytes);
-      final yaml = await coreController.decryptBytesToYaml(base64String);
-      if (yaml.isEmpty) {
-        globalState.showNotifier('Failed to decrypt oixCloud profile');
-        return;
-      }
-      content = yaml.maskProfileContent;
-    } else {
-      final configMap = await appController.getProfileWithId(profile.id);
-      content = await encodeYamlTask(configMap);
-    }
+    final configMap = await appController.getProfileWithId(profile.id);
+    final content = await encodeYamlTask(configMap);
     if (!context.mounted) {
       return;
     }
@@ -320,13 +304,14 @@ class ProfileItem extends StatelessWidget {
                                 _handleShowEditExtendPage(context);
                               },
                             ),
-                            PopupMenuItemData(
-                              icon: Icons.visibility_outlined,
-                              label: appLocalizations.preview,
-                              onPressed: () {
-                                _handlePreview(context);
-                              },
-                            ),
+                            if (!profile.isoixCloudProfile)
+                              PopupMenuItemData(
+                                icon: Icons.visibility_outlined,
+                                label: appLocalizations.preview,
+                                onPressed: () {
+                                  _handlePreview(context);
+                                },
+                              ),
                             if (profile.type == ProfileType.url) ...[
                               PopupMenuItemData(
                                 icon: Icons.sync_alt_sharp,

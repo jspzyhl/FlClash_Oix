@@ -345,7 +345,9 @@ Future<MigrationData> _oldToNowTask(
     vpnPropsRaw['accessControlProps'] = vpnPropsRaw['accessControl'];
   }
   configMap['davProps'] = configMap['dav'];
-  final appSettingProps = (configMap['appSetting'] as Map?)?.cast<String, Object?>() ?? <String, Object?>{};
+  final appSettingProps =
+      (configMap['appSetting'] as Map?)?.cast<String, Object?>() ??
+      <String, Object?>{};
   appSettingProps['restoreStrategy'] = appSettingProps['recoveryStrategy'];
   configMap['appSettingProps'] = appSettingProps;
   configMap['proxiesStyleProps'] = configMap['proxiesStyle'];

@@ -222,7 +222,6 @@ enum ActionMethod {
   updateConfig,
   getConfig,
   getConfigFromBytes,
-  decryptBytesToYaml,
   getProxies,
   changeProxy,
   getTraffic,

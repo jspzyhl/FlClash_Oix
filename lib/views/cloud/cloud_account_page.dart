@@ -154,7 +154,9 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
               icon: const Icon(Icons.refresh),
               label: Text(AppLocalizations.current.refresh),
               onPressed: () {
-                ref.read(cloudAccountProvider.notifier).refreshProfile(force: true);
+                ref
+                    .read(cloudAccountProvider.notifier)
+                    .refreshProfile(force: true);
               },
             ),
           ],

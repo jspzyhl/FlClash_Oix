@@ -108,7 +108,6 @@ const (
 	crashMethod                    Method = "crash"
 	setupConfigMethod              Method = "setupConfig"
 	getConfigFromBytesMethod       Method = "getConfigFromBytes"
-	decryptBytesToYamlMethod       Method = "decryptBytesToYaml"
 	getConfigMethod                Method = "getConfig"
 	deleteFile                     Method = "deleteFile"
 )

@@ -409,28 +409,37 @@ class BuildCommand extends Command {
     required String env,
   }) async {
     await Build.getDistributor();
-    
+
     // Get version from environment variables if available
     final versionNumber = Platform.environment['FLUTTER_VERSION_NUMBER'];
     final buildNumber = Platform.environment['FLUTTER_BUILD_NUMBER'];
-    
+
     // Update pubspec.yaml with version from environment if available
     if (versionNumber != null && buildNumber != null) {
       await _updatePubspecVersion(versionNumber, buildNumber);
     }
-    
+
     // Use custom artifact name template to exclude version number and -setup suffix
-    const artifactNameTemplate = 'flclash-{{platform}}{{#description}}-{{description}}{{/description}}.{{ext}}';
+    const artifactNameTemplate =
+        'flclash-{{platform}}{{#description}}-{{description}}{{/description}}.{{ext}}';
     final profileKey = Platform.environment['PROFILE_KEY']?.trim();
     final baseDomain = Platform.environment['BASE_DOMAIN']?.trim();
     final oixApiDomain = Platform.environment['API_DOMAIN']?.trim();
     final flclashKey = Platform.environment['FLCLASH_KEY']?.trim();
-    
+
     var dartDefines = '--build-dart-define=APP_ENV=$env';
-    if (profileKey != null && profileKey.isNotEmpty) dartDefines += ' --build-dart-define=PROFILE_KEY=$profileKey';
-    if (baseDomain != null && baseDomain.isNotEmpty) dartDefines += ' --build-dart-define=BASE_DOMAIN=$baseDomain';
-    if (oixApiDomain != null && oixApiDomain.isNotEmpty) dartDefines += ' --build-dart-define=API_DOMAIN=$oixApiDomain';
-    if (flclashKey != null && flclashKey.isNotEmpty) dartDefines += ' --build-dart-define=FLCLASH_KEY=$flclashKey';
+    if (profileKey != null && profileKey.isNotEmpty) {
+      dartDefines += ' --build-dart-define=PROFILE_KEY=$profileKey';
+    }
+    if (baseDomain != null && baseDomain.isNotEmpty) {
+      dartDefines += ' --build-dart-define=BASE_DOMAIN=$baseDomain';
+    }
+    if (oixApiDomain != null && oixApiDomain.isNotEmpty) {
+      dartDefines += ' --build-dart-define=API_DOMAIN=$oixApiDomain';
+    }
+    if (flclashKey != null && flclashKey.isNotEmpty) {
+      dartDefines += ' --build-dart-define=FLCLASH_KEY=$flclashKey';
+    }
 
     await Build.exec(
       name: name,
@@ -447,21 +456,29 @@ class BuildCommand extends Command {
   }) async {
     final versionNumber = Platform.environment['FLUTTER_VERSION_NUMBER'];
     final buildNumber = Platform.environment['FLUTTER_BUILD_NUMBER'];
-    
+
     if (versionNumber != null && buildNumber != null) {
       await _updatePubspecVersion(versionNumber, buildNumber);
     }
-    
+
     final profileKey = Platform.environment['PROFILE_KEY']?.trim();
     final baseDomain = Platform.environment['BASE_DOMAIN']?.trim();
     final oixApiDomain = Platform.environment['API_DOMAIN']?.trim();
     final flclashKey = Platform.environment['FLCLASH_KEY']?.trim();
-    
+
     var dartDefines = '--dart-define=APP_ENV=$env';
-    if (profileKey != null && profileKey.isNotEmpty) dartDefines += ' --dart-define=PROFILE_KEY=$profileKey';
-    if (baseDomain != null && baseDomain.isNotEmpty) dartDefines += ' --dart-define=BASE_DOMAIN=$baseDomain';
-    if (oixApiDomain != null && oixApiDomain.isNotEmpty) dartDefines += ' --dart-define=API_DOMAIN=$oixApiDomain';
-    if (flclashKey != null && flclashKey.isNotEmpty) dartDefines += ' --dart-define=FLCLASH_KEY=$flclashKey';
+    if (profileKey != null && profileKey.isNotEmpty) {
+      dartDefines += ' --dart-define=PROFILE_KEY=$profileKey';
+    }
+    if (baseDomain != null && baseDomain.isNotEmpty) {
+      dartDefines += ' --dart-define=BASE_DOMAIN=$baseDomain';
+    }
+    if (oixApiDomain != null && oixApiDomain.isNotEmpty) {
+      dartDefines += ' --dart-define=API_DOMAIN=$oixApiDomain';
+    }
+    if (flclashKey != null && flclashKey.isNotEmpty) {
+      dartDefines += ' --dart-define=FLCLASH_KEY=$flclashKey';
+    }
 
     await Build.exec(
       name: name,
@@ -469,15 +486,26 @@ class BuildCommand extends Command {
         'flutter build apk --target-platform $targetPlatform $dartDefines',
       ),
     );
-    
+
     final distDir = Directory(join(current, 'dist'));
     if (!await distDir.exists()) {
       await distDir.create(recursive: true);
     }
-    
-    final sourceApk = File(join(current, 'build', 'app', 'outputs', 'flutter-apk', 'app-release.apk'));
+
+    final sourceApk = File(
+      join(
+        current,
+        'build',
+        'app',
+        'outputs',
+        'flutter-apk',
+        'app-release.apk',
+      ),
+    );
     if (await sourceApk.exists()) {
-      final targetApk = File(join(distDir.path, 'flclash-android-$archName.apk'));
+      final targetApk = File(
+        join(distDir.path, 'flclash-android-$archName.apk'),
+      );
       await sourceApk.copy(targetApk.path);
       print('✓ Built APK: ${targetApk.path}');
     } else {
@@ -488,16 +516,16 @@ class BuildCommand extends Command {
   Future<void> _updatePubspecVersion(String version, String buildNumber) async {
     final pubspecPath = join(current, 'pubspec.yaml');
     final pubspecFile = File(pubspecPath);
-    
+
     if (!await pubspecFile.exists()) {
       print('Warning: pubspec.yaml not found');
       return;
     }
-    
+
     final content = await pubspecFile.readAsString();
     final lines = content.split('\n');
     final updatedLines = <String>[];
-    
+
     for (final line in lines) {
       if (line.startsWith('version:')) {
         updatedLines.add('version: $version+$buildNumber');
@@ -506,7 +534,7 @@ class BuildCommand extends Command {
         updatedLines.add(line);
       }
     }
-    
+
     await pubspecFile.writeAsString(updatedLines.join('\n'));
   }
 
@@ -587,7 +615,7 @@ class BuildCommand extends Command {
           Arch.arm64: 'arm64-v8a',
           Arch.amd64: 'x86_64',
         };
-        
+
         if (arch != null) {
           await _buildAndroidApkDirect(
             targetPlatform: targetMap[arch]!,

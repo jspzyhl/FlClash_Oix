@@ -25,8 +25,6 @@ mixin CoreInterface {
 
   Future<Result> getConfigFromBytes(String data);
 
-  Future<String> decryptBytesToYaml(String base64String);
-
   Future<String> asyncTestDelay(String url, String proxyName);
 
   Future<String> updateConfig(UpdateParams updateParams);
@@ -122,7 +120,8 @@ abstract class CoreHandlerInterface with CoreInterface {
 
   Future<T> parasResult<T>(ActionResult result) async {
     return switch (result.method) {
-      ActionMethod.getConfig || ActionMethod.getConfigFromBytes => result.toResult as T,
+      ActionMethod.getConfig ||
+      ActionMethod.getConfigFromBytes => result.toResult as T,
       _ => result.data as T,
     };
   }
@@ -178,20 +177,20 @@ abstract class CoreHandlerInterface with CoreInterface {
 
   @override
   Future<Result> getConfig(String path) async {
-    final res = await _invoke<Result>(method: ActionMethod.getConfig, data: path);
+    final res = await _invoke<Result>(
+      method: ActionMethod.getConfig,
+      data: path,
+    );
     return res ?? Result.success({});
   }
 
   @override
   Future<Result> getConfigFromBytes(String data) async {
-    final res = await _invoke<Result>(method: ActionMethod.getConfigFromBytes, data: data);
+    final res = await _invoke<Result>(
+      method: ActionMethod.getConfigFromBytes,
+      data: data,
+    );
     return res ?? Result.success({});
-  }
-
-  @override
-  Future<String> decryptBytesToYaml(String base64String) async {
-    final res = await _invoke<String>(method: ActionMethod.decryptBytesToYaml, data: base64String);
-    return res ?? '';
   }
 
   @override

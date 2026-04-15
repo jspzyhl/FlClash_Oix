@@ -272,7 +272,6 @@ const _$ActionMethodEnumMap = {
   ActionMethod.updateConfig: 'updateConfig',
   ActionMethod.getConfig: 'getConfig',
   ActionMethod.getConfigFromBytes: 'getConfigFromBytes',
-  ActionMethod.decryptBytesToYaml: 'decryptBytesToYaml',
   ActionMethod.getProxies: 'getProxies',
   ActionMethod.changeProxy: 'changeProxy',
   ActionMethod.getTraffic: 'getTraffic',
