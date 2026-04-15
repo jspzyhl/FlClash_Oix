@@ -36,7 +36,7 @@ func setMaskedAddrs(isOix bool, proxies map[string]constant.Proxy) {
 			val = addr
 		}
 
-		if val != "" && len(val) >= 4 && val != "127.0.0.1" && val != "localhost" && !seen[val] {
+		if val != "" && len(val) >= 4 && val != "127.0.0.1" && val != "localhost" && val != "0.0.0.0" && val != "::1" && !seen[val] {
 			seen[val] = true
 			replacerArgs = append(replacerArgs, val, "***")
 		}

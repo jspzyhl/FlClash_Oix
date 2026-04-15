@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"unsafe"
+
+	"github.com/metacubex/mihomo/config"
 )
 
 type Action struct {
@@ -32,8 +35,28 @@ func (result ActionResult) success(data interface{}) {
 
 func (result ActionResult) error(data interface{}) {
 	result.Code = -1
-	result.Data = data
+	if err, ok := data.(error); ok {
+		result.Data = err.Error()
+	} else {
+		result.Data = data
+	}
 	result.send()
+}
+
+func decodeAndDecrypt(base64Str string) ([]byte, error) {
+	decoded, err := base64.StdEncoding.DecodeString(base64Str)
+	if err != nil {
+		return nil, err
+	}
+	data := decoded
+	if len(data) >= 5 && string(data[:4]) == "FLEN" && data[4] == 0x02 {
+		decrypted, err := DecryptFlClash(data)
+		if err != nil {
+			return nil, err
+		}
+		data = decrypted
+	}
+	return data, nil
 }
 
 func handleAction(action *Action, result ActionResult) {
@@ -55,6 +78,19 @@ func handleAction(action *Action, result ActionResult) {
 	case validateConfigMethod:
 		path := action.Data.(string)
 		result.success(handleValidateConfig(path))
+		return
+	case validateConfigWithBytesMethod:
+		data, err := decodeAndDecrypt(action.Data.(string))
+		if err != nil {
+			result.success(err.Error())
+			return
+		}
+		_, err = config.UnmarshalRawConfig(data)
+		if err != nil {
+			result.success(err.Error())
+		} else {
+			result.success("")
+		}
 		return
 	case updateConfigMethod:
 		data := []byte(action.Data.(string))
@@ -102,12 +138,33 @@ func handleAction(action *Action, result ActionResult) {
 		return
 	case getConfigMethod:
 		path := action.Data.(string)
-		config, err := handleGetConfig(path)
+		configInfo, err := handleGetConfig(path)
 		if err != nil {
 			result.error(err)
 			return
 		}
-		result.success(config)
+		result.success(configInfo)
+		return
+	case getConfigFromBytesMethod:
+		data, err := decodeAndDecrypt(action.Data.(string))
+		if err != nil {
+			result.error(err)
+			return
+		}
+		configInfo, err := config.UnmarshalRawConfig(data)
+		if err != nil {
+			result.error(err)
+			return
+		}
+		result.success(configInfo)
+		return
+	case decryptBytesToYamlMethod:
+		data, err := decodeAndDecrypt(action.Data.(string))
+		if err != nil {
+			result.error(err)
+			return
+		}
+		result.success(string(data))
 		return
 	case closeConnectionMethod:
 		id := action.Data.(string)

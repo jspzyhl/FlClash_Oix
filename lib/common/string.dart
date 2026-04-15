@@ -122,21 +122,43 @@ extension StringExtension on String {
   }
 
   String get maskProfileContent {
-    final content = replaceAllMapped(
-      RegExp(
-        r'(^|\s)(server|password|uuid|port|host|sni|servername|ws-path|ws-headers|public-key|private-key|short-id):([ \t]*)([^\r\n]+)',
-      ),
-      (match) {
-        return '${match.group(1)}${match.group(2)}:${match.group(3)}******';
-      },
-    );
-
-    final lines = content.split('\n');
+    final lines = split('\n');
     final newLines = <String>[];
     bool inPolicy = false;
     int policyIndent = 0;
+    bool inProxies = false;
+    int proxiesIndent = 0;
 
     for (final line in lines) {
+      // Handle proxies block: mask each proxy entry but keep name
+      if (inProxies) {
+        if (line.trim().isEmpty) {
+          newLines.add(line);
+          continue;
+        }
+        final indent = line.length - line.trimLeft().length;
+        if (indent > proxiesIndent) {
+          final hasCr = line.endsWith('\r');
+          final cr = hasCr ? '\r' : '';
+          final trimmed = line.trim().replaceAll(cr, '');
+          // Extract name field if present
+          final nameMatch = RegExp('name:\\s*\'([^\']*)\'|name:\\s*"([^"]*)"|name:\\s*([^,}\\s]+)').firstMatch(trimmed);
+          var name = nameMatch?.group(1) ?? nameMatch?.group(2) ?? nameMatch?.group(3) ?? '';
+          if (name.endsWith(',')) {
+            name = name.substring(0, name.length - 1);
+          }
+          final prefix = ' ' * indent;
+          if (name.isNotEmpty) {
+            newLines.add("$prefix- {name: '$name', ...}$cr");
+          } else {
+            newLines.add('$prefix- {...}$cr');
+          }
+          continue;
+        } else {
+          inProxies = false;
+        }
+      }
+
       if (inPolicy) {
         if (line.trim().isEmpty) {
           newLines.add(line);
@@ -150,8 +172,17 @@ extension StringExtension on String {
         }
       }
 
-      if (!inPolicy) {
+      if (!inProxies && !inPolicy) {
         final trimLine = line.trim();
+
+        // Detect proxies: / proxy-providers: block
+        if (trimLine == 'proxies:' || trimLine == 'proxy-providers:') {
+          proxiesIndent = line.length - line.trimLeft().length;
+          inProxies = true;
+          newLines.add(line);
+          continue;
+        }
+
         final isTarget =
             trimLine == 'nameserver-policy:' ||
             trimLine.startsWith('nameserver-policy: ');

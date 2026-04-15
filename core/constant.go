@@ -80,6 +80,7 @@ const (
 	getIsInitMethod                Method = "getIsInit"
 	forceGcMethod                  Method = "forceGc"
 	shutdownMethod                 Method = "shutdown"
+	validateConfigWithBytesMethod  Method = "validateConfigWithBytes"
 	validateConfigMethod           Method = "validateConfig"
 	updateConfigMethod             Method = "updateConfig"
 	getProxiesMethod               Method = "getProxies"
@@ -106,6 +107,8 @@ const (
 	updateDnsMethod                Method = "updateDns"
 	crashMethod                    Method = "crash"
 	setupConfigMethod              Method = "setupConfig"
+	getConfigFromBytesMethod       Method = "getConfigFromBytes"
+	decryptBytesToYamlMethod       Method = "decryptBytesToYaml"
 	getConfigMethod                Method = "getConfig"
 	deleteFile                     Method = "deleteFile"
 )

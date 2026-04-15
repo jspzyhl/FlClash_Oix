@@ -40,7 +40,6 @@ abstract class CloudAccountState with _$CloudAccountState {
     @Default(false) bool isRefreshing,
     @Default(false) bool isSyncing,
     @Default(false) bool isLoggedIn,
-    String? token,
     CloudProfile? profile,
     CloudNotification? latestNotification,
     String? error,

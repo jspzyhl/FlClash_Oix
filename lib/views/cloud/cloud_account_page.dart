@@ -144,7 +144,22 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
 
   Widget _buildLoggedIn(CloudAccountState state) {
     if (state.profile == null) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              icon: const Icon(Icons.refresh),
+              label: Text(AppLocalizations.current.refresh),
+              onPressed: () {
+                ref.read(cloudAccountProvider.notifier).refreshProfile(force: true);
+              },
+            ),
+          ],
+        ),
+      );
     }
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -238,7 +253,7 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
     );
   }
 
-  void _handleLogout() async {
+  Future<void> _handleLogout() async {
     final res = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

@@ -35,7 +35,6 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
 
     final result = CloudConfigHelper.parseTfoParams(value, tfoObj);
     var newParams = result.params;
-    if (newParams.isNotEmpty) newParams = '&$newParams';
 
     if (result.needsUpdate) {
       await prefs.setString('cloud_service_config_params', newParams);
@@ -56,7 +55,6 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
 
     final result = CloudConfigHelper.parseTfoParams(newParams, currentTfo);
     var text = result.params;
-    if (text.isNotEmpty) text = '&$text';
 
     setState(() {
       _savedParams = text;

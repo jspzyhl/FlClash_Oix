@@ -180,10 +180,18 @@ class _CloudLoginPageState extends ConsumerState<CloudLoginPage> {
     return TextFormField(
       controller: _tokenController,
       enabled: !isLoading,
-      maxLines: 4,
+      maxLines: _obscurePassword ? 1 : 4,
+      obscureText: _obscurePassword,
       decoration: InputDecoration(
         labelText: AppLocalizations.current.tokenLabel,
         border: const OutlineInputBorder(),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+          ),
+          onPressed: () =>
+              setState(() => _obscurePassword = !_obscurePassword),
+        ),
       ),
       validator: (v) =>
           v?.isEmpty == true ? AppLocalizations.current.tokenValidation : null,

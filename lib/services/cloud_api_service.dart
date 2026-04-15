@@ -280,35 +280,42 @@ class CloudApiService {
   }
 
   Future<(Uint8List, String?)> fetchManagedConfig(String paramString) async {
-    final queryParameters = <String, dynamic>{};
-    final cleaned = paramString.startsWith('&')
-        ? paramString.substring(1)
-        : paramString;
-    if (cleaned.isNotEmpty) {
-      Uri.splitQueryString(cleaned).forEach((k, v) {
-        queryParameters[k] = v;
-      });
-    }
+    try {
+      final queryParameters = <String, dynamic>{};
+      final cleaned = paramString.startsWith('&')
+          ? paramString.substring(1)
+          : paramString;
+      if (cleaned.isNotEmpty) {
+        Uri.splitQueryString(cleaned).forEach((k, v) {
+          queryParameters[k] = v;
+        });
+      }
 
-    final res = await _dio.get<Map<String, dynamic>>(
-      '/managed/flclash/direct',
-      queryParameters: queryParameters,
-      options: Options(
-        headers: {'X-Flclash-Key': secrets.FLCLASH_KEY.trim()},
-        responseType: ResponseType.json,
-      ),
-    );
+      final res = await _dio.get<Map<String, dynamic>>(
+        '/managed/flclash/direct',
+        queryParameters: queryParameters,
+        options: Options(
+          headers: {'X-Flclash-Key': secrets.FLCLASH_KEY.trim()},
+          responseType: ResponseType.json,
+        ),
+      );
 
-    if (res.statusCode != 200) {
-      throw Exception('Server returned ${res.statusCode}');
-    }
+      if (res.statusCode != 200) {
+        throw Exception('Server returned ${res.statusCode}');
+      }
 
-    final configB64 = res.data?['config'] as String?;
-    final userinfo = res.data?['userinfo'] as String?;
-    if (configB64 == null || configB64.isEmpty) {
-      throw Exception('Empty config returned from server');
+      final configB64 = res.data?['config'] as String?;
+      final userinfo = res.data?['userinfo'] as String?;
+      if (configB64 == null || configB64.isEmpty) {
+        throw Exception('Empty config returned from server');
+      }
+      return (base64Decode(configB64), userinfo);
+    } catch (e) {
+      if (e is DioException) {
+        throw Exception('Network error: ${e.type.name}');
+      }
+      rethrow;
     }
-    return (base64Decode(configB64), userinfo);
   }
 }
 

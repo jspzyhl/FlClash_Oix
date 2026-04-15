@@ -4,6 +4,13 @@ import (
 	"cmp"
 	"context"
 	"encoding/json"
+	"net"
+	"os"
+	"runtime"
+	"runtime/debug"
+	"strconv"
+	"time"
+
 	"github.com/metacubex/mihomo/adapter"
 	"github.com/metacubex/mihomo/adapter/outboundgroup"
 	"github.com/metacubex/mihomo/common/observable"
@@ -21,12 +28,6 @@ import (
 	"github.com/metacubex/mihomo/tunnel"
 	"github.com/metacubex/mihomo/tunnel/statistic"
 	"golang.org/x/exp/slices"
-	"net"
-	"os"
-	"runtime"
-	"runtime/debug"
-	"strconv"
-	"time"
 )
 
 var (
@@ -106,7 +107,7 @@ func handleValidateConfig(path string) string {
 			prefix = prefix[:30]
 		}
 		// Return exactly what the parser was trying to read so we can see it in Dart logs!
-		return "Parse Error: " + err.Error() + " | Bytes Prefix: " + string(prefix)
+		return "Parse Error: " + err.Error()
 	}
 	return ""
 }

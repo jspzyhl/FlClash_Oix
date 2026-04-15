@@ -64,8 +64,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
     final parseResult = CloudConfigHelper.parseTfoParams(rawParams, tfoObj);
     final cleanParams = parseResult.params;
-    final displayParams =
-        cleanParams.isNotEmpty ? '&$cleanParams' : cleanParams;
+    final displayParams = cleanParams;
 
     if (parseResult.needsUpdate) {
       await prefs.setBool('cloud_service_tfo', parseResult.tfoEnabled);
@@ -99,6 +98,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   }
 
   Future<void> _updateFileInfo() async {
+    if (widget.profile.isoixCloudProfile) return;
     final file = await widget.profile.file;
     if (!await file.exists()) {
       return;
@@ -189,12 +189,16 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
   Future<void> _editProfileFile() async {
     if (_rawText == null) {
-      final file = await widget.profile.file;
-      if (await file.exists()) {
-        if (widget.profile.isoixCloudProfile) {
-          final configMap = await coreController.getConfig(file.path);
+      if (widget.profile.isoixCloudProfile) {
+        final cachedBytes = oixCloudConfigCache[widget.profile.id];
+        if (cachedBytes != null) {
+          final base64String = base64Encode(cachedBytes);
+          final configMap = await coreController.getConfigFromBytes(base64String);
           _rawText = await encodeYamlTask(configMap);
-        } else {
+        }
+      } else {
+        final file = await widget.profile.file;
+        if (await file.exists()) {
           _rawText = await file.readAsString();
         }
       }

@@ -80,6 +80,11 @@ class CoreController {
     return res;
   }
 
+  Future<String> validateConfigWithBytes(String data) async {
+    final res = await _interface.validateConfigWithBytes(data);
+    return res;
+  }
+
   Future<String> validateConfigWithData(String data) async {
     final path = await appPath.tempFilePath;
     final file = File(path);
@@ -211,6 +216,22 @@ class CoreController {
     } else {
       throw res.message;
     }
+  }
+
+  Future<Map<String, dynamic>> getConfigFromBytes(String dataStr) async {
+    final res = await _interface.getConfigFromBytes(dataStr);
+    if (res.isSuccess) {
+      final data = Map<String, dynamic>.from(res.data);
+      data['rules'] = data['rule'];
+      data.remove('rule');
+      return data;
+    } else {
+      throw res.message;
+    }
+  }
+
+  Future<String> decryptBytesToYaml(String base64String) async {
+    return await _interface.decryptBytesToYaml(base64String);
   }
 
   Future<Traffic> getTraffic(bool onlyStatisticsProxy) async {

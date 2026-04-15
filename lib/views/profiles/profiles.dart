@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
@@ -51,8 +54,11 @@ class _ProfilesViewState extends State<ProfilesView> {
       try {
         await appController.updateProfile(profile, showLoading: true);
       } catch (e) {
+        final message = profile.isoixCloudProfile
+            ? e.runtimeType.toString()
+            : e.toString();
         messages.add(
-          UpdatingMessage(label: profile.realLabel, message: e.toString()),
+          UpdatingMessage(label: profile.realLabel, message: message),
         );
       }
     });
@@ -181,10 +187,23 @@ class ProfileItem extends StatelessWidget {
   }
 
   Future<void> _handlePreview(BuildContext context) async {
-    final configMap = await appController.getProfileWithId(profile.id);
-    var content = await encodeYamlTask(configMap);
+    String content;
     if (profile.isoixCloudProfile) {
-      content = content.maskProfileContent;
+      final cachedBytes = oixCloudConfigCache[profile.id];
+      if (cachedBytes == null) {
+        globalState.showNotifier('oixCloud profile cache miss');
+        return;
+      }
+      final base64String = base64Encode(cachedBytes);
+      final yaml = await coreController.decryptBytesToYaml(base64String);
+      if (yaml.isEmpty) {
+        globalState.showNotifier('Failed to decrypt oixCloud profile');
+        return;
+      }
+      content = yaml.maskProfileContent;
+    } else {
+      final configMap = await appController.getProfileWithId(profile.id);
+      content = await encodeYamlTask(configMap);
     }
     if (!context.mounted) {
       return;
@@ -196,7 +215,6 @@ class ProfileItem extends StatelessWidget {
 
   Future updateProfile() async {
     if (profile.type == ProfileType.file) return;
-    try {} finally {}
     await appController.loadingRun(() async {
       await appController.updateProfile(profile, showLoading: true);
     }, tag: LoadingTag.profiles);
@@ -246,6 +264,7 @@ class ProfileItem extends StatelessWidget {
   }
 
   Future<void> _handleExportFile(BuildContext context) async {
+    if (profile.isoixCloudProfile) return;
     final res = await appController.safeRun<bool>(() async {
       final mFile = await profile.file;
       final value = await picker.saveFile(

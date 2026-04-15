@@ -42,7 +42,6 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       } catch (_) {}
 
       state = state.copyWith(
-        token: token,
         isLoggedIn: true,
         profile: cachedProfile,
         latestNotification: cachedNotification,
@@ -74,6 +73,8 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     await prefs.remove('cloud_profile');
     await prefs.remove('cloud_notification');
     await prefs.remove('cloud_service_config_params');
+    await prefs.remove('cloud_service_default_params');
+    await prefs.remove('cloud_service_tfo');
   }
 
   Future<void> signInWithPassword({
@@ -94,17 +95,14 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       state = state.copyWith(
         isLoading: false,
         isLoggedIn: true,
-        token: token,
         profile: result.profile,
         latestNotification: result.announcement,
       );
 
       globalState.showNotifier(AppLocalizations.current.loginSuccess);
 
-      if (state.isLoggedIn) {
-        final injectedUrl = await _injectDefaultParams(result.profile);
-        await importManagedProfile(injectedUrl);
-      }
+      final injectedUrl = await _injectDefaultParams(result.profile);
+      await importManagedProfile(injectedUrl);
     } catch (e) {
       CloudApiService().setToken(null);
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -125,17 +123,14 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       state = state.copyWith(
         isLoading: false,
         isLoggedIn: true,
-        token: token,
         profile: userInfo.profile,
         latestNotification: userInfo.announcement,
       );
 
       globalState.showNotifier(AppLocalizations.current.loginSuccess);
 
-      if (state.isLoggedIn) {
-        final injectedUrl = await _injectDefaultParams(userInfo.profile);
-        await importManagedProfile(injectedUrl);
-      }
+      final injectedUrl = await _injectDefaultParams(userInfo.profile);
+      await importManagedProfile(injectedUrl);
     } catch (e) {
       CloudApiService().setToken(null);
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -192,7 +187,6 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     bool tfoEnabled = parseResult.tfoEnabled;
     bool needsUpdate = parseResult.needsUpdate;
     savedParams = parseResult.params;
-    if (savedParams.isNotEmpty) savedParams = '&$savedParams';
 
     if (needsUpdate) {
       await prefs.setBool('cloud_service_tfo', tfoEnabled);

@@ -570,7 +570,7 @@ as DateTime,
 /// @nodoc
 mixin _$CloudAccountState {
 
- bool get isLoading; bool get isRefreshing; bool get isSyncing; bool get isLoggedIn; String? get token; CloudProfile? get profile; CloudNotification? get latestNotification; String? get error;
+ bool get isLoading; bool get isRefreshing; bool get isSyncing; bool get isLoggedIn; CloudProfile? get profile; CloudNotification? get latestNotification; String? get error;
 /// Create a copy of CloudAccountState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -581,16 +581,16 @@ $CloudAccountStateCopyWith<CloudAccountState> get copyWith => _$CloudAccountStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CloudAccountState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isRefreshing, isRefreshing) || other.isRefreshing == isRefreshing)&&(identical(other.isSyncing, isSyncing) || other.isSyncing == isSyncing)&&(identical(other.isLoggedIn, isLoggedIn) || other.isLoggedIn == isLoggedIn)&&(identical(other.token, token) || other.token == token)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.latestNotification, latestNotification) || other.latestNotification == latestNotification)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CloudAccountState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isRefreshing, isRefreshing) || other.isRefreshing == isRefreshing)&&(identical(other.isSyncing, isSyncing) || other.isSyncing == isSyncing)&&(identical(other.isLoggedIn, isLoggedIn) || other.isLoggedIn == isLoggedIn)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.latestNotification, latestNotification) || other.latestNotification == latestNotification)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,isLoading,isRefreshing,isSyncing,isLoggedIn,token,profile,latestNotification,error);
+int get hashCode => Object.hash(runtimeType,isLoading,isRefreshing,isSyncing,isLoggedIn,profile,latestNotification,error);
 
 @override
 String toString() {
-  return 'CloudAccountState(isLoading: $isLoading, isRefreshing: $isRefreshing, isSyncing: $isSyncing, isLoggedIn: $isLoggedIn, token: $token, profile: $profile, latestNotification: $latestNotification, error: $error)';
+  return 'CloudAccountState(isLoading: $isLoading, isRefreshing: $isRefreshing, isSyncing: $isSyncing, isLoggedIn: $isLoggedIn, profile: $profile, latestNotification: $latestNotification, error: $error)';
 }
 
 
@@ -601,7 +601,7 @@ abstract mixin class $CloudAccountStateCopyWith<$Res>  {
   factory $CloudAccountStateCopyWith(CloudAccountState value, $Res Function(CloudAccountState) _then) = _$CloudAccountStateCopyWithImpl;
 @useResult
 $Res call({
- bool isLoading, bool isRefreshing, bool isSyncing, bool isLoggedIn, String? token, CloudProfile? profile, CloudNotification? latestNotification, String? error
+ bool isLoading, bool isRefreshing, bool isSyncing, bool isLoggedIn, CloudProfile? profile, CloudNotification? latestNotification, String? error
 });
 
 
@@ -618,14 +618,13 @@ class _$CloudAccountStateCopyWithImpl<$Res>
 
 /// Create a copy of CloudAccountState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? isRefreshing = null,Object? isSyncing = null,Object? isLoggedIn = null,Object? token = freezed,Object? profile = freezed,Object? latestNotification = freezed,Object? error = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? isRefreshing = null,Object? isSyncing = null,Object? isLoggedIn = null,Object? profile = freezed,Object? latestNotification = freezed,Object? error = freezed,}) {
   return _then(_self.copyWith(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isRefreshing: null == isRefreshing ? _self.isRefreshing : isRefreshing // ignore: cast_nullable_to_non_nullable
 as bool,isSyncing: null == isSyncing ? _self.isSyncing : isSyncing // ignore: cast_nullable_to_non_nullable
 as bool,isLoggedIn: null == isLoggedIn ? _self.isLoggedIn : isLoggedIn // ignore: cast_nullable_to_non_nullable
-as bool,token: freezed == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
-as String?,profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
+as bool,profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
 as CloudProfile?,latestNotification: freezed == latestNotification ? _self.latestNotification : latestNotification // ignore: cast_nullable_to_non_nullable
 as CloudNotification?,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -737,10 +736,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  bool isRefreshing,  bool isSyncing,  bool isLoggedIn,  String? token,  CloudProfile? profile,  CloudNotification? latestNotification,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  bool isRefreshing,  bool isSyncing,  bool isLoggedIn,  CloudProfile? profile,  CloudNotification? latestNotification,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CloudAccountState() when $default != null:
-return $default(_that.isLoading,_that.isRefreshing,_that.isSyncing,_that.isLoggedIn,_that.token,_that.profile,_that.latestNotification,_that.error);case _:
+return $default(_that.isLoading,_that.isRefreshing,_that.isSyncing,_that.isLoggedIn,_that.profile,_that.latestNotification,_that.error);case _:
   return orElse();
 
 }
@@ -758,10 +757,10 @@ return $default(_that.isLoading,_that.isRefreshing,_that.isSyncing,_that.isLogge
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  bool isRefreshing,  bool isSyncing,  bool isLoggedIn,  String? token,  CloudProfile? profile,  CloudNotification? latestNotification,  String? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  bool isRefreshing,  bool isSyncing,  bool isLoggedIn,  CloudProfile? profile,  CloudNotification? latestNotification,  String? error)  $default,) {final _that = this;
 switch (_that) {
 case _CloudAccountState():
-return $default(_that.isLoading,_that.isRefreshing,_that.isSyncing,_that.isLoggedIn,_that.token,_that.profile,_that.latestNotification,_that.error);case _:
+return $default(_that.isLoading,_that.isRefreshing,_that.isSyncing,_that.isLoggedIn,_that.profile,_that.latestNotification,_that.error);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -778,10 +777,10 @@ return $default(_that.isLoading,_that.isRefreshing,_that.isSyncing,_that.isLogge
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  bool isRefreshing,  bool isSyncing,  bool isLoggedIn,  String? token,  CloudProfile? profile,  CloudNotification? latestNotification,  String? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  bool isRefreshing,  bool isSyncing,  bool isLoggedIn,  CloudProfile? profile,  CloudNotification? latestNotification,  String? error)?  $default,) {final _that = this;
 switch (_that) {
 case _CloudAccountState() when $default != null:
-return $default(_that.isLoading,_that.isRefreshing,_that.isSyncing,_that.isLoggedIn,_that.token,_that.profile,_that.latestNotification,_that.error);case _:
+return $default(_that.isLoading,_that.isRefreshing,_that.isSyncing,_that.isLoggedIn,_that.profile,_that.latestNotification,_that.error);case _:
   return null;
 
 }
@@ -793,14 +792,13 @@ return $default(_that.isLoading,_that.isRefreshing,_that.isSyncing,_that.isLogge
 
 
 class _CloudAccountState implements CloudAccountState {
-  const _CloudAccountState({this.isLoading = false, this.isRefreshing = false, this.isSyncing = false, this.isLoggedIn = false, this.token, this.profile, this.latestNotification, this.error});
+  const _CloudAccountState({this.isLoading = false, this.isRefreshing = false, this.isSyncing = false, this.isLoggedIn = false, this.profile, this.latestNotification, this.error});
   
 
 @override@JsonKey() final  bool isLoading;
 @override@JsonKey() final  bool isRefreshing;
 @override@JsonKey() final  bool isSyncing;
 @override@JsonKey() final  bool isLoggedIn;
-@override final  String? token;
 @override final  CloudProfile? profile;
 @override final  CloudNotification? latestNotification;
 @override final  String? error;
@@ -815,16 +813,16 @@ _$CloudAccountStateCopyWith<_CloudAccountState> get copyWith => __$CloudAccountS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CloudAccountState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isRefreshing, isRefreshing) || other.isRefreshing == isRefreshing)&&(identical(other.isSyncing, isSyncing) || other.isSyncing == isSyncing)&&(identical(other.isLoggedIn, isLoggedIn) || other.isLoggedIn == isLoggedIn)&&(identical(other.token, token) || other.token == token)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.latestNotification, latestNotification) || other.latestNotification == latestNotification)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CloudAccountState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isRefreshing, isRefreshing) || other.isRefreshing == isRefreshing)&&(identical(other.isSyncing, isSyncing) || other.isSyncing == isSyncing)&&(identical(other.isLoggedIn, isLoggedIn) || other.isLoggedIn == isLoggedIn)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.latestNotification, latestNotification) || other.latestNotification == latestNotification)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,isLoading,isRefreshing,isSyncing,isLoggedIn,token,profile,latestNotification,error);
+int get hashCode => Object.hash(runtimeType,isLoading,isRefreshing,isSyncing,isLoggedIn,profile,latestNotification,error);
 
 @override
 String toString() {
-  return 'CloudAccountState(isLoading: $isLoading, isRefreshing: $isRefreshing, isSyncing: $isSyncing, isLoggedIn: $isLoggedIn, token: $token, profile: $profile, latestNotification: $latestNotification, error: $error)';
+  return 'CloudAccountState(isLoading: $isLoading, isRefreshing: $isRefreshing, isSyncing: $isSyncing, isLoggedIn: $isLoggedIn, profile: $profile, latestNotification: $latestNotification, error: $error)';
 }
 
 
@@ -835,7 +833,7 @@ abstract mixin class _$CloudAccountStateCopyWith<$Res> implements $CloudAccountS
   factory _$CloudAccountStateCopyWith(_CloudAccountState value, $Res Function(_CloudAccountState) _then) = __$CloudAccountStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool isLoading, bool isRefreshing, bool isSyncing, bool isLoggedIn, String? token, CloudProfile? profile, CloudNotification? latestNotification, String? error
+ bool isLoading, bool isRefreshing, bool isSyncing, bool isLoggedIn, CloudProfile? profile, CloudNotification? latestNotification, String? error
 });
 
 
@@ -852,14 +850,13 @@ class __$CloudAccountStateCopyWithImpl<$Res>
 
 /// Create a copy of CloudAccountState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? isRefreshing = null,Object? isSyncing = null,Object? isLoggedIn = null,Object? token = freezed,Object? profile = freezed,Object? latestNotification = freezed,Object? error = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? isRefreshing = null,Object? isSyncing = null,Object? isLoggedIn = null,Object? profile = freezed,Object? latestNotification = freezed,Object? error = freezed,}) {
   return _then(_CloudAccountState(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isRefreshing: null == isRefreshing ? _self.isRefreshing : isRefreshing // ignore: cast_nullable_to_non_nullable
 as bool,isSyncing: null == isSyncing ? _self.isSyncing : isSyncing // ignore: cast_nullable_to_non_nullable
 as bool,isLoggedIn: null == isLoggedIn ? _self.isLoggedIn : isLoggedIn // ignore: cast_nullable_to_non_nullable
-as bool,token: freezed == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
-as String?,profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
+as bool,profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
 as CloudProfile?,latestNotification: freezed == latestNotification ? _self.latestNotification : latestNotification // ignore: cast_nullable_to_non_nullable
 as CloudNotification?,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,

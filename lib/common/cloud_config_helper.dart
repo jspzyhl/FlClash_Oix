@@ -22,9 +22,11 @@ class CloudConfigHelper {
     );
 
     newParams = newParams.replaceAll(RegExp(r'&+'), '&');
-    if (newParams.startsWith('&')) newParams = newParams.substring(1);
     if (newParams.endsWith('&')) {
       newParams = newParams.substring(0, newParams.length - 1);
+    }
+    if (newParams.isNotEmpty && !newParams.startsWith('&')) {
+      newParams = '&$newParams';
     }
 
     return (
@@ -32,42 +34,5 @@ class CloudConfigHelper {
       tfoEnabled: tfoEnabled,
       needsUpdate: needsUpdate,
     );
-  }
-
-  static String buildUrlWithParams(
-    String baseUrl,
-    String savedParams,
-    bool tfoEnabled,
-  ) {
-    String cleanParams = savedParams.replaceAll(RegExp(r'&+'), '&');
-    if (cleanParams.startsWith('&')) cleanParams = cleanParams.substring(1);
-    if (cleanParams.endsWith('&')) {
-      cleanParams = cleanParams.substring(0, cleanParams.length - 1);
-    }
-
-    String query = '';
-    if (cleanParams.isNotEmpty) query += '$cleanParams&';
-    query += 'tfo=${tfoEnabled ? "true" : "false"}';
-
-    String base = baseUrl;
-    String ext = '';
-    final extMatch = RegExp(r'\.([a-zA-Z0-9]+)$').firstMatch(base);
-    if (extMatch != null) {
-      ext = extMatch.group(0)!;
-      base = base.substring(0, base.length - ext.length);
-    }
-
-    if (base.contains('?')) {
-      if (!base.endsWith('?') && !base.endsWith('&')) {
-        base += '&';
-      }
-    } else {
-      base += '?';
-    }
-
-    var newUrl = base + query;
-    newUrl = newUrl.replaceAll('?&', '?').replaceAll('&&', '&');
-    newUrl += ext;
-    return newUrl;
   }
 }

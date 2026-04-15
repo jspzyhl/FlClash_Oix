@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/services/cloud_api_service.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,6 +17,7 @@ part 'generated/profile.g.dart';
 
 typedef FetchManagedConfigCallback = Future<(Uint8List, String?)> Function(String paramString);
 FetchManagedConfigCallback? _fetchManagedConfigCallback;
+final Map<int, Uint8List> oixCloudConfigCache = {};
 
 void registerFetchManagedConfig(FetchManagedConfigCallback callback) {
   _fetchManagedConfigCallback = callback;
@@ -192,6 +195,10 @@ extension ProfileExtension on Profile {
   String get updatingKey => 'profile_$id';
 
   Future<Profile?> checkAndUpdateAndCopy() async {
+    if (isoixCloudProfile) {
+      if (oixCloudConfigCache.containsKey(id)) return null;
+      return update();
+    }
     final mFile = await _getFile(false);
     final isExists = await mFile.exists();
     if (isExists || url.isEmpty) {
@@ -201,30 +208,14 @@ extension ProfileExtension on Profile {
   }
 
   Future<File> _getFile([bool autoCreate = true]) async {
-    final fileName = isoixCloudProfile ? '.${id.toString()}' : id.toString();
+    final fileName = id.toString();
     final path = await appPath.getProfilePath(fileName);
     final file = File(path);
-
-    if (isoixCloudProfile) {
-      final oldPath = await appPath.getProfilePath(id.toString());
-      final oldFile = File(oldPath);
-      final oldIsExists = await oldFile.exists();
-      if (oldIsExists) {
-        await oldFile.rename(path);
-      }
-    }
 
     final isExists = await file.exists();
     if (!isExists && autoCreate) {
       final createdFile = await file.create(recursive: true);
-      if (isoixCloudProfile) {
-        await system.hideFile(path);
-      }
       return createdFile;
-    }
-
-    if (isoixCloudProfile && isExists) {
-      await system.hideFile(path);
     }
 
     return file;
@@ -242,6 +233,11 @@ extension ProfileExtension on Profile {
       final paramWithTfo = savedParams + (tfoEnabled ? '&tfo=true' : '&tfo=false');
       final fetch = _fetchManagedConfigCallback;
       if (fetch == null) throw Exception('fetchManagedConfig not registered');
+      // Ensure token is injected even if CloudAccountNotifier._init() hasn't completed yet
+      final token = prefs.getString('cloud_token');
+      if (token != null && token.isNotEmpty) {
+        CloudApiService().setToken(token);
+      }
       final (bytes, userinfo) = await fetch(paramWithTfo);
       final profileWithLabel = label.isNotEmpty ? this : copyWith(label: 'oixCloud');
       return profileWithLabel
@@ -262,21 +258,30 @@ extension ProfileExtension on Profile {
   }
 
   Future<Profile> saveFile(Uint8List bytes) async {
+    if (isoixCloudProfile) {
+      final base64String = base64Encode(bytes);
+      final message = await coreController.validateConfigWithBytes(base64String);
+      commonPrint.log('validateConfigWithBytes result: "$message"');
+      if (message.isNotEmpty) {
+        commonPrint.log('validateConfig failed', logLevel: LogLevel.warning);
+        throw message;
+      }
+      oixCloudConfigCache[id] = bytes;
+      return copyWith(lastUpdateDate: DateTime.now());
+    }
+
     final path = await appPath.tempFilePath;
     final tempFile = File(path);
     await tempFile.safeWriteAsBytes(bytes);
     commonPrint.log('====== saveFile bytes length: ${bytes.length}');
     final message = await coreController.validateConfig(path);
-    commonPrint.log('====== validateConfig Message: $message');
     if (message.isNotEmpty) {
+      commonPrint.log('====== validateConfig Message: $message');
       throw message;
     }
     final mFile = await file;
     await tempFile.copy(mFile.path);
     await tempFile.safeDelete();
-    if (isoixCloudProfile) {
-      await system.hideFile(mFile.path);
-    }
     return copyWith(lastUpdateDate: DateTime.now());
   }
 
@@ -287,9 +292,6 @@ extension ProfileExtension on Profile {
     }
     final mFile = await file;
     await File(path).copy(mFile.path);
-    if (isoixCloudProfile) {
-      await system.hideFile(mFile.path);
-    }
     return copyWith(lastUpdateDate: DateTime.now());
   }
 }

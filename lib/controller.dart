@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi' hide Size;
 import 'dart:io';
 
@@ -235,6 +236,7 @@ extension StateControllerExt on AppController {
 
 extension ProfilesControllerExt on AppController {
   Future<void> deleteProfile(int id) async {
+    oixCloudConfigCache.remove(id);
     _ref.read(profilesProvider.notifier).del(id);
     clearEffect(id);
     final currentProfileId = _ref.read(currentProfileIdProvider);
@@ -252,13 +254,20 @@ extension ProfilesControllerExt on AppController {
 
   Future<void> autoUpdateProfiles() async {
     for (final profile in _ref.read(profilesProvider)) {
-      if (!profile.autoUpdate) continue;
-      final isNotNeedUpdate = profile.lastUpdateDate
-          ?.add(profile.autoUpdateDuration)
-          .isBeforeNow;
-      if (isNotNeedUpdate == false || profile.type == ProfileType.file) {
-        continue;
+      if (!profile.autoUpdate || profile.type == ProfileType.file) continue;
+
+      bool shouldUpdate = profile.lastUpdateDate
+              ?.add(profile.autoUpdateDuration)
+              .isBeforeNow ??
+          true;
+
+      if (profile.isoixCloudProfile &&
+          !oixCloudConfigCache.containsKey(profile.id)) {
+        shouldUpdate = true;
       }
+
+      if (!shouldUpdate) continue;
+
       try {
         await updateProfile(profile);
       } catch (e) {
@@ -284,7 +293,10 @@ extension ProfilesControllerExt on AppController {
         try {
           await updateProfile(profile);
         } catch (e, s) {
-          commonPrint.log('Failed to update profile ${profile.id}: $e\n$s');
+          final msg = profile.isoixCloudProfile
+              ? 'Failed to update oixCloud profile: ${e.runtimeType}'
+              : 'Failed to update profile ${profile.id}: $e\n$s';
+          commonPrint.log(msg, logLevel: LogLevel.warning);
         }
       }());
     }
@@ -721,10 +733,21 @@ extension SetupControllerExt on AppController {
     final appendSystemDns = networkVM2.a;
     final routeMode = networkVM2.b;
     final profile = _ref.read(profilesProvider).getProfile(profileId);
-    final mFile = profile != null ? await profile.file : null;
-    final path =
-        mFile?.path ?? await appPath.getProfilePath(profileId.toString());
-    final configMap = await coreController.getConfig(path);
+    Map<String, dynamic> configMap;
+    final cachedBytes =
+        profile != null ? oixCloudConfigCache[profile.id] : null;
+    if (cachedBytes != null) {
+      final base64String = base64Encode(cachedBytes);
+      configMap = await coreController.getConfigFromBytes(base64String);
+    } else {
+      if (profile != null && profile.isoixCloudProfile) {
+        throw 'oixCloud profile cache miss';
+      }
+      final mFile = profile != null ? await profile.file : null;
+      final path =
+          mFile?.path ?? await appPath.getProfilePath(profileId.toString());
+      configMap = await coreController.getConfig(path);
+    }
     String? scriptContent;
     final List<Rule> addedRules = [];
     if (setupState.overwriteType == OverwriteType.script) {
@@ -806,6 +829,8 @@ extension SetupControllerExt on AppController {
       rawConfig: isOixCloud ? yamlString : '',
     );
 
+    // WARNING: Do not print `updatedSetupParams.rawConfig` directly here.
+    // It contains the full YAML plaintext and logging it would leak sensitive node information.
     commonPrint.log(
       '====== Sending rawConfig to Go: ${updatedSetupParams.rawConfig.length}',
     );
@@ -1026,7 +1051,11 @@ extension SystemControllerExt on AppController {
 extension BackupControllerExt on AppController {
   Future<void> shakingStore() async {
     final profileIds = _ref.read(
-      profilesProvider.select((state) => state.map((item) => item.id)),
+      profilesProvider.select(
+        (state) => state
+            .where((item) => !item.isoixCloudProfile)
+            .map((item) => item.id),
+      ),
     );
     final scriptIds = await _ref.read(
       scriptsProvider.future.select(
@@ -1052,7 +1081,11 @@ extension BackupControllerExt on AppController {
 
   Future<String> backup() async {
     final profileFileNames = _ref.read(
-      profilesProvider.select((state) => state.map((item) => item.fileName)),
+      profilesProvider.select(
+        (state) => state
+            .where((item) => !item.isoixCloudProfile)
+            .map((item) => item.fileName),
+      ),
     );
     final scriptFileNames = await _ref.read(
       scriptsProvider.future.select(
@@ -1068,6 +1101,10 @@ extension BackupControllerExt on AppController {
   }
 
   Future<void> restore(RestoreOption option) async {
+    // Note: When restoring a backup, oixCloud profiles might be reloaded. 
+    // Since oixCloud cache is empty and tokens are not backed up (they reside in SharedPreferences), 
+    // restoring might prompt the user to login again when standard update fails. 
+    // This is an intended security design.
     final restoreDirPath = await appPath.restoreDirPath;
     final restoreDir = Directory(restoreDirPath);
     final restoreStrategy = _ref.read(
@@ -1130,6 +1167,7 @@ extension StoreControllerExt on AppController {
   }
 
   Future handleClear() async {
+    oixCloudConfigCache.clear();
     await preferences.clearPreferences();
     commonPrint.log('clear preferences');
     await database.close();
