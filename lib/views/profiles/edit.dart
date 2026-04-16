@@ -13,6 +13,7 @@ import 'package:fl_clash/pages/editor.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class EditProfileView extends ConsumerStatefulWidget {
@@ -74,9 +75,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
     if (mounted) {
       setState(() {
-        _defaultParams = defaultParamsStr.isNotEmpty
-            ? defaultParamsStr
-            : displayParams;
+        _defaultParams = defaultParamsStr;
         _oixParamsController.text = displayParams;
       });
     }
@@ -95,7 +94,12 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     if (text.isNotEmpty && !text.startsWith('&')) {
       text = '&$text';
     }
+    
     await prefs.setString('cloud_service_config_params', text);
+    
+    if (prefs.getBool('cloud_service_tfo') == null) {
+      await prefs.setBool('cloud_service_tfo', true);
+    }
 
     await appController.updateProfile(currentProfile, showLoading: true);
   }
@@ -281,13 +285,12 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   @override
   Widget build(BuildContext context) {
     final cloudState = ref.watch(cloudAccountProvider);
-    final subscription = cloudState.profile?.subscription ?? '';
-    final isAdvancedPlan =
-        subscription.isNotEmpty &&
-        subscription != 'Default' &&
-        !subscription.contains('Bronze') &&
-        !subscription.contains('Silver');
     final isoixCloud = widget.profile.isoixCloudProfile;
+    final subscription = cloudState.profile?.subscription ?? '';
+    final showRestore = isoixCloud &&
+        subscription.isNotEmpty &&
+        subscription != 'Pass Iron' &&
+        subscription != 'null';
     final items = [
       ListItem(
         title: TextFormField(
@@ -412,8 +415,11 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
               labelText: appLocalizations.optionalParameters,
               hintText: '&area=hk',
             ),
+            inputFormatters: [
+              FilteringTextInputFormatter.deny(RegExp(r'&tfo=(true|false)')),
+            ],
           ),
-          trailing: isAdvancedPlan
+          trailing: showRestore
               ? IconButton(
                   icon: const Icon(Icons.restore),
                   tooltip: appLocalizations.restoreDefault,

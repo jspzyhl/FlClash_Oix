@@ -31,6 +31,13 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkHealth();
     });
+
+    // If the page comes to view, attempt to refresh profile if logged in
+    ref.listenManual(currentPageLabelProvider, (prev, next) {
+      if (prev != next && next == PageLabel.oixCloud) {
+        ref.read(cloudAccountProvider.notifier).refreshProfile();
+      }
+    });
   }
 
   Future<void> _checkHealth() async {
@@ -58,13 +65,6 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    // If the page comes to view, attempt to refresh profile if logged in
-    ref.listen(currentPageLabelProvider, (prev, next) {
-      if (prev != next && next == PageLabel.oixCloud) {
-        ref.read(cloudAccountProvider.notifier).refreshProfile();
-      }
-    });
-
     final accountState = ref.watch(cloudAccountProvider);
 
     return CommonScaffold(

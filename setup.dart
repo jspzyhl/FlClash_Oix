@@ -425,7 +425,7 @@ class BuildCommand extends Command {
     final profileKey = Platform.environment['PROFILE_KEY']?.trim();
     final baseDomain = Platform.environment['BASE_DOMAIN']?.trim();
     final oixApiDomain = Platform.environment['API_DOMAIN']?.trim();
-    final flclashKey = Platform.environment['FLCLASH_KEY']?.trim();
+    final flclashAppSecret = Platform.environment['FLCLASH_APP_SECRET']?.trim();
 
     var dartDefines = '--build-dart-define=APP_ENV=$env';
     if (profileKey != null && profileKey.isNotEmpty) {
@@ -437,8 +437,8 @@ class BuildCommand extends Command {
     if (oixApiDomain != null && oixApiDomain.isNotEmpty) {
       dartDefines += ' --build-dart-define=API_DOMAIN=$oixApiDomain';
     }
-    if (flclashKey != null && flclashKey.isNotEmpty) {
-      dartDefines += ' --build-dart-define=FLCLASH_KEY=$flclashKey';
+    if (flclashAppSecret != null && flclashAppSecret.isNotEmpty) {
+      dartDefines += ' --build-dart-define=FLCLASH_APP_SECRET=$flclashAppSecret';
     }
 
     await Build.exec(
@@ -464,7 +464,7 @@ class BuildCommand extends Command {
     final profileKey = Platform.environment['PROFILE_KEY']?.trim();
     final baseDomain = Platform.environment['BASE_DOMAIN']?.trim();
     final oixApiDomain = Platform.environment['API_DOMAIN']?.trim();
-    final flclashKey = Platform.environment['FLCLASH_KEY']?.trim();
+    final flclashAppSecret = Platform.environment['FLCLASH_APP_SECRET']?.trim();
 
     var dartDefines = '--dart-define=APP_ENV=$env';
     if (profileKey != null && profileKey.isNotEmpty) {
@@ -476,8 +476,8 @@ class BuildCommand extends Command {
     if (oixApiDomain != null && oixApiDomain.isNotEmpty) {
       dartDefines += ' --dart-define=API_DOMAIN=$oixApiDomain';
     }
-    if (flclashKey != null && flclashKey.isNotEmpty) {
-      dartDefines += ' --dart-define=FLCLASH_KEY=$flclashKey';
+    if (flclashAppSecret != null && flclashAppSecret.isNotEmpty) {
+      dartDefines += ' --dart-define=FLCLASH_APP_SECRET=$flclashAppSecret';
     }
 
     await Build.exec(

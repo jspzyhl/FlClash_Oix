@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'dart:convert';
 import 'dart:math';
+import 'package:crypto/crypto.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:flutter/foundation.dart';
@@ -281,6 +282,17 @@ class CloudApiService {
     return _parseUserInfo(responseDto.data!);
   }
 
+  String _flclashTimestamp() {
+    return (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+  }
+
+  String _flclashSignature(String timestamp) {
+    final key = utf8.encode(secrets.FLCLASH_APP_SECRET);
+    final msg = utf8.encode(timestamp);
+    final hmac = Hmac(sha256, key);
+    return hmac.convert(msg).toString();
+  }
+
   Future<(Uint8List, String?)> fetchManagedConfig(String paramString) async {
     try {
       final queryParameters = <String, dynamic>{};
@@ -293,11 +305,17 @@ class CloudApiService {
         });
       }
 
+      final timestamp = _flclashTimestamp();
+      final signature = _flclashSignature(timestamp);
+
       final res = await _dio.get<Map<String, dynamic>>(
         '/managed/flclash/direct',
         queryParameters: queryParameters,
         options: Options(
-          headers: {'X-Flclash-Key': secrets.FLCLASH_KEY.trim()},
+          headers: {
+            'X-Flclash-Timestamp': timestamp,
+            'X-Flclash-Signature': signature,
+          },
           responseType: ResponseType.json,
         ),
       );

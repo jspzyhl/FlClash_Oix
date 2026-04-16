@@ -12,6 +12,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class CloudAccountNotifier extends Notifier<CloudAccountState> {
   DateTime? _lastRefreshTime;
+  SharedPreferences? _prefs;
+
+  Future<SharedPreferences> get _safePrefs async {
+    _prefs ??= await SharedPreferences.getInstance();
+    return _prefs!;
+  }
 
   @override
   CloudAccountState build() {
@@ -20,7 +26,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   }
 
   Future<void> _init() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _safePrefs;
     final token = prefs.getString('cloud_token');
 
     if (token != null && token.isNotEmpty) {
@@ -58,7 +64,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     CloudProfile profile,
     CloudNotification? notification,
   ) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _safePrefs;
     await prefs.setString('cloud_profile', jsonEncode(profile.toJson()));
     if (notification != null) {
       await prefs.setString(
@@ -69,7 +75,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   }
 
   Future<void> _clearCache() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _safePrefs;
     await prefs.remove('cloud_profile');
     await prefs.remove('cloud_notification');
     await prefs.remove('cloud_service_config_params');
@@ -87,7 +93,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       final token = result.token;
 
       CloudApiService().setToken(token);
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await _safePrefs;
       await prefs.setString('cloud_token', token);
 
       _lastRefreshTime = DateTime.now();
@@ -116,7 +122,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       CloudApiService().setToken(token);
       final userInfo = await CloudApiService().getUserInfo();
 
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await _safePrefs;
       await prefs.setString('cloud_token', token);
 
       await _saveCache(userInfo.profile, userInfo.announcement);
@@ -150,12 +156,18 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
     state = state.copyWith(isRefreshing: true, error: null);
     try {
+      final oldSubscription = state.profile?.subscription;
       final userInfo = await CloudApiService().getUserInfo();
       _lastRefreshTime = DateTime.now();
       await _saveCache(
         userInfo.profile,
         userInfo.announcement ?? state.latestNotification,
       );
+
+      if (oldSubscription != null && oldSubscription != userInfo.profile.subscription) {
+        await _injectDefaultParams(userInfo.profile);
+      }
+
       state = state.copyWith(
         isRefreshing: false,
         profile: userInfo.profile,
@@ -167,21 +179,38 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   }
 
   Future<String> _injectDefaultParams(CloudProfile profile) async {
-    final prefs = await SharedPreferences.getInstance();
-    final hasSavedParams = prefs.containsKey('cloud_service_config_params');
-    String savedParams = prefs.getString('cloud_service_config_params') ?? '';
-
-    if (!hasSavedParams &&
-        profile.subscription.isNotEmpty &&
+    final prefs = await _safePrefs;
+    
+    // 1. Calculate the expected default params for the current subscription
+    String expectedDefaultParams = '';
+    if (profile.subscription.isNotEmpty &&
         profile.subscription != 'Pass Iron' &&
         profile.subscription != 'null') {
       if (profile.subscription == 'Pass Bronze') {
-        savedParams = '&lv=2';
+        expectedDefaultParams = '&lv=2';
       } else {
-        savedParams = '&type=love';
+        expectedDefaultParams = '&type=love';
       }
     }
 
+    final oldDefaultParams = prefs.getString('cloud_service_default_params');
+    final hasSavedParams = prefs.containsKey('cloud_service_config_params');
+    final originalParams = prefs.getString('cloud_service_config_params') ?? '';
+    
+    // 2. Always update the stored default params to match current subscription
+    if (oldDefaultParams != expectedDefaultParams) {
+      await prefs.setString('cloud_service_default_params', expectedDefaultParams);
+    }
+
+    String savedParams = originalParams;
+
+    // 3. Inject expected default params if no params exist, 
+    // OR if the user's current params exactly match the OLD default params (auto-upgrade)
+    if (!hasSavedParams || (oldDefaultParams != null && savedParams == oldDefaultParams && oldDefaultParams != expectedDefaultParams)) {
+      savedParams = expectedDefaultParams;
+    }
+
+    // 4. Handle TFO extraction
     final tfoObj = prefs.getBool('cloud_service_tfo');
     final parseResult = CloudConfigHelper.parseTfoParams(savedParams, tfoObj);
     bool tfoEnabled = parseResult.tfoEnabled;
@@ -192,13 +221,9 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       await prefs.setBool('cloud_service_tfo', tfoEnabled);
     }
 
-    if (!hasSavedParams ||
-        savedParams != (prefs.getString('cloud_service_config_params') ?? '')) {
+    // 5. Save if changed
+    if (!hasSavedParams || savedParams != originalParams) {
       await prefs.setString('cloud_service_config_params', savedParams);
-    }
-
-    if (!hasSavedParams) {
-      await prefs.setString('cloud_service_default_params', savedParams);
     }
 
     return 'oixcloud://managed';
@@ -271,7 +296,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   }
 
   Future<void> signOut({bool revokeToken = false}) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _safePrefs;
     await prefs.remove('cloud_token');
     await _clearCache();
 

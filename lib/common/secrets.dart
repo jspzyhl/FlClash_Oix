@@ -4,5 +4,5 @@ class secrets {
   static const String BASE_DOMAIN = String.fromEnvironment('BASE_DOMAIN');
   static const String API_DOMAIN = String.fromEnvironment('API_DOMAIN');
 
-  static const String FLCLASH_KEY = String.fromEnvironment('FLCLASH_KEY');
+  static const String FLCLASH_APP_SECRET = String.fromEnvironment('FLCLASH_APP_SECRET');
 }

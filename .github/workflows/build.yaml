@@ -140,7 +140,7 @@ jobs:
           PROFILE_KEY: ${{ secrets.PROFILE_KEY }}
           BASE_DOMAIN: ${{ secrets.BASE_DOMAIN }}
           API_DOMAIN: ${{ secrets.API_DOMAIN }}
-          FLCLASH_KEY: ${{ secrets.FLCLASH_KEY }}
+          FLCLASH_APP_SECRET: ${{ secrets.FLCLASH_APP_SECRET }}
         run: |
           set -e
           BUILD_ARGS="${{ matrix.platform }}"
