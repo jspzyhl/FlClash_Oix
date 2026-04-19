@@ -70,6 +70,7 @@ dependencies:
   drift_flutter: ^0.2.7
   fractional_indexing: ^1.0.0
   flutter_markdown: ^0.7.7+1
+  flutter_secure_storage: ^10.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -8,6 +8,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/state.dart';
+import 'package:fl_clash/utils/safe_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CloudAccountNotifier extends Notifier<CloudAccountState> {
@@ -27,7 +28,17 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
   Future<void> _init() async {
     final prefs = await _safePrefs;
-    final token = prefs.getString('cloud_token');
+    String? token = await SafeStorage.read('cloud_token');
+    
+    // Migrate plain-text token to secure storage if necessary.
+    if (token == null || token.isEmpty) {
+      final oldToken = prefs.getString('cloud_token');
+      if (oldToken != null && oldToken.isNotEmpty) {
+        token = oldToken;
+        await SafeStorage.write('cloud_token', token);
+        await prefs.remove('cloud_token');
+      }
+    }
 
     if (token != null && token.isNotEmpty) {
       CloudProfile? cachedProfile;
@@ -93,8 +104,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       final token = result.token;
 
       CloudApiService().setToken(token);
-      final prefs = await _safePrefs;
-      await prefs.setString('cloud_token', token);
+      await SafeStorage.write('cloud_token', token);
 
       _lastRefreshTime = DateTime.now();
       await _saveCache(result.profile, result.announcement);
@@ -122,8 +132,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       CloudApiService().setToken(token);
       final userInfo = await CloudApiService().getUserInfo();
 
-      final prefs = await _safePrefs;
-      await prefs.setString('cloud_token', token);
+      await SafeStorage.write('cloud_token', token);
 
       await _saveCache(userInfo.profile, userInfo.announcement);
       state = state.copyWith(
@@ -296,11 +305,16 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   }
 
   Future<void> signOut({bool revokeToken = false}) async {
+    await SafeStorage.delete('cloud_token');
+    
+    // Also remove from prefs just in case
     final prefs = await _safePrefs;
     await prefs.remove('cloud_token');
+    
     await _clearCache();
 
     CloudApiService().setToken(null);
+    oixCloudConfigCache.clear(); // Clear global memory cache on logout
     state = const CloudAccountState();
 
     final existingProfiles = ref

@@ -741,7 +741,7 @@ extension SetupControllerExt on AppController {
       configMap = await coreController.getConfigFromBytes(base64String);
     } else {
       if (profile != null && profile.isoixCloudProfile) {
-        throw 'oixCloud profile cache miss';
+        throw Exception('oixCloud profile cache miss');
       }
       final mFile = profile != null ? await profile.file : null;
       final path =

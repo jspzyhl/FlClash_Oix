@@ -6,6 +6,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/services/cloud_api_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -236,7 +237,8 @@ extension ProfileExtension on Profile {
       final fetch = _fetchManagedConfigCallback;
       if (fetch == null) throw Exception('fetchManagedConfig not registered');
       // Ensure token is injected even if CloudAccountNotifier._init() hasn't completed yet
-      final token = prefs.getString('cloud_token');
+      const secureStorage = FlutterSecureStorage();
+      final token = await secureStorage.read(key: 'cloud_token');
       if (token != null && token.isNotEmpty) {
         CloudApiService().setToken(token);
       }

@@ -380,6 +380,9 @@ class BuildCommand extends Command {
     await Build.exec(
       Build.getExecutable('sudo apt-get install -y libkeybinder-3.0-dev'),
     );
+    await Build.exec(
+      Build.getExecutable('sudo apt-get install -y libsecret-1-dev libjsoncpp-dev libglib2.0-dev'),
+    );
     await Build.exec(Build.getExecutable('sudo apt install -y locate'));
     if (arch == Arch.amd64) {
       await Build.exec(Build.getExecutable('sudo apt install -y rpm patchelf'));

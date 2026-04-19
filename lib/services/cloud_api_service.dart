@@ -73,41 +73,35 @@ class CloudApiService {
           if (options.extra['skipAuth'] != true &&
               _cachedToken != null &&
               _cachedToken!.isNotEmpty) {
-            if (options.method == 'POST' || options.method == 'PUT') {
-              if (options.data == null) {
-                options.data = FormData.fromMap({
-                  'access_token': _cachedToken!,
-                });
-              } else if (options.data is Map) {
-                options.data['access_token'] = _cachedToken;
-              } else if (options.data is FormData) {
-                options.data.fields.add(
-                  MapEntry('access_token', _cachedToken!),
-                );
-              }
-            } else {
-              options.queryParameters['access_token'] = _cachedToken;
-            }
+            options.headers['Authorization'] = 'Bearer $_cachedToken';
+            options.queryParameters['access_token'] = _cachedToken;
           }
 
           if (kDebugMode) {
             debugPrint('--> [${options.method}] ${options.uri}');
-            if (options.data != null)
-              debugPrint(
-                'Body: ${options.data is FormData ? (options.data as FormData).fields : options.data}',
-              );
+            if (options.data != null) {
+              debugPrint('Body: [**REDACTED FOR SECURITY**]');
+            }
           }
 
           handler.next(options);
         },
         onResponse: (response, handler) {
-          if (kDebugMode)
+          if (kDebugMode) {
             debugPrint(
               '<-- [${response.statusCode}] ${response.requestOptions.uri}',
             );
+          }
+          if (response.statusCode == 401 ||
+              (response.data is Map && response.data['ret'] == 401)) {
+            _cachedToken = null;
+          }
           handler.next(response);
         },
         onError: (DioException e, handler) {
+          if (e.response?.statusCode == 401) {
+            _cachedToken = null;
+          }
           if (kDebugMode)
             debugPrint('<-- Error: ${e.message} at ${e.requestOptions.uri}');
           handler.next(e);
@@ -154,6 +148,16 @@ class CloudApiService {
     }
     final info = infoData;
 
+    final requiredKeys = ['plan', 'plan_time', 'used', 'traffic', 'today_used', 'unused', 'money', 'aff_money', 'integral'];
+    for (final key in requiredKeys) {
+      if (!info.containsKey(key)) {
+        throw FormatException('Missing required field: $key');
+      }
+      if (info[key] != null && info[key] is! String && info[key] is! num) {
+        throw FormatException('Invalid type for field: $key');
+      }
+    }
+
     CloudNotification? announcement;
     if (info['announcement'] is Map) {
       final ann = info['announcement'];
@@ -190,7 +194,7 @@ class CloudApiService {
       remaining: info['unused']?.toString() ?? '0',
       balance: info['money']?.toString() ?? '0.00',
       commission: info['aff_money']?.toString() ?? '0.00',
-      points: info['integral']?.toString() ?? '0 / 50',
+      points: info['integral']?.toString() ?? '50 / 50',
     );
 
     return (profile: profile, announcement: announcement);
@@ -200,11 +204,13 @@ class CloudApiService {
     if (value == null || value.trim().isEmpty) return 0.0;
 
     final trafficRegex = RegExp(
-      r'([\d.]+)\s*([KMGT]?)?B?',
+      r'^(\d+(?:\.\d+)?)\s*([KMGT]?)i?B?$',
       caseSensitive: false,
     );
     final match = trafficRegex.firstMatch(value.trim());
-    if (match == null) return 0.0;
+    if (match == null) {
+      throw FormatException('Invalid traffic format: $value');
+    }
 
     final numValue = double.tryParse(match.group(1) ?? '0') ?? 0.0;
 
@@ -324,8 +330,14 @@ class CloudApiService {
         throw Exception('Server returned ${res.statusCode}');
       }
 
+      if (res.data?['ret'] == 401) {
+        setToken(null);
+        throw Exception('Unauthorized');
+      }
+
       final configB64 = res.data?['config'] as String?;
       final userinfo = res.data?['userinfo'] as String?;
+      
       if (configB64 == null || configB64.isEmpty) {
         throw Exception('Empty config returned from server');
       }
@@ -357,7 +369,7 @@ class RetryInterceptor extends Interceptor {
     if (_shouldRetry(err) && retryCount < retries) {
       retryCount++;
       extra['retryCount'] = retryCount;
-      extra['skipAuth'] = true;
+      extra['skipAuth'] = err.requestOptions.extra['skipAuth'] ?? false;
 
       final delay = Duration(
         milliseconds: 500 * pow(2, retryCount).toInt(),

@@ -11,6 +11,7 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/state.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 class Request {
   late final Dio dio;
@@ -23,6 +24,7 @@ class Request {
     _clashDio.httpClientAdapter = IOHttpClientAdapter(
       createHttpClient: () {
         final client = HttpClient();
+        client.badCertificateCallback = (_, _, _) => kDebugMode;
         client.findProxy = (Uri uri) {
           client.userAgent = appController.ua;
           return FlClashHttpOverrides.handleFindProxy(uri);
