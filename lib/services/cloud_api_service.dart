@@ -102,8 +102,9 @@ class CloudApiService {
           if (e.response?.statusCode == 401) {
             _cachedToken = null;
           }
-          if (kDebugMode)
+          if (kDebugMode) {
             debugPrint('<-- Error: ${e.message} at ${e.requestOptions.uri}');
+          }
           handler.next(e);
         },
       ),
@@ -161,10 +162,8 @@ class CloudApiService {
     CloudNotification? announcement;
     if (info['announcement'] is Map) {
       final ann = info['announcement'];
-      final md = ann['markdown']?.toString();
-      final content = ann['content']?.toString();
       announcement = CloudNotification(
-        cleanMessage: (md != null && md.isNotEmpty) ? md : (content ?? ''),
+        cleanMessage: ann['content']?.toString() ?? '',
         publishTime:
             DateTime.tryParse(ann['date']?.toString() ?? '') ?? DateTime.now(),
       );

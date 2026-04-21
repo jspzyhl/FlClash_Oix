@@ -6,8 +6,8 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/services/cloud_api_service.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'cloud_login_page.dart';
@@ -201,11 +201,9 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    MarkdownBody(
-                      data: state.latestNotification!.cleanMessage,
-                      onTapLink: (text, href, title) {
-                        if (href != null) launchUrl(Uri.parse(href));
-                      },
+                    _buildAnnouncementBody(
+                      context,
+                      state.latestNotification!.cleanMessage,
                     ),
                   ],
                 ),
@@ -214,6 +212,21 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildAnnouncementBody(BuildContext context, String message) {
+    return Html(
+      data: message,
+      onLinkTap: (url, attributes, element) {
+        if (url != null) launchUrl(Uri.parse(url));
+      },
+      style: {
+        'body': Style(margin: Margins.zero, padding: HtmlPaddings.zero),
+        'p': Style(margin: Margins.only(bottom: 8)),
+        'a': Style(color: context.colorScheme.primary),
+        'img': Style(width: Width(100, Unit.percent)),
+      },
     );
   }
 
