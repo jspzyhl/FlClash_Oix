@@ -519,6 +519,8 @@
   "refresh": "Refresh",
   "overseasNetworkEnvironment": "Overseas Network Environment",
   "overseasNetworkEnvironmentDesc": "Turn on this option if you are currently outside mainland China",
+  "emergencyMode": "Emergency Mode",
+  "emergencyModeDesc": "Enable this option to switch to backup nodes when regular lines are unavailable",
   "tcpFastOpen": "TCP Fast Open",
   "tcpFastOpenDesc": "Enable this option to accelerate TCP connection establishment"
 }

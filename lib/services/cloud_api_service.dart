@@ -1,7 +1,9 @@
-import 'package:dio/dio.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:flutter/foundation.dart';
@@ -354,37 +356,67 @@ class CloudApiService {
 class RetryInterceptor extends Interceptor {
   final Dio dio;
   final int retries;
+  Dio? _directDio;
 
-  RetryInterceptor({required this.dio, this.retries = 3});
+  RetryInterceptor({required this.dio, this.retries = 2});
+
+  Dio _getDirectDio() {
+    final existing = _directDio;
+    if (existing != null) return existing;
+    final direct = Dio(dio.options.copyWith());
+    direct.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient();
+        client.findProxy = (_) => 'DIRECT';
+        client.badCertificateCallback = (_, _, _) => kDebugMode;
+        return client;
+      },
+    );
+    _directDio = direct;
+    return direct;
+  }
 
   @override
   Future<void> onError(
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    var extra = Map<String, dynamic>.from(err.requestOptions.extra);
-    int retryCount = extra['retryCount'] ?? 0;
+    if (!_shouldRetry(err) ||
+        err.requestOptions.extra['retryHandled'] == true) {
+      return super.onError(err, handler);
+    }
 
-    if (_shouldRetry(err) && retryCount < retries) {
-      retryCount++;
-      extra['retryCount'] = retryCount;
-      extra['skipAuth'] = err.requestOptions.extra['skipAuth'] ?? false;
+    final baseExtra = Map<String, dynamic>.from(err.requestOptions.extra)
+      ..['retryHandled'] = true;
+    DioException lastError = err;
 
-      final delay = Duration(
-        milliseconds: 500 * pow(2, retryCount).toInt(),
-      ); // Exponential backoff
-      await Future.delayed(delay);
-
+    for (int attempt = 1; attempt <= retries; attempt++) {
+      await Future.delayed(
+        Duration(milliseconds: 500 * pow(2, attempt).toInt()),
+      );
       try {
         final response = await dio.fetch(
-          err.requestOptions.copyWith(extra: extra),
+          err.requestOptions.copyWith(extra: baseExtra),
         );
         return handler.resolve(response);
-      } catch (e) {
-        return super.onError(err, handler);
+      } on DioException catch (e) {
+        lastError = e;
+        if (!_shouldRetry(e)) break;
       }
     }
-    return super.onError(err, handler);
+
+    if (_shouldRetry(lastError)) {
+      try {
+        final response = await _getDirectDio().fetch(
+          err.requestOptions.copyWith(extra: baseExtra),
+        );
+        return handler.resolve(response);
+      } on DioException catch (e) {
+        lastError = e;
+      }
+    }
+
+    return super.onError(lastError, handler);
   }
 
   bool _shouldRetry(DioException err) {

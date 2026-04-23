@@ -4109,6 +4109,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Emergency Mode`
+  String get emergencyMode {
+    return Intl.message(
+      'Emergency Mode',
+      name: 'emergencyMode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable this option to switch to backup nodes when regular lines are unavailable`
+  String get emergencyModeDesc {
+    return Intl.message(
+      'Enable this option to switch to backup nodes when regular lines are unavailable',
+      name: 'emergencyModeDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `TCP Fast Open`
   String get tcpFastOpen {
     return Intl.message(

@@ -341,6 +341,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "emailValidation": MessageLookupByLibrary.simpleMessage(
       "Пожалуйста, введите email",
     ),
+    "emergencyMode": MessageLookupByLibrary.simpleMessage("Аварийный режим"),
+    "emergencyModeDesc": MessageLookupByLibrary.simpleMessage(
+      "Включите эту опцию для переключения на резервные узлы, когда обычные линии недоступны",
+    ),
     "emptyTip": m4,
     "en": MessageLookupByLibrary.simpleMessage("Английский"),
     "enableOverride": MessageLookupByLibrary.simpleMessage(

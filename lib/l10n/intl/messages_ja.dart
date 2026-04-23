@@ -249,6 +249,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "emailLabel": MessageLookupByLibrary.simpleMessage("メール"),
     "emailPassword": MessageLookupByLibrary.simpleMessage("メールとパスワード"),
     "emailValidation": MessageLookupByLibrary.simpleMessage("メールを入力してください"),
+    "emergencyMode": MessageLookupByLibrary.simpleMessage("緊急モード"),
+    "emergencyModeDesc": MessageLookupByLibrary.simpleMessage(
+      "通常の回線が利用できないときに、このオプションを有効にしてバックアップノードに切り替えてください",
+    ),
     "emptyTip": m4,
     "en": MessageLookupByLibrary.simpleMessage("英語"),
     "enableOverride": MessageLookupByLibrary.simpleMessage("上書きを有効化"),

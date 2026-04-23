@@ -87,6 +87,11 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
         .where((p) => p.isoixCloudProfile)
         .firstOrNull;
     final isOverseas = _savedParams.contains(RegExp(r'(^|&)lv=1($|&)'));
+    final isEmergency = _savedParams.contains(RegExp(r'(^|&)lv=2($|&)'));
+    final canUseEmergency = profile.subscription.isNotEmpty &&
+        profile.subscription != 'null' &&
+        profile.subscription != 'Pass Iron' &&
+        profile.subscription != 'Pass Bronze';
     return CommonCard(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -191,7 +196,8 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
                       text = text.replaceAll(RegExp(r'&type=[^&]*'), '');
                       text += '&lv=1';
                     } else {
-                      text = text.replaceAll(RegExp(r'&lv=1($|&)?'), '');
+                      text = text.replaceAll(RegExp(r'&lv=[^&]*'), '');
+                      text = text.replaceAll(RegExp(r'&type=[^&]*'), '');
                       if (profile.subscription == 'Pass Bronze') {
                         text += '&lv=2';
                       } else {
@@ -202,6 +208,34 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
                   },
                 ),
               ),
+              if (canUseEmergency) ...[
+                const Divider(height: 16),
+                ListItem.switchItem(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 0,
+                    vertical: 8,
+                  ),
+                  title: Text(AppLocalizations.current.emergencyMode),
+                  subtitle: Text(
+                    AppLocalizations.current.emergencyModeDesc,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  delegate: SwitchDelegate<bool>(
+                    value: isEmergency,
+                    onChanged: (val) {
+                      String text = _savedParams;
+                      text = text.replaceAll(RegExp(r'&lv=[^&]*'), '');
+                      text = text.replaceAll(RegExp(r'&type=[^&]*'), '');
+                      if (val) {
+                        text += '&lv=2';
+                      } else {
+                        text += '&type=love';
+                      }
+                      _updateSync(text);
+                    },
+                  ),
+                ),
+              ],
               const Divider(height: 16),
               ListItem.switchItem(
                 padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),

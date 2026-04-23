@@ -205,7 +205,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     final oldDefaultParams = prefs.getString('cloud_service_default_params');
     final hasSavedParams = prefs.containsKey('cloud_service_config_params');
     final originalParams = prefs.getString('cloud_service_config_params') ?? '';
-    
+
     // 2. Always update the stored default params to match current subscription
     if (oldDefaultParams != expectedDefaultParams) {
       await prefs.setString('cloud_service_default_params', expectedDefaultParams);
@@ -213,10 +213,20 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
     String savedParams = originalParams;
 
-    // 3. Inject expected default params if no params exist, 
+    // 3. Inject expected default params if no params exist,
     // OR if the user's current params exactly match the OLD default params (auto-upgrade)
     if (!hasSavedParams || (oldDefaultParams != null && savedParams == oldDefaultParams && oldDefaultParams != expectedDefaultParams)) {
       savedParams = expectedDefaultParams;
+    }
+
+    // 3a. Strip emergency mode (lv=2) if current subscription neither supports
+    // it nor uses lv=2 as its own default (Pass Bronze uses lv=2 by default)
+    final stripEmergency = (profile.subscription.isEmpty ||
+            profile.subscription == 'null' ||
+            profile.subscription == 'Pass Iron') &&
+        savedParams.contains(RegExp(r'(^|&)lv=2(?=&|$)'));
+    if (stripEmergency) {
+      savedParams = savedParams.replaceAll(RegExp(r'&lv=2(?=&|$)'), '');
     }
 
     // 4. Handle TFO extraction

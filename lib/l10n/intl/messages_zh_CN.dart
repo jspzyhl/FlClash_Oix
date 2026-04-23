@@ -225,6 +225,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "emailLabel": MessageLookupByLibrary.simpleMessage("邮箱"),
     "emailPassword": MessageLookupByLibrary.simpleMessage("邮箱密码"),
     "emailValidation": MessageLookupByLibrary.simpleMessage("请输入邮箱"),
+    "emergencyMode": MessageLookupByLibrary.simpleMessage("应急模式"),
+    "emergencyModeDesc": MessageLookupByLibrary.simpleMessage(
+      "当常规线路不可用时，请开启此选项切换备用节点",
+    ),
     "emptyTip": m4,
     "en": MessageLookupByLibrary.simpleMessage("英语"),
     "enableOverride": MessageLookupByLibrary.simpleMessage("启用覆写"),

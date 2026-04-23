@@ -330,6 +330,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "emailValidation": MessageLookupByLibrary.simpleMessage(
       "Please enter email",
     ),
+    "emergencyMode": MessageLookupByLibrary.simpleMessage("Emergency Mode"),
+    "emergencyModeDesc": MessageLookupByLibrary.simpleMessage(
+      "Enable this option to switch to backup nodes when regular lines are unavailable",
+    ),
     "emptyTip": m4,
     "en": MessageLookupByLibrary.simpleMessage("English"),
     "enableOverride": MessageLookupByLibrary.simpleMessage("Enable override"),
