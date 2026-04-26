@@ -5,10 +5,7 @@ import 'dart:typed_data';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/services/cloud_api_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'clash_config.dart';
 import 'state.dart';
@@ -19,10 +16,18 @@ part 'generated/profile.g.dart';
 typedef FetchManagedConfigCallback =
     Future<(Uint8List, String?)> Function(String paramString);
 FetchManagedConfigCallback? _fetchManagedConfigCallback;
+
+/// Hook the cloud-account layer registers so [Profile.update] can wait for
+/// token bootstrap to finish before issuing a managed-config fetch.
+Future<void> Function()? _ensureCloudReady;
 final Map<int, Uint8List> oixCloudConfigCache = {};
 
 void registerFetchManagedConfig(FetchManagedConfigCallback callback) {
   _fetchManagedConfigCallback = callback;
+}
+
+void registerEnsureCloudReady(Future<void> Function() ensure) {
+  _ensureCloudReady = ensure;
 }
 
 @freezed
@@ -229,19 +234,14 @@ extension ProfileExtension on Profile {
 
   Future<Profile> update() async {
     if (isoixCloudProfile) {
-      final prefs = await SharedPreferences.getInstance();
-      final savedParams = prefs.getString('cloud_service_config_params') ?? '';
-      final tfoEnabled = prefs.getBool('cloud_service_tfo') ?? true;
-      final paramWithTfo =
-          savedParams + (tfoEnabled ? '&tfo=true' : '&tfo=false');
       final fetch = _fetchManagedConfigCallback;
       if (fetch == null) throw Exception('fetchManagedConfig not registered');
-      // Ensure token is injected even if CloudAccountNotifier._init() hasn't completed yet
-      const secureStorage = FlutterSecureStorage();
-      final token = await secureStorage.read(key: 'cloud_token');
-      if (token != null && token.isNotEmpty) {
-        CloudApiService().setToken(token);
-      }
+
+      // Wait for cloud-account bootstrap so the API client has its token.
+      await _ensureCloudReady?.call();
+
+      final params = await OixParamsStorage.load();
+      final paramWithTfo = params.encodeWithTfo();
       final (bytes, userinfo) = await fetch(paramWithTfo);
       final profileWithLabel = label.isNotEmpty
           ? this

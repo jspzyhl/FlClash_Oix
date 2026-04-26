@@ -288,19 +288,22 @@ jobs:
             -H "Content-Type: application/x-www-form-urlencoded" \
             --data-urlencode "key=$API_KEY" \
             --data-urlencode "version=$FULL_VERSION")
-          
+
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | sed '$d')
-          
+          ret_code=$(echo "$body" | grep -oE '"ret"[[:space:]]*:[[:space:]]*[0-9]+' | grep -oE '[0-9]+$' || echo "")
+
           echo "Response body: $body"
-          
-          if [ "$http_code" = "200" ]; then
+          echo "HTTP status: $http_code   Business ret: ${ret_code:-<none>}"
+
+          if [ "$http_code" = "200" ] && [ "$ret_code" = "200" ]; then
             echo "✅ Version updated successfully on oixCloud"
             echo "   Version: $FULL_VERSION"
             echo "   API: $API_URL"
           else
             echo "❌ Failed to update version"
             echo "   HTTP Status: $http_code"
+            echo "   Business ret: ${ret_code:-<none>}"
             echo "   Response: $body"
             exit 1
           fi

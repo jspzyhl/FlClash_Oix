@@ -8,6 +8,7 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'cloud_login_page.dart';
@@ -193,7 +194,9 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
                         const Spacer(),
                         if (state.latestNotification?.publishTime != null)
                           Text(
-                            "${state.latestNotification!.publishTime.year}-${state.latestNotification!.publishTime.month.toString().padLeft(2, '0')}-${state.latestNotification!.publishTime.day.toString().padLeft(2, '0')}",
+                            DateFormat('yyyy-MM-dd').format(
+                              state.latestNotification!.publishTime,
+                            ),
                             style: context.textTheme.bodySmall?.copyWith(
                               color: context.colorScheme.onSurfaceVariant,
                             ),

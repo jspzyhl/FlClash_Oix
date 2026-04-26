@@ -1,12 +1,11 @@
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/providers/database.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/providers/database.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CloudProfileCard extends ConsumerStatefulWidget {
@@ -19,50 +18,24 @@ class CloudProfileCard extends ConsumerStatefulWidget {
 }
 
 class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
-  String _savedParams = '';
-  bool _tfoEnabled = true;
+  OixParams _params = const OixParams();
 
   @override
   void initState() {
     super.initState();
-    _loadoixParams();
+    _loadParams();
   }
 
-  Future<void> _loadoixParams() async {
-    final prefs = await SharedPreferences.getInstance();
-    var value = prefs.getString('cloud_service_config_params') ?? '';
-    final tfoObj = prefs.getBool('cloud_service_tfo');
-
-    final result = CloudConfigHelper.parseTfoParams(value, tfoObj);
-    var newParams = result.params;
-
-    if (result.needsUpdate) {
-      await prefs.setString('cloud_service_config_params', newParams);
-      await prefs.setBool('cloud_service_tfo', result.tfoEnabled);
-    }
-
+  Future<void> _loadParams() async {
+    final loaded = await OixParamsStorage.load();
     if (mounted) {
-      setState(() {
-        _savedParams = newParams;
-        _tfoEnabled = result.tfoEnabled;
-      });
+      setState(() => _params = loaded);
     }
   }
 
-  Future<void> _updateSync(String newParams, {bool? tfoEnabled}) async {
-    final prefs = await SharedPreferences.getInstance();
-    final currentTfo = tfoEnabled ?? _tfoEnabled;
-
-    final result = CloudConfigHelper.parseTfoParams(newParams, currentTfo);
-    var text = result.params;
-
-    setState(() {
-      _savedParams = text;
-      _tfoEnabled = currentTfo;
-    });
-
-    await prefs.setString('cloud_service_config_params', text);
-    await prefs.setBool('cloud_service_tfo', currentTfo);
+  Future<void> _commit(OixParams next) async {
+    setState(() => _params = next);
+    await OixParamsStorage.save(next);
 
     final clashProfileList = ref
         .read(profilesProvider)
@@ -82,16 +55,14 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
   @override
   Widget build(BuildContext context) {
     final profile = widget.profile;
+    final tier = SubscriptionTier.fromServer(profile.subscription);
     final clashProfile = ref
         .watch(profilesProvider)
         .where((p) => p.isoixCloudProfile)
         .firstOrNull;
-    final isOverseas = _savedParams.contains(RegExp(r'(^|&)lv=1($|&)'));
-    final isEmergency = _savedParams.contains(RegExp(r'(^|&)lv=2($|&)'));
-    final canUseEmergency = profile.subscription.isNotEmpty &&
-        profile.subscription != 'null' &&
-        profile.subscription != 'Pass Iron' &&
-        profile.subscription != 'Pass Bronze';
+    final isOverseas = _params.level == NetworkLevel.overseas;
+    final isEmergency = _params.level == NetworkLevel.emergency;
+
     return CommonCard(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -190,25 +161,17 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
                 delegate: SwitchDelegate<bool>(
                   value: isOverseas,
                   onChanged: (val) {
-                    String text = _savedParams;
-                    if (val) {
-                      text = text.replaceAll(RegExp(r'&lv=[^&]*'), '');
-                      text = text.replaceAll(RegExp(r'&type=[^&]*'), '');
-                      text += '&lv=1';
-                    } else {
-                      text = text.replaceAll(RegExp(r'&lv=[^&]*'), '');
-                      text = text.replaceAll(RegExp(r'&type=[^&]*'), '');
-                      if (profile.subscription == 'Pass Bronze') {
-                        text += '&lv=2';
-                      } else {
-                        text += '&type=love';
-                      }
-                    }
-                    _updateSync(text);
+                    final next = val
+                        ? _params.copyWith(
+                            level: NetworkLevel.overseas,
+                            type: null,
+                          )
+                        : _restoreDefault(tier);
+                    _commit(next);
                   },
                 ),
               ),
-              if (canUseEmergency) ...[
+              if (tier.canUseEmergency) ...[
                 const Divider(height: 16),
                 ListItem.switchItem(
                   padding: const EdgeInsets.symmetric(
@@ -223,15 +186,13 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
                   delegate: SwitchDelegate<bool>(
                     value: isEmergency,
                     onChanged: (val) {
-                      String text = _savedParams;
-                      text = text.replaceAll(RegExp(r'&lv=[^&]*'), '');
-                      text = text.replaceAll(RegExp(r'&type=[^&]*'), '');
-                      if (val) {
-                        text += '&lv=2';
-                      } else {
-                        text += '&type=love';
-                      }
-                      _updateSync(text);
+                      final next = val
+                          ? _params.copyWith(
+                              level: NetworkLevel.emergency,
+                              type: null,
+                            )
+                          : _restoreDefault(tier);
+                      _commit(next);
                     },
                   ),
                 ),
@@ -245,16 +206,24 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
                   style: const TextStyle(fontSize: 12),
                 ),
                 delegate: SwitchDelegate<bool>(
-                  value: _tfoEnabled,
-                  onChanged: (val) {
-                    _updateSync(_savedParams, tfoEnabled: val);
-                  },
+                  value: _params.tfo ?? true,
+                  onChanged: (val) =>
+                      _commit(_params.copyWith(tfo: val)),
                 ),
               ),
             ],
           ],
         ),
       ),
+    );
+  }
+
+  /// Restore the level/type to the tier's defaults, preserving tfo + extras.
+  OixParams _restoreDefault(SubscriptionTier tier) {
+    final defaults = tier.defaultParams;
+    return _params.copyWith(
+      level: defaults.level,
+      type: defaults.type,
     );
   }
 

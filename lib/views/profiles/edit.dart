@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/providers/cloud_account_provider.dart';
 
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
@@ -14,7 +13,6 @@ import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class EditProfileView extends ConsumerStatefulWidget {
   final Profile profile;
@@ -58,49 +56,25 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
   Future<void> _loadoixParams() async {
     if (!widget.profile.isoixCloudProfile) return;
-    final prefs = await SharedPreferences.getInstance();
-    final rawParams = prefs.getString('cloud_service_config_params') ?? '';
-    final defaultParamsStr =
-        prefs.getString('cloud_service_default_params') ?? '';
-    final tfoObj = prefs.getBool('cloud_service_tfo');
-
-    final parseResult = CloudConfigHelper.parseTfoParams(rawParams, tfoObj);
-    final cleanParams = parseResult.params;
-    final displayParams = cleanParams;
-
-    if (parseResult.needsUpdate) {
-      await prefs.setBool('cloud_service_tfo', parseResult.tfoEnabled);
-      await prefs.setString('cloud_service_config_params', cleanParams);
-    }
+    final params = await OixParamsStorage.load();
+    final defaultRaw = await OixParamsStorage.loadDefaultRaw();
 
     if (mounted) {
       setState(() {
-        _defaultParams = defaultParamsStr;
-        _oixParamsController.text = displayParams;
+        _defaultParams = defaultRaw;
+        // tfo is shown as its own switch elsewhere — don't surface it here.
+        _oixParamsController.text = params.encodeWithoutTfo();
       });
     }
   }
 
   Future<void> _saveoixParams(Profile currentProfile) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    var text = _oixParamsController.text;
-    text = text.replaceAll(
-      RegExp(r'&tfo=(true|false)'),
-      '',
-    ); // cleanly remove if manually typed
-    text = text.replaceAll(RegExp(r'&+'), '&');
-    if (text == '&') text = '';
-    if (text.isNotEmpty && !text.startsWith('&')) {
-      text = '&$text';
-    }
-    
-    await prefs.setString('cloud_service_config_params', text);
-    
-    if (prefs.getBool('cloud_service_tfo') == null) {
-      await prefs.setBool('cloud_service_tfo', true);
-    }
-
+    final existing = await OixParamsStorage.load();
+    // Parse the user's text but preserve the previously-stored tfo value:
+    // tfo is owned by the dedicated switch in CloudProfileCard, not this field.
+    final edited = OixParams.parse(_oixParamsController.text)
+        .copyWith(tfo: existing.tfo ?? true);
+    await OixParamsStorage.save(edited);
     await appController.updateProfile(currentProfile, showLoading: true);
   }
 

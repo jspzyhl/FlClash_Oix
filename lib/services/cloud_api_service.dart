@@ -179,9 +179,9 @@ class CloudApiService {
       expireTime = DateTime.now();
     }
 
-    double usedBytes = _parseTraffic(info['used']?.toString());
-    double totalBytes = _parseTraffic(info['traffic']?.toString());
-    double progress = totalBytes > 0
+    final usedBytes = _parseTraffic(info['used']?.toString());
+    final totalBytes = _parseTraffic(info['traffic']?.toString());
+    final progress = totalBytes > 0
         ? (usedBytes / totalBytes).clamp(0.0, 1.0)
         : 0.0;
 
@@ -201,11 +201,15 @@ class CloudApiService {
     return (profile: profile, announcement: announcement);
   }
 
-  double _parseTraffic(String? value) {
-    if (value == null || value.trim().isEmpty) return 0.0;
+  /// Parses a human traffic string ("1.5 GB", "200 MiB", "42") into bytes.
+  /// Multipliers always follow the 1024 (binary) convention regardless of
+  /// whether the unit is written `MB` or `MiB` — the server uses both forms
+  /// interchangeably.
+  int _parseTraffic(String? value) {
+    if (value == null || value.trim().isEmpty) return 0;
 
     final trafficRegex = RegExp(
-      r'^(\d+(?:\.\d+)?)\s*([KMGT]?)i?B?$',
+      r'^(\d+(?:\.\d+)?)\s*([KMGT])?(i)?B?$',
       caseSensitive: false,
     );
     final match = trafficRegex.firstMatch(value.trim());
@@ -214,21 +218,15 @@ class CloudApiService {
     }
 
     final numValue = double.tryParse(match.group(1) ?? '0') ?? 0.0;
-
     final unit = (match.group(2) ?? '').toUpperCase();
-
-    switch (unit) {
-      case 'T':
-        return numValue * 1024 * 1024 * 1024 * 1024;
-      case 'G':
-        return numValue * 1024 * 1024 * 1024;
-      case 'M':
-        return numValue * 1024 * 1024;
-      case 'K':
-        return numValue * 1024;
-      default:
-        return numValue;
-    }
+    final multiplier = switch (unit) {
+      'T' => 1 << 40,
+      'G' => 1 << 30,
+      'M' => 1 << 20,
+      'K' => 1 << 10,
+      _ => 1,
+    };
+    return (numValue * multiplier).round();
   }
 
   void _validateInput(String email, String password) {
@@ -360,6 +358,14 @@ class RetryInterceptor extends Interceptor {
 
   RetryInterceptor({required this.dio, this.retries = 2});
 
+  // Allows accepting bad TLS certs in local dev. Off by default in debug too;
+  // requires an explicit `--dart-define=ALLOW_INSECURE_TLS=true` to enable so
+  // a leaked debug build cannot silently MITM.
+  static const _allowInsecureTls = bool.fromEnvironment(
+    'ALLOW_INSECURE_TLS',
+    defaultValue: false,
+  );
+
   Dio _getDirectDio() {
     final existing = _directDio;
     if (existing != null) return existing;
@@ -368,7 +374,8 @@ class RetryInterceptor extends Interceptor {
       createHttpClient: () {
         final client = HttpClient();
         client.findProxy = (_) => 'DIRECT';
-        client.badCertificateCallback = (_, _, _) => kDebugMode;
+        client.badCertificateCallback = (_, _, _) =>
+            kDebugMode && _allowInsecureTls;
         return client;
       },
     );
