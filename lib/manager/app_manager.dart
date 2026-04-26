@@ -4,6 +4,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/manager/window_manager.dart';
+import 'package:fl_clash/models/profile.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:flutter/foundation.dart';
@@ -79,6 +80,15 @@ class _AppStateManagerState extends ConsumerState<AppStateManager>
   @override
   void didChangePlatformBrightness() {
     appController.updateBrightness();
+  }
+
+  @override
+  void didHaveMemoryPressure() {
+    if (oixCloudConfigCache.isEmpty) return;
+    commonPrint.log(
+      'memory pressure: evicting ${oixCloudConfigCache.length} oixCloud cache entries',
+    );
+    oixCloudConfigCache.clear();
   }
 
   @override

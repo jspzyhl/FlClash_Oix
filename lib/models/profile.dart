@@ -274,7 +274,7 @@ extension ProfileExtension on Profile {
         commonPrint.log('validateConfig failed', logLevel: LogLevel.warning);
         throw message;
       }
-      oixCloudConfigCache[id] = bytes;
+      oixCloudConfigCache[id] = Uint8List.fromList(gzip.encode(bytes));
       return copyWith(lastUpdateDate: DateTime.now());
     }
 

@@ -737,7 +737,8 @@ extension SetupControllerExt on AppController {
         ? oixCloudConfigCache[profile.id]
         : null;
     if (cachedBytes != null) {
-      final base64String = base64Encode(cachedBytes);
+      final raw = gzip.decode(cachedBytes);
+      final base64String = base64Encode(raw);
       configMap = await coreController.getConfigFromBytes(base64String);
     } else {
       if (profile != null && profile.isoixCloudProfile) {
