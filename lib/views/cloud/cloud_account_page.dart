@@ -226,7 +226,12 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
       },
       style: {
         'body': Style(margin: Margins.zero, padding: HtmlPaddings.zero),
-        'p': Style(margin: Margins.only(bottom: 8)),
+        'p': Style(margin: Margins.only(top: 0, bottom: 8)),
+        'hr': Style(
+          margin: Margins.only(top: 8, bottom: 8),
+          padding: HtmlPaddings.zero,
+          height: Height(1),
+        ),
         'a': Style(color: context.colorScheme.primary),
         'img': Style(width: Width(100, Unit.percent)),
       },

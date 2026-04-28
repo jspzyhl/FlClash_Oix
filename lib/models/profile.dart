@@ -16,6 +16,7 @@ part 'generated/profile.g.dart';
 typedef FetchManagedConfigCallback =
     Future<(Uint8List, String?)> Function(String paramString);
 FetchManagedConfigCallback? _fetchManagedConfigCallback;
+const oixCloudManagedProfileUrl = 'oixcloud://managed';
 
 /// Hook the cloud-account layer registers so [Profile.update] can wait for
 /// token bootstrap to finish before issuing a managed-config fetch.
@@ -191,7 +192,7 @@ extension ProfileExtension on Profile {
   String get realLabel => label.takeFirstValid([id.toString()]);
 
   bool get isoixCloudProfile {
-    if (url == 'oixcloud://managed') return true;
+    if (url == oixCloudManagedProfileUrl) return true;
     final apiDomain = secrets.API_DOMAIN.trim();
     if (apiDomain.isEmpty) return false;
     return url.toLowerCase().contains(apiDomain.toLowerCase());

@@ -49,6 +49,15 @@ class CloudApiService {
   final Dio _dio;
   String? _cachedToken;
 
+  static final RegExp _bearerTokenPattern = RegExp(
+    r'^Bearer\s+(.+)$',
+    caseSensitive: false,
+  );
+  static final RegExp _queryTokenPattern = RegExp(
+    r'^(?:access_token|token)=(.+)$',
+    caseSensitive: false,
+  );
+
   CloudApiService._()
     : _dio = Dio(
         BaseOptions(
@@ -75,8 +84,8 @@ class CloudApiService {
           if (options.extra['skipAuth'] != true &&
               _cachedToken != null &&
               _cachedToken!.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $_cachedToken';
-            options.queryParameters['access_token'] = _cachedToken;
+            final token = _cachedToken!;
+            options.headers['Authorization'] = 'Bearer $token';
           }
 
           if (kDebugMode) {
@@ -118,11 +127,78 @@ class CloudApiService {
   static final CloudApiService _instance = CloudApiService._();
   factory CloudApiService() => _instance;
 
+  static String? normalizeToken(String? token) {
+    if (token == null) return null;
+
+    var normalized = _stripWrappingQuotes(token.trim());
+    if (normalized.isEmpty) return null;
+
+    final uriToken = _extractTokenFromUri(normalized);
+    if (uriToken != null) {
+      normalized = uriToken;
+    }
+
+    final bearerMatch = _bearerTokenPattern.firstMatch(normalized);
+    if (bearerMatch != null) {
+      normalized = bearerMatch.group(1)?.trim() ?? '';
+    }
+
+    final queryToken = _extractTokenFromQuery(normalized);
+    if (queryToken != null) {
+      normalized = queryToken;
+    }
+
+    normalized = _stripWrappingQuotes(normalized);
+
+    return normalized.isEmpty ? null : normalized;
+  }
+
+  static String _stripWrappingQuotes(String value) {
+    var normalized = value;
+    while (normalized.length >= 2 &&
+        ((normalized.startsWith('"') && normalized.endsWith('"')) ||
+            (normalized.startsWith("'") && normalized.endsWith("'")))) {
+      normalized = normalized.substring(1, normalized.length - 1).trim();
+    }
+    return normalized;
+  }
+
+  static String? _extractTokenFromUri(String value) {
+    final uri = Uri.tryParse(value);
+    if (uri == null || !uri.hasScheme) {
+      return null;
+    }
+    return _extractTokenFromParameters(uri.queryParameters);
+  }
+
+  static String? _extractTokenFromQuery(String value) {
+    final queryCandidate = value.startsWith('?') ? value.substring(1) : value;
+    if (!_queryTokenPattern.hasMatch(queryCandidate) &&
+        !(queryCandidate.contains('&') && queryCandidate.contains('='))) {
+      return null;
+    }
+    try {
+      return _extractTokenFromParameters(Uri.splitQueryString(queryCandidate));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static String? _extractTokenFromParameters(Map<String, String> parameters) {
+    final token = parameters['access_token'] ?? parameters['token'];
+    final normalized = token?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
+  }
+
   void setToken(String? token) {
-    if (token == null || token.isEmpty) {
+    final normalizedToken = normalizeToken(token);
+    if (normalizedToken == null || normalizedToken.isEmpty) {
       _cachedToken = null;
     } else {
-      _cachedToken = token;
+      _cachedToken = normalizedToken;
     }
   }
 
@@ -275,6 +351,11 @@ class CloudApiService {
 
   Future<({CloudProfile profile, CloudNotification? announcement})>
   getUserInfo() async {
+    final token = _cachedToken;
+    if (token == null || token.isEmpty) {
+      throw Exception('Missing access token');
+    }
+
     final res = await _dio.post('/information');
     final responseDto = CloudApiResponse<Map<dynamic, dynamic>>.fromJson(
       res.data,

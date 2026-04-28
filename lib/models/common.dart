@@ -322,10 +322,20 @@ extension GroupExt on Group {
   String get realNow => now ?? '';
 
   String getCurrentSelectedName(String proxyName) {
+    final hasProxyName =
+        proxyName.isNotEmpty && all.any((proxy) => proxy.name == proxyName);
+    final hasRealNow =
+        realNow.isNotEmpty && all.any((proxy) => proxy.name == realNow);
     if (type.isComputedSelected) {
-      return realNow.isNotEmpty ? realNow : proxyName;
+      if (hasRealNow) {
+        return realNow;
+      }
+      return hasProxyName ? proxyName : '';
     }
-    return proxyName.isNotEmpty ? proxyName : realNow;
+    if (hasProxyName) {
+      return proxyName;
+    }
+    return hasRealNow ? realNow : '';
   }
 }
 

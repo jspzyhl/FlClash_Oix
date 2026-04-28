@@ -238,7 +238,7 @@ extension ProfilesControllerExt on AppController {
   Future<void> deleteProfile(int id) async {
     oixCloudConfigCache.remove(id);
     _ref.read(profilesProvider.notifier).del(id);
-    clearEffect(id);
+    await clearEffect(id);
     final currentProfileId = _ref.read(currentProfileIdProvider);
     if (currentProfileId == id) {
       final profiles = _ref.read(profilesProvider);
@@ -409,7 +409,10 @@ extension ProfilesControllerExt on AppController {
         await file.safeDelete(recursive: true);
       }
     }
-    await coreController.deleteFile(providersDirPath);
+    final providersDir = Directory(providersDirPath);
+    if (await providersDir.exists()) {
+      await providersDir.safeDelete(recursive: true);
+    }
   }
 }
 
@@ -434,6 +437,33 @@ extension ProxiesControllerExt on AppController {
     debouncer.call(FunctionTag.updateGroups, updateGroups, duration: duration);
   }
 
+  void _syncCurrentProfileSelectedMap(List<Group> groups) {
+    final currentProfile = _ref.read(currentProfileProvider);
+    if (currentProfile == null) {
+      return;
+    }
+    final nextSelectedMap = <String, String>{};
+    for (final entry in currentProfile.selectedMap.entries) {
+      final group = groups.getGroup(entry.key);
+      if (group == null) {
+        continue;
+      }
+      final proxyName = group.getCurrentSelectedName(entry.value);
+      if (proxyName.isNotEmpty) {
+        nextSelectedMap[entry.key] = proxyName;
+      }
+    }
+    if (stringAndStringMapEquality.equals(
+      currentProfile.selectedMap,
+      nextSelectedMap,
+    )) {
+      return;
+    }
+    _ref
+        .read(profilesProvider.notifier)
+        .put(currentProfile.copyWith(selectedMap: nextSelectedMap));
+  }
+
   void changeProxyDebounce(String groupName, String proxyName) {
     debouncer.call(FunctionTag.changeProxy, (
       String groupName,
@@ -447,7 +477,7 @@ extension ProxiesControllerExt on AppController {
   Future<void> updateGroups() async {
     try {
       commonPrint.log('updateGroups');
-      _ref.read(groupsProvider.notifier).value = await retry(
+      final groups = await retry(
         task: () async {
           final sortType = _ref.read(
             proxiesStyleSettingProvider.select((state) => state.sortType),
@@ -468,6 +498,8 @@ extension ProxiesControllerExt on AppController {
         },
         retryIf: (res) => res.isEmpty,
       );
+      _ref.read(groupsProvider.notifier).value = groups;
+      _syncCurrentProfileSelectedMap(groups);
     } catch (e) {
       commonPrint.log('updateGroups error: $e');
       _ref.read(groupsProvider.notifier).value = [];

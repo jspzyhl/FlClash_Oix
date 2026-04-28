@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
+import 'package:fl_clash/database/database.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart';
@@ -16,6 +17,14 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   DateTime? _lastRefreshTime;
   SharedPreferences? _prefs;
   Future<void>? _initFuture;
+
+  String _requireNormalizedToken(String token) {
+    final normalizedToken = CloudApiService.normalizeToken(token);
+    if (normalizedToken == null) {
+      throw Exception('Access token is empty');
+    }
+    return normalizedToken;
+  }
 
   Future<SharedPreferences> get _safePrefs async {
     _prefs ??= await SharedPreferences.getInstance();
@@ -48,7 +57,12 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
       }
     }
 
-    if (token == null || token.isEmpty) return;
+    if (token == null || token.isEmpty) {
+      CloudApiService().setToken(null);
+      await _clearCache();
+      await _clearManagedProfiles();
+      return;
+    }
 
     CloudApiService().setToken(token);
 
@@ -111,6 +125,79 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     await OixParamsStorage.clear();
   }
 
+  Future<void> _deleteProfileLocally(
+    int id, {
+    required int? fallbackProfileId,
+  }) async {
+    oixCloudConfigCache.remove(id);
+    ref.read(profilesProvider.notifier).del(id);
+    await appController.clearEffect(id);
+    if (ref.read(currentProfileIdProvider) != id) {
+      return;
+    }
+    ref.read(currentProfileIdProvider.notifier).value = fallbackProfileId;
+  }
+
+  Future<void> _clearManagedProfiles() async {
+    final currentProfiles = ref.read(profilesProvider);
+    final sourceProfiles = currentProfiles.isNotEmpty
+        ? currentProfiles
+        : await database.profilesDao.all().get();
+    final existing = sourceProfiles.where((p) => p.isoixCloudProfile).toList();
+    final fallbackProfileId = sourceProfiles
+        .where((p) => !p.isoixCloudProfile)
+        .firstOrNull
+        ?.id;
+    for (final profile in existing) {
+      if (appController.isAttach) {
+        await appController.deleteProfile(profile.id);
+      } else {
+        await _deleteProfileLocally(
+          profile.id,
+          fallbackProfileId: fallbackProfileId,
+        );
+      }
+    }
+  }
+
+  Future<void> _activateManagedProfile(
+    Profile profile, {
+    bool requestStartIfNeeded = true,
+  }) async {
+    ref.read(currentProfileIdProvider.notifier).value = profile.id;
+    if (!appController.isAttach) {
+      return;
+    }
+    if (appController.isStart) {
+      await appController.applyProfile(silence: true, force: true);
+      return;
+    }
+    if (requestStartIfNeeded) {
+      await appController.requestStartCore();
+    }
+  }
+
+  Future<void> _addManagedProfile(String url) async {
+    final profile = await appController.addProfileFormURL(url);
+    if (profile != null) {
+      await _activateManagedProfile(profile, requestStartIfNeeded: false);
+    }
+  }
+
+  Future<void> _syncExistingManagedProfile(
+    List<Profile> existing, {
+    bool showLoading = false,
+    bool showSuccessMessage = false,
+  }) async {
+    await _dedupOixProfiles(existing);
+    final profile = existing.first;
+    await appController.updateProfile(profile, showLoading: showLoading);
+    if (showSuccessMessage) {
+      globalState.showNotifier(AppLocalizations.current.getProfileSuccess);
+    }
+    await _activateManagedProfile(profile);
+  }
+
   Future<void> signInWithPassword({
     required String email,
     required String password,
@@ -119,7 +206,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     try {
       final result = await CloudApiService().login(email, password);
       await _completeSignIn(
-        token: result.token,
+        token: _requireNormalizedToken(result.token),
         profile: result.profile,
         announcement: result.announcement,
       );
@@ -133,10 +220,11 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   Future<void> signInWithToken(String token) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      CloudApiService().setToken(token);
+      final normalizedToken = _requireNormalizedToken(token);
+      CloudApiService().setToken(normalizedToken);
       final userInfo = await CloudApiService().getUserInfo();
       await _completeSignIn(
-        token: token,
+        token: normalizedToken,
         profile: userInfo.profile,
         announcement: userInfo.announcement,
       );
@@ -164,8 +252,8 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     );
     globalState.showNotifier(AppLocalizations.current.loginSuccess);
 
-    final injectedUrl = await _injectDefaultParams(profile);
-    await importManagedProfile(injectedUrl);
+    await _injectDefaultParams(profile);
+    await importManagedProfile(oixCloudManagedProfileUrl);
   }
 
   Future<void> refreshProfile({bool force = false}) async {
@@ -202,7 +290,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     }
   }
 
-  Future<String> _injectDefaultParams(CloudProfile profile) async {
+  Future<void> _injectDefaultParams(CloudProfile profile) async {
     final tier = SubscriptionTier.fromServer(profile.subscription);
     final newDefault = tier.defaultParams;
 
@@ -233,7 +321,6 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     if (!hasUserParams || effective != userParams) {
       await OixParamsStorage.save(effective);
     }
-    return 'oixcloud://managed';
   }
 
   Future<void> syncManagedConfig() async {
@@ -241,21 +328,17 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
     state = state.copyWith(isSyncing: true, error: null);
     try {
-      final existing = _existingOixProfiles();
-
       if (state.profile != null) {
-        final injectedUrl = await _injectDefaultParams(state.profile!);
-        if (existing.isEmpty) {
-          final profile = await appController.addProfileFormURL(injectedUrl);
-          if (profile != null) {
-            ref.read(currentProfileIdProvider.notifier).value = profile.id;
-          }
-        } else {
-          await _dedupOixProfiles(existing);
-          await appController.updateProfiles();
+        await _injectDefaultParams(state.profile!);
+      }
+
+      final existing = _existingOixProfiles();
+      if (existing.isEmpty) {
+        if (state.profile != null) {
+          await _addManagedProfile(oixCloudManagedProfileUrl);
         }
-      } else if (existing.isNotEmpty) {
-        await appController.updateProfiles();
+      } else {
+        await _syncExistingManagedProfile(existing);
       }
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -267,24 +350,18 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   Future<void> importManagedProfile(String url) async {
     final existing = _existingOixProfiles();
     if (existing.isEmpty) {
-      final profile = await appController.addProfileFormURL(url);
-      if (profile != null) {
-        ref.read(currentProfileIdProvider.notifier).value = profile.id;
-      }
+      await _addManagedProfile(url);
       return;
     }
 
-    await _dedupOixProfiles(existing);
-    bool updated = false;
     try {
-      await appController.updateProfile(existing.first, showLoading: true);
-      updated = true;
+      await _syncExistingManagedProfile(
+        existing,
+        showLoading: true,
+        showSuccessMessage: true,
+      );
     } catch (e) {
       globalState.showNotifier(e.toString());
-    }
-    if (updated) {
-      globalState.showNotifier(AppLocalizations.current.getProfileSuccess);
-      await appController.requestStartCore();
     }
   }
 
@@ -301,7 +378,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     }
   }
 
-  Future<void> signOut({bool revokeToken = false}) async {
+  Future<void> signOut() async {
     await SafeStorage.delete('cloud_token');
     final prefs = await _safePrefs;
     await prefs.remove('cloud_token');
@@ -310,11 +387,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     CloudApiService().setToken(null);
     oixCloudConfigCache.clear();
     state = const CloudAccountState();
-
-    final existing = _existingOixProfiles();
-    for (final p in existing) {
-      await appController.deleteProfile(p.id);
-    }
+    await _clearManagedProfiles();
   }
 }
 
