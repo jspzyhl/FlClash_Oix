@@ -13,6 +13,12 @@ import (
 	t "core/tun"
 	"encoding/json"
 	"errors"
+	"net"
+	"strings"
+	"sync"
+	"syscall"
+	"unsafe"
+
 	"github.com/metacubex/mihomo/component/dialer"
 	"github.com/metacubex/mihomo/component/process"
 	"github.com/metacubex/mihomo/constant"
@@ -20,11 +26,6 @@ import (
 	"github.com/metacubex/mihomo/listener/sing_tun"
 	"github.com/metacubex/mihomo/log"
 	"golang.org/x/sync/semaphore"
-	"net"
-	"strings"
-	"sync"
-	"syscall"
-	"unsafe"
 )
 
 var eventListener unsafe.Pointer
@@ -234,16 +235,12 @@ func setEventListener(listener unsafe.Pointer) {
 
 //export getTotalTraffic
 func getTotalTraffic(onlyStatisticsProxy bool) *C.char {
-	data := C.CString(handleGetTotalTraffic(onlyStatisticsProxy))
-	defer C.free(unsafe.Pointer(data))
-	return data
+	return C.CString(handleGetTotalTraffic(onlyStatisticsProxy))
 }
 
 //export getTraffic
 func getTraffic(onlyStatisticsProxy bool) *C.char {
-	data := C.CString(handleGetTraffic(onlyStatisticsProxy))
-	defer C.free(unsafe.Pointer(data))
-	return data
+	return C.CString(handleGetTraffic(onlyStatisticsProxy))
 }
 
 func sendMessage(message Message) {

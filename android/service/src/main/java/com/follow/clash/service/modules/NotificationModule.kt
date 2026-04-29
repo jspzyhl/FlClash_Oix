@@ -58,7 +58,7 @@ class NotificationModule(private val service: Service) : Module() {
             }
 
             combine(
-                tickerFlow(1000, 0), State.notificationParamsFlow, screenFlow
+                tickerFlow(2000, 0), State.notificationParamsFlow, screenFlow
             ) { _, params, screenOn ->
                 params?.extended to screenOn
             }.filter { (params, screenOn) -> params != null && screenOn }
