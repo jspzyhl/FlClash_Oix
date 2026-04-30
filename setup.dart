@@ -299,16 +299,6 @@ class Build {
     );
 
     await exec(
-      name: 'clean distributor',
-      Build.getExecutable('flutter clean'),
-      workingDirectory: distributorDir,
-    );
-    await exec(
-      name: 'upgrade distributor',
-      Build.getExecutable('flutter pub upgrade'),
-      workingDirectory: distributorDir,
-    );
-    await exec(
       name: 'get distributor',
       Build.getExecutable('dart pub global activate -s path $distributorDir'),
     );
@@ -370,38 +360,41 @@ class BuildCommand extends Command {
       .toList();
 
   Future<void> _getLinuxDependencies(Arch arch) async {
-    await Build.exec(Build.getExecutable('sudo apt update -y'));
+    await Build.exec(Build.getExecutable('sudo apt-get update -y'));
     await Build.exec(
-      Build.getExecutable('sudo apt install -y ninja-build libgtk-3-dev'),
+      Build.getExecutable(
+        'sudo apt-get install -y ninja-build libgtk-3-dev libayatana-appindicator3-dev libkeybinder-3.0-dev libsecret-1-dev libjsoncpp-dev libglib2.0-dev locate',
+      ),
     );
-    await Build.exec(
-      Build.getExecutable('sudo apt install -y libayatana-appindicator3-dev'),
-    );
-    await Build.exec(
-      Build.getExecutable('sudo apt-get install -y libkeybinder-3.0-dev'),
-    );
-    await Build.exec(
-      Build.getExecutable('sudo apt-get install -y libsecret-1-dev libjsoncpp-dev libglib2.0-dev'),
-    );
-    await Build.exec(Build.getExecutable('sudo apt install -y locate'));
     if (arch == Arch.amd64) {
-      await Build.exec(Build.getExecutable('sudo apt install -y rpm patchelf'));
-      await Build.exec(Build.getExecutable('sudo apt install -y libfuse2'));
+      await Build.exec(
+        Build.getExecutable('sudo apt-get install -y rpm patchelf libfuse2'),
+      );
 
-      final downloadName = arch == Arch.amd64 ? 'x86_64' : 'aarch64';
-      await Build.exec(
-        Build.getExecutable(
-          'wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-$downloadName.AppImage',
-        ),
-      );
-      await Build.exec(Build.getExecutable('chmod +x appimagetool'));
-      await Build.exec(
-        Build.getExecutable('sudo mv appimagetool /usr/local/bin/'),
-      );
+      final appImageTool = File('/usr/local/bin/appimagetool');
+      if (!appImageTool.existsSync()) {
+        final downloadName = arch == Arch.amd64 ? 'x86_64' : 'aarch64';
+        await Build.exec(
+          Build.getExecutable(
+            'wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-$downloadName.AppImage',
+          ),
+        );
+        await Build.exec(Build.getExecutable('chmod +x appimagetool'));
+        await Build.exec(
+          Build.getExecutable('sudo mv appimagetool /usr/local/bin/'),
+        );
+      }
     }
   }
 
   Future<void> _getMacosDependencies() async {
+    final appDmg = await Process.run('bash', [
+      '-lc',
+      'command -v appdmg >/dev/null 2>&1',
+    ]);
+    if (appDmg.exitCode == 0) {
+      return;
+    }
     await Build.exec(Build.getExecutable('npm install -g appdmg'));
   }
 
@@ -447,7 +440,7 @@ class BuildCommand extends Command {
     await Build.exec(
       name: name,
       Build.getExecutable(
-        'flutter_distributor package --skip-clean --platform ${target.name} --targets $targets --artifact-name $artifactNameTemplate --flutter-build-args=verbose$args $dartDefines',
+        'flutter_distributor package --skip-clean --platform ${target.name} --targets $targets --artifact-name $artifactNameTemplate --flutter-build-args=verbose,no-pub$args $dartDefines',
       ),
     );
   }
@@ -486,7 +479,7 @@ class BuildCommand extends Command {
     await Build.exec(
       name: name,
       Build.getExecutable(
-        'flutter build apk --target-platform $targetPlatform $dartDefines',
+        'flutter build apk --no-pub --target-platform $targetPlatform $dartDefines',
       ),
     );
 

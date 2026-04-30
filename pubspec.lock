@@ -289,6 +289,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.7"
+  cryptography:
+    dependency: "direct main"
+    description:
+      name: cryptography
+      sha256: "3eda3029d34ec9095a27a198ac9785630fe525c0eb6a49f3d575272f8e792ef0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.9.0"
   csslib:
     dependency: transitive
     description:
@@ -1827,11 +1835,10 @@ packages:
   yaml_writer:
     dependency: "direct main"
     description:
-      path: "."
-      ref: master
-      resolved-ref: "2a38859d8b9707f99a55433974a799c413477a5b"
-      url: "https://github.com/chen08209/yaml_writer"
-    source: git
+      name: yaml_writer
+      sha256: "69651cd7238411179ac32079937d4aa9a2970150d6b2ae2c6fe6de09402a5dc5"
+      url: "https://pub.dev"
+    source: hosted
     version: "2.1.0"
 sdks:
   dart: ">=3.9.0 <4.0.0"

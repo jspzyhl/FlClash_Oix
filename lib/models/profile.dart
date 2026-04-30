@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:crypto/crypto.dart';
+import 'package:cryptography/cryptography.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'clash_config.dart';
@@ -22,6 +25,49 @@ const oixCloudManagedProfileUrl = 'oixcloud://managed';
 /// token bootstrap to finish before issuing a managed-config fetch.
 Future<void> Function()? _ensureCloudReady;
 final Map<int, Uint8List> oixCloudConfigCache = {};
+final AesGcm _profileCipher = AesGcm.with256bits();
+
+const _flclashEncryptedMagic = 'FLEN';
+const _flclashEncryptedVersion = 0x02;
+
+bool _isEncryptedProfileBytes(Uint8List bytes) {
+  return bytes.length >= 5 &&
+      bytes[0] == 0x46 &&
+      bytes[1] == 0x4C &&
+      bytes[2] == 0x45 &&
+      bytes[3] == 0x4E &&
+      bytes[4] == _flclashEncryptedVersion;
+}
+
+Uint8List _randomBytes(int length) {
+  final random = Random.secure();
+  return Uint8List.fromList(
+    List<int>.generate(length, (_) => random.nextInt(256)),
+  );
+}
+
+Future<Uint8List> _encryptProfileBytes(Uint8List bytes) async {
+  final profileKey = secrets.PROFILE_KEY.trim();
+  if (profileKey.isEmpty) {
+    throw Exception('PROFILE_KEY is not configured');
+  }
+
+  final secretKey = SecretKey(sha256.convert(utf8.encode(profileKey)).bytes);
+  final nonce = _randomBytes(12);
+  final secretBox = await _profileCipher.encrypt(
+    bytes,
+    secretKey: secretKey,
+    nonce: nonce,
+  );
+
+  return Uint8List.fromList([
+    ...ascii.encode(_flclashEncryptedMagic),
+    _flclashEncryptedVersion,
+    ...nonce,
+    ...secretBox.cipherText,
+    ...secretBox.mac.bytes,
+  ]);
+}
 
 void registerFetchManagedConfig(FetchManagedConfigCallback callback) {
   _fetchManagedConfigCallback = callback;
@@ -202,9 +248,44 @@ extension ProfileExtension on Profile {
 
   String get updatingKey => 'profile_$id';
 
+  bool get useEncryptedDiskStore => isoixCloudProfile && system.isAndroid;
+
+  Future<bool> hasLocalConfigSnapshot() async {
+    if (isoixCloudProfile && !useEncryptedDiskStore) {
+      return oixCloudConfigCache.containsKey(id);
+    }
+
+    return await getExistingFilePath() != null;
+  }
+
+  Future<String?> getExistingFilePath() async {
+    final mFile = await _getFile(false);
+    if (!await mFile.exists()) return null;
+
+    if (!useEncryptedDiskStore) {
+      return mFile.path;
+    }
+
+    if (!await coreController.isInit) {
+      return mFile.path;
+    }
+
+    final message = await coreController.validateConfig(mFile.path);
+    if (message.isEmpty) {
+      return mFile.path;
+    }
+
+    commonPrint.log(
+      'discarding invalid oixCloud snapshot $id: $message',
+      logLevel: LogLevel.warning,
+    );
+    await mFile.safeDelete();
+    return null;
+  }
+
   Future<Profile?> checkAndUpdateAndCopy() async {
     if (isoixCloudProfile) {
-      if (oixCloudConfigCache.containsKey(id)) return null;
+      if (await hasLocalConfigSnapshot()) return null;
       return update();
     }
     final mFile = await _getFile(false);
@@ -231,6 +312,25 @@ extension ProfileExtension on Profile {
 
   Future<File> get file async {
     return _getFile();
+  }
+
+  Future<void> _replaceWithEncryptedSnapshot(Uint8List bytes) async {
+    final encryptedBytes = _isEncryptedProfileBytes(bytes)
+        ? bytes
+        : await _encryptProfileBytes(bytes);
+    final mFile = await _getFile(false);
+    final tempFile = File(await appPath.getProfilePath('.$id'));
+
+    try {
+      if (!await tempFile.exists()) {
+        await tempFile.create(recursive: true);
+      }
+      await tempFile.writeAsBytes(encryptedBytes, flush: true);
+      await tempFile.rename(mFile.path);
+    } catch (_) {
+      await tempFile.safeDelete();
+      rethrow;
+    }
   }
 
   Future<Profile> update() async {
@@ -275,7 +375,14 @@ extension ProfileExtension on Profile {
         commonPrint.log('validateConfig failed', logLevel: LogLevel.warning);
         throw message;
       }
-      oixCloudConfigCache[id] = Uint8List.fromList(gzip.encode(bytes));
+
+      if (useEncryptedDiskStore) {
+        oixCloudConfigCache.remove(id);
+        await _replaceWithEncryptedSnapshot(bytes);
+      } else {
+        oixCloudConfigCache[id] = Uint8List.fromList(gzip.encode(bytes));
+      }
+
       return copyWith(lastUpdateDate: DateTime.now());
     }
 

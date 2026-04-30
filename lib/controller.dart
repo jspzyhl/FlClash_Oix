@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi' hide Size;
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -48,7 +49,6 @@ extension InitControllerExt on AppController {
       );
     };
     updateTray();
-    autoUpdateProfiles();
     autoCheckUpdate();
     autoLaunch?.updateStatus(_ref.read(appSettingProvider).autoLaunch);
     if (!_ref.read(appSettingProvider).silentLaunch) {
@@ -60,6 +60,7 @@ extension InitControllerExt on AppController {
     await _connectCore();
     await _initCore();
     await _initStatus();
+    autoUpdateProfiles();
     _ref.read(initProvider.notifier).value = true;
   }
 
@@ -261,7 +262,7 @@ extension ProfilesControllerExt on AppController {
           true;
 
       if (profile.isoixCloudProfile &&
-          !oixCloudConfigCache.containsKey(profile.id)) {
+          !await profile.hasLocalConfigSnapshot()) {
         shouldUpdate = true;
       }
 
@@ -634,6 +635,19 @@ extension SetupControllerExt on AppController {
     }
   }
 
+  Uint8List? _getCachedProfileBytes(Profile? profile) {
+    if (profile == null || profile.useEncryptedDiskStore) {
+      return null;
+    }
+    return oixCloudConfigCache[profile.id];
+  }
+
+  Future<Profile> _refreshOixCloudProfile(Profile profile) async {
+    final updatedProfile = await profile.update();
+    _ref.read(profilesProvider.notifier).put(updatedProfile);
+    return updatedProfile;
+  }
+
   Future<bool> needSetup() async {
     final profileId = _ref.read(currentProfileIdProvider);
     if (profileId == null) {
@@ -763,22 +777,48 @@ extension SetupControllerExt on AppController {
     final overrideDns = _ref.read(overrideDnsProvider);
     final appendSystemDns = networkVM2.a;
     final routeMode = networkVM2.b;
-    final profile = _ref.read(profilesProvider).getProfile(profileId);
+    var profile = _ref.read(profilesProvider).getProfile(profileId);
+
     Map<String, dynamic> configMap;
-    final cachedBytes = profile != null
-        ? oixCloudConfigCache[profile.id]
-        : null;
+    var cachedBytes = _getCachedProfileBytes(profile);
+    String? existingPath;
+
+    if (profile != null && profile.isoixCloudProfile) {
+      if (profile.useEncryptedDiskStore) {
+        existingPath = await profile.getExistingFilePath();
+      }
+
+      if (cachedBytes == null && existingPath == null) {
+        profile = await _refreshOixCloudProfile(profile);
+        cachedBytes = _getCachedProfileBytes(profile);
+        if (profile.useEncryptedDiskStore) {
+          existingPath = await profile.getExistingFilePath();
+        }
+      }
+    }
+
     if (cachedBytes != null) {
       final raw = gzip.decode(cachedBytes);
       final base64String = base64Encode(raw);
       configMap = await coreController.getConfigFromBytes(base64String);
     } else {
-      if (profile != null && profile.isoixCloudProfile) {
-        throw Exception('oixCloud profile cache miss');
+      String path;
+      if (profile != null) {
+        existingPath ??=
+            profile.isoixCloudProfile && !profile.useEncryptedDiskStore
+            ? null
+            : await profile.getExistingFilePath();
+        if (existingPath != null) {
+          path = existingPath;
+        } else {
+          if (profile.isoixCloudProfile) {
+            throw Exception('oixCloud profile cache miss');
+          }
+          path = await appPath.getProfilePath(profileId.toString());
+        }
+      } else {
+        path = await appPath.getProfilePath(profileId.toString());
       }
-      final mFile = profile != null ? await profile.file : null;
-      final path =
-          mFile?.path ?? await appPath.getProfilePath(profileId.toString());
       configMap = await coreController.getConfig(path);
     }
     String? scriptContent;
@@ -1086,7 +1126,9 @@ extension BackupControllerExt on AppController {
     final profileIds = _ref.read(
       profilesProvider.select(
         (state) => state
-            .where((item) => !item.isoixCloudProfile)
+            .where(
+              (item) => !item.isoixCloudProfile || item.useEncryptedDiskStore,
+            )
             .map((item) => item.id),
       ),
     );
