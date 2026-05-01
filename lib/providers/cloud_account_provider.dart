@@ -17,6 +17,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   DateTime? _lastRefreshTime;
   SharedPreferences? _prefs;
   Future<void>? _initFuture;
+  Future<void>? _signInFuture;
 
   String _requireNormalizedToken(String token) {
     final normalizedToken = CloudApiService.normalizeToken(token);
@@ -201,25 +202,19 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   Future<void> signInWithPassword({
     required String email,
     required String password,
-  }) async {
-    state = state.copyWith(isLoading: true, error: null);
-    try {
+  }) {
+    return _runSignIn(() async {
       final result = await CloudApiService().login(email, password);
       await _completeSignIn(
         token: _requireNormalizedToken(result.token),
         profile: result.profile,
         announcement: result.announcement,
       );
-    } catch (e) {
-      CloudApiService().setToken(null);
-      state = state.copyWith(isLoading: false, error: e.toString());
-      rethrow;
-    }
+    });
   }
 
-  Future<void> signInWithToken(String token) async {
-    state = state.copyWith(isLoading: true, error: null);
-    try {
+  Future<void> signInWithToken(String token) {
+    return _runSignIn(() async {
       final normalizedToken = _requireNormalizedToken(token);
       CloudApiService().setToken(normalizedToken);
       final userInfo = await CloudApiService().getUserInfo();
@@ -228,11 +223,30 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
         profile: userInfo.profile,
         announcement: userInfo.announcement,
       );
-    } catch (e) {
-      CloudApiService().setToken(null);
-      state = state.copyWith(isLoading: false, error: e.toString());
-      rethrow;
+    });
+  }
+
+  Future<void> _runSignIn(Future<void> Function() action) {
+    final inFlight = _signInFuture;
+    if (inFlight != null) {
+      return inFlight;
     }
+
+    final future = () async {
+      state = state.copyWith(isLoading: true, error: null);
+      try {
+        await action();
+      } catch (e) {
+        CloudApiService().setToken(null);
+        state = state.copyWith(isLoading: false, error: e.toString());
+        rethrow;
+      } finally {
+        _signInFuture = null;
+      }
+    }();
+
+    _signInFuture = future;
+    return future;
   }
 
   Future<void> _completeSignIn({
@@ -286,6 +300,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
         latestNotification: userInfo.announcement ?? state.latestNotification,
       );
     } catch (e) {
+      CloudApiService().setToken(null);
       state = state.copyWith(isRefreshing: false, error: e.toString());
     }
   }

@@ -1,7 +1,6 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/providers/providers.dart';
-import 'package:fl_clash/providers/database.dart';
 import 'package:fl_clash/state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +20,7 @@ class _CloudLoginPageState extends ConsumerState<CloudLoginPage> {
 
   var _loginMode = _LoginMode.token;
   var _obscurePassword = true;
+  var _isSubmitting = false;
 
   @override
   void dispose() {
@@ -31,7 +31,12 @@ class _CloudLoginPageState extends ConsumerState<CloudLoginPage> {
   }
 
   Future<void> _handleLogin() async {
+    if (_isSubmitting || ref.read(cloudAccountProvider).isLoading) {
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSubmitting = true);
 
     final notifier = ref.read(cloudAccountProvider.notifier);
     final navigator = Navigator.of(context);
@@ -59,13 +64,19 @@ class _CloudLoginPageState extends ConsumerState<CloudLoginPage> {
         title: AppLocalizations.current.loginFailed,
         message: TextSpan(text: error.toString()),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      } else {
+        _isSubmitting = false;
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final accountState = ref.watch(cloudAccountProvider);
-    final isLoading = accountState.isLoading;
+    final isLoading = accountState.isLoading || _isSubmitting;
 
     return Dialog(
       child: Container(
@@ -164,7 +175,9 @@ class _CloudLoginPageState extends ConsumerState<CloudLoginPage> {
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off : Icons.visibility,
               ),
-              onPressed: () =>
+              onPressed: isLoading
+                  ? null
+                  : () =>
                   setState(() => _obscurePassword = !_obscurePassword),
             ),
           ),
@@ -189,7 +202,9 @@ class _CloudLoginPageState extends ConsumerState<CloudLoginPage> {
           icon: Icon(
             _obscurePassword ? Icons.visibility_off : Icons.visibility,
           ),
-          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+          onPressed: isLoading
+              ? null
+              : () => setState(() => _obscurePassword = !_obscurePassword),
         ),
       ),
       validator: (v) =>

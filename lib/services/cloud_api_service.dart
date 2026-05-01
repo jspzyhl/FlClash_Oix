@@ -484,7 +484,7 @@ class RetryInterceptor extends Interceptor {
       );
       try {
         final response = await dio.fetch(
-          err.requestOptions.copyWith(extra: baseExtra),
+          _copyRequestOptionsForRetry(err.requestOptions, baseExtra),
         );
         return handler.resolve(response);
       } on DioException catch (e) {
@@ -496,7 +496,7 @@ class RetryInterceptor extends Interceptor {
     if (_shouldRetry(lastError)) {
       try {
         final response = await _getDirectDio().fetch(
-          err.requestOptions.copyWith(extra: baseExtra),
+          _copyRequestOptionsForRetry(err.requestOptions, baseExtra),
         );
         return handler.resolve(response);
       } on DioException catch (e) {
@@ -505,6 +505,17 @@ class RetryInterceptor extends Interceptor {
     }
 
     return super.onError(lastError, handler);
+  }
+
+  RequestOptions _copyRequestOptionsForRetry(
+    RequestOptions requestOptions,
+    Map<String, dynamic> extra,
+  ) {
+    final data = requestOptions.data;
+    return requestOptions.copyWith(
+      data: data is FormData ? data.clone() : data,
+      extra: extra,
+    );
   }
 
   bool _shouldRetry(DioException err) {
