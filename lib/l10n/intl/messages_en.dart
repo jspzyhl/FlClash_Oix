@@ -581,6 +581,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlyStatisticsProxyDesc": MessageLookupByLibrary.simpleMessage(
       "When turned on, only statistics proxy traffic",
     ),
+    "openInstaller": MessageLookupByLibrary.simpleMessage("Open installer"),
+    "openInstallerFailed": MessageLookupByLibrary.simpleMessage(
+      "Unable to open installer automatically. Opening the download link...",
+    ),
     "optionalParameters": MessageLookupByLibrary.simpleMessage(
       "Optional Parameters",
     ),
@@ -707,6 +711,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "refreshSuccess": MessageLookupByLibrary.simpleMessage("Refresh Complete"),
     "regExp": MessageLookupByLibrary.simpleMessage("RegExp"),
     "reload": MessageLookupByLibrary.simpleMessage("Reload"),
+    "remindLater": MessageLookupByLibrary.simpleMessage("Remind me later"),
     "remaining": m13,
     "remote": MessageLookupByLibrary.simpleMessage("Remote"),
     "remoteBackupDesc": MessageLookupByLibrary.simpleMessage(
@@ -905,6 +910,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "unnamed": MessageLookupByLibrary.simpleMessage("Unnamed"),
     "update": MessageLookupByLibrary.simpleMessage("Update"),
+    "updateDownloadSuccess": MessageLookupByLibrary.simpleMessage(
+      "Update package downloaded. Open it now?",
+    ),
+    "updateDownloadFallback": MessageLookupByLibrary.simpleMessage(
+      "Update download failed. Opening the download link...",
+    ),
+    "updateDownloading": MessageLookupByLibrary.simpleMessage(
+      "Downloading update in background...",
+    ),
     "upload": MessageLookupByLibrary.simpleMessage("Upload"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage(

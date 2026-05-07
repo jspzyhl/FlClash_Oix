@@ -612,6 +612,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlyStatisticsProxyDesc": MessageLookupByLibrary.simpleMessage(
       "При включении будет учитываться только трафик прокси",
     ),
+    "openInstaller": MessageLookupByLibrary.simpleMessage("Открыть установщик"),
+    "openInstallerFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось открыть установщик автоматически. Открываем ссылку для загрузки...",
+    ),
     "optionalParameters": MessageLookupByLibrary.simpleMessage(
       "Дополнительные параметры",
     ),
@@ -750,6 +754,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "regExp": MessageLookupByLibrary.simpleMessage("Регулярное выражение"),
     "reload": MessageLookupByLibrary.simpleMessage("Перезагрузить"),
+    "remindLater": MessageLookupByLibrary.simpleMessage("Напомнить позже"),
     "remaining": m13,
     "remote": MessageLookupByLibrary.simpleMessage("Удаленный"),
     "remoteBackupDesc": MessageLookupByLibrary.simpleMessage(
@@ -962,6 +967,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "unnamed": MessageLookupByLibrary.simpleMessage("Без имени"),
     "update": MessageLookupByLibrary.simpleMessage("Обновить"),
+    "updateDownloadSuccess": MessageLookupByLibrary.simpleMessage(
+      "Пакет обновления загружен. Открыть сейчас?",
+    ),
+    "updateDownloadFallback": MessageLookupByLibrary.simpleMessage(
+      "Не удалось загрузить обновление. Открываем ссылку для загрузки...",
+    ),
+    "updateDownloading": MessageLookupByLibrary.simpleMessage(
+      "Загрузка обновления в фоновом режиме...",
+    ),
     "upload": MessageLookupByLibrary.simpleMessage("Загрузка"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage(

@@ -11,6 +11,7 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'common/common.dart';
@@ -22,6 +23,7 @@ class AppController {
   late final BuildContext _context;
   late final WidgetRef _ref;
   bool isAttach = false;
+  bool _isUpdateDownloading = false;
 
   static AppController? _instance;
 
@@ -99,9 +101,8 @@ extension InitControllerExt on AppController {
   }
 
   Future<void> autoCheckUpdate() async {
-    if (!_ref.read(appSettingProvider).autoCheckUpdate) return;
     final res = await request.checkForUpdate();
-    checkUpdateResultHandle(data: res);
+    await checkUpdateResultHandle(data: res);
   }
 
   Future<void> checkUpdateResultHandle({
@@ -109,64 +110,184 @@ extension InitControllerExt on AppController {
     bool isUser = false,
   }) async {
     if (data != null) {
-      final tagName = data['tag_name'];
-      final body = data['body'];
-      final submits = utils.parseReleaseBody(body);
-      final textTheme = _context.textTheme;
-      final res = await globalState.showMessage(
-        title: appLocalizations.discoverNewVersion,
-        message: TextSpan(
-          text: '$tagName \n',
-          style: textTheme.headlineSmall,
-          children: [
-            TextSpan(text: '\n', style: textTheme.bodyMedium),
-            for (final submit in submits)
-              TextSpan(text: '- $submit \n', style: textTheme.bodyMedium),
-          ],
-        ),
-        confirmText: appLocalizations.goDownload,
-        cancelText: isUser ? null : appLocalizations.noLongerRemind,
+      final tagName = data['tag_name'] as String? ?? '';
+      final body = data['body'] as String? ?? '';
+      await safeRun<void>(
+        () => _promptUpdateAndDownload(tagName: tagName, body: body),
+        title: appLocalizations.checkUpdate,
+        silence: !isUser,
       );
-      if (res == true) {
-        String downloadUrl;
-        if (system.isWindows) {
-          downloadUrl = 'https://dl.dler.io/flclash-windows-amd64-setup.exe';
-        } else if (system.isMacOS) {
-          final isArm = Abi.current() == Abi.macosArm64;
-          final arch = isArm ? 'arm64' : 'amd64';
-          downloadUrl = 'https://dl.dler.io/flclash-macos-$arch.dmg';
-        } else if (system.isAndroid) {
-          final abi = Abi.current();
-          String arch;
-          if (abi == Abi.androidArm64) {
-            arch = 'arm64-v8a';
-          } else if (abi == Abi.androidArm) {
-            arch = 'armeabi-v7a';
-          } else if (abi == Abi.androidX64) {
-            arch = 'x86_64';
-          } else {
-            arch = 'arm64-v8a';
-          }
-          downloadUrl = 'https://dl.dler.io/flclash-android-$arch.apk';
-        } else if (Platform.isLinux) {
-          final isArm = Abi.current() == Abi.linuxArm64;
-          final arch = isArm ? 'arm64' : 'amd64';
-          downloadUrl = 'https://dl.dler.io/flclash-linux-$arch.deb';
-        } else {
-          downloadUrl = 'https://dl.dler.io';
-        }
-        launchUrl(Uri.parse(downloadUrl));
-      } else if (!isUser && res == false) {
-        _ref
-            .read(appSettingProvider.notifier)
-            .update((state) => state.copyWith(autoCheckUpdate: false));
-      }
     } else if (isUser) {
       globalState.showMessage(
         title: appLocalizations.checkUpdate,
         message: TextSpan(text: appLocalizations.checkUpdateError),
       );
     }
+  }
+
+  Future<void> _promptUpdateAndDownload({
+    required String tagName,
+    required String body,
+  }) async {
+    if (_isUpdateDownloading) {
+      globalState.showNotifier(appLocalizations.updateDownloading);
+      return;
+    }
+    final textTheme = _context.textTheme;
+    final submits = utils.parseReleaseBody(body);
+    final shouldDownload = await globalState.showMessage(
+      title: appLocalizations.discoverNewVersion,
+      message: TextSpan(
+        text: tagName.isEmpty ? '' : '$tagName \n',
+        style: textTheme.headlineSmall,
+        children: [
+          if (submits.isNotEmpty)
+            TextSpan(text: '\n', style: textTheme.bodyMedium),
+          for (final submit in submits)
+            TextSpan(text: '- $submit \n', style: textTheme.bodyMedium),
+        ],
+      ),
+      confirmText: appLocalizations.download,
+      cancelText: appLocalizations.remindLater,
+    );
+    if (shouldDownload != true) return;
+    final downloadUrl = _getUpdateDownloadUrl();
+    if (downloadUrl == null) {
+      await _openUpdateDownloadUrl('https://dl.dler.io');
+      return;
+    }
+    try {
+      _isUpdateDownloading = true;
+      globalState.showNotifier(appLocalizations.updateDownloading);
+      final updateFile = await _downloadUpdatePackage(downloadUrl, tagName);
+      final dialogResult = await globalState.showMessage(
+        title: appLocalizations.discoverNewVersion,
+        message: TextSpan(
+          style: textTheme.bodyMedium,
+          children: [
+            TextSpan(
+              text: '${appLocalizations.updateDownloadSuccess}\n',
+              style: textTheme.bodyMedium,
+            ),
+            TextSpan(text: updateFile.path, style: textTheme.bodySmall),
+          ],
+        ),
+        confirmText: appLocalizations.openInstaller,
+        cancelText: appLocalizations.remindLater,
+      );
+      if (dialogResult == true) {
+        await _openUpdatePackage(updateFile, downloadUrl);
+      }
+    } catch (error) {
+      commonPrint.log(
+        'download update package failed: $error',
+        logLevel: LogLevel.warning,
+      );
+      globalState.showNotifier(appLocalizations.updateDownloadFallback);
+      await _openUpdateDownloadUrl(downloadUrl);
+    } finally {
+      _isUpdateDownloading = false;
+    }
+  }
+
+  Future<File> _downloadUpdatePackage(
+    String downloadUrl,
+    String tagName,
+  ) async {
+    final fileName = _getUpdatePackageFileName(downloadUrl, tagName);
+    final downloadDirPath = await _getUpdateDownloadDirPath();
+    final updateFile = File(p.join(downloadDirPath, fileName));
+    if (await updateFile.exists() && await updateFile.length() > 0) {
+      return updateFile;
+    }
+    final tempFile = File('${updateFile.path}.download');
+    await tempFile.safeDelete();
+    await request.downloadFile(downloadUrl, tempFile.path);
+    await updateFile.safeDelete();
+    return await tempFile.rename(updateFile.path);
+  }
+
+  String _getUpdatePackageFileName(String downloadUrl, String tagName) {
+    final sourceFileName = p.basename(Uri.parse(downloadUrl).path);
+    if (tagName.isEmpty) {
+      return sourceFileName;
+    }
+    final extension = p.extension(sourceFileName);
+    final name = p.basenameWithoutExtension(sourceFileName);
+    final version = tagName
+        .replaceAll(RegExp(r'[^0-9A-Za-z._-]+'), '-')
+        .replaceAll(RegExp(r'-+'), '-')
+        .replaceAll(RegExp(r'^-|-$'), '');
+    return '$name-$version$extension';
+  }
+
+  Future<String> _getUpdateDownloadDirPath() async {
+    try {
+      final downloadDirPath = await appPath.downloadDirPath.timeout(
+        const Duration(seconds: 3),
+      );
+      return p.join(downloadDirPath, 'FlClash');
+    } catch (error) {
+      commonPrint.log(
+        'get update download dir failed: $error',
+        logLevel: LogLevel.warning,
+      );
+      final homeDirPath = await appPath.homeDirPath;
+      return p.join(homeDirPath, 'updates');
+    }
+  }
+
+  Future<void> _openUpdatePackage(File updateFile, String fallbackUrl) async {
+    bool opened = false;
+    try {
+      opened = await launchUrl(
+        Uri.file(updateFile.path),
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (error) {
+      commonPrint.log(
+        'open update package failed: $error',
+        logLevel: LogLevel.warning,
+      );
+    }
+    if (opened) return;
+    globalState.showNotifier(appLocalizations.openInstallerFailed);
+    await _openUpdateDownloadUrl(fallbackUrl);
+  }
+
+  Future<void> _openUpdateDownloadUrl(String downloadUrl) async {
+    await launchUrl(Uri.parse(downloadUrl));
+  }
+
+  String? _getUpdateDownloadUrl() {
+    if (system.isWindows) {
+      return 'https://dl.dler.io/flclash-windows-amd64-setup.exe';
+    }
+    if (system.isMacOS) {
+      final isArm = Abi.current() == Abi.macosArm64;
+      final arch = isArm ? 'arm64' : 'amd64';
+      return 'https://dl.dler.io/flclash-macos-$arch.dmg';
+    }
+    if (system.isAndroid) {
+      final abi = Abi.current();
+      String arch;
+      if (abi == Abi.androidArm64) {
+        arch = 'arm64-v8a';
+      } else if (abi == Abi.androidArm) {
+        arch = 'armeabi-v7a';
+      } else if (abi == Abi.androidX64) {
+        arch = 'x86_64';
+      } else {
+        arch = 'arm64-v8a';
+      }
+      return 'https://dl.dler.io/flclash-android-$arch.apk';
+    }
+    if (Platform.isLinux) {
+      final isArm = Abi.current() == Abi.linuxArm64;
+      final arch = isArm ? 'arm64' : 'amd64';
+      return 'https://dl.dler.io/flclash-linux-$arch.deb';
+    }
+    return null;
   }
 }
 

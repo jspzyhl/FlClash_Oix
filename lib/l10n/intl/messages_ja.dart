@@ -444,6 +444,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlyStatisticsProxyDesc": MessageLookupByLibrary.simpleMessage(
       "有効化するとプロキシトラフィックのみ統計",
     ),
+    "openInstaller": MessageLookupByLibrary.simpleMessage("インストーラーを開く"),
+    "openInstallerFailed": MessageLookupByLibrary.simpleMessage(
+      "インストーラーを自動で開けませんでした。ダウンロードリンクを開きます...",
+    ),
     "optionalParameters": MessageLookupByLibrary.simpleMessage("オプションパラメータ"),
     "options": MessageLookupByLibrary.simpleMessage("オプション"),
     "other": MessageLookupByLibrary.simpleMessage("その他"),
@@ -548,6 +552,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "refreshSuccess": MessageLookupByLibrary.simpleMessage("更新完了"),
     "regExp": MessageLookupByLibrary.simpleMessage("正規表現"),
     "reload": MessageLookupByLibrary.simpleMessage("リロード"),
+    "remindLater": MessageLookupByLibrary.simpleMessage("後で通知"),
     "remaining": m13,
     "remote": MessageLookupByLibrary.simpleMessage("リモート"),
     "remoteBackupDesc": MessageLookupByLibrary.simpleMessage(
@@ -704,6 +709,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "unknownNetworkError": MessageLookupByLibrary.simpleMessage("不明なネットワークエラー"),
     "unnamed": MessageLookupByLibrary.simpleMessage("無題"),
     "update": MessageLookupByLibrary.simpleMessage("更新"),
+    "updateDownloadSuccess": MessageLookupByLibrary.simpleMessage(
+      "アップデートパッケージをダウンロードしました。今すぐ開きますか？",
+    ),
+    "updateDownloadFallback": MessageLookupByLibrary.simpleMessage(
+      "アップデートのダウンロードに失敗しました。ダウンロードリンクを開きます...",
+    ),
+    "updateDownloading": MessageLookupByLibrary.simpleMessage(
+      "バックグラウンドでアップデートをダウンロード中...",
+    ),
     "upload": MessageLookupByLibrary.simpleMessage("アップロード"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage("URL経由でプロファイルを取得"),

@@ -390,6 +390,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlyStatisticsProxyDesc": MessageLookupByLibrary.simpleMessage(
       "开启后，将只统计代理流量",
     ),
+    "openInstaller": MessageLookupByLibrary.simpleMessage("打开安装包"),
+    "openInstallerFailed": MessageLookupByLibrary.simpleMessage(
+      "无法自动打开安装包，正在打开下载链接...",
+    ),
     "optionalParameters": MessageLookupByLibrary.simpleMessage("可选项参数"),
     "options": MessageLookupByLibrary.simpleMessage("选项"),
     "other": MessageLookupByLibrary.simpleMessage("其他"),
@@ -478,6 +482,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "refreshSuccess": MessageLookupByLibrary.simpleMessage("刷新完成"),
     "regExp": MessageLookupByLibrary.simpleMessage("正则"),
     "reload": MessageLookupByLibrary.simpleMessage("重载"),
+    "remindLater": MessageLookupByLibrary.simpleMessage("稍后提醒"),
     "remaining": m13,
     "remote": MessageLookupByLibrary.simpleMessage("远程"),
     "remoteBackupDesc": MessageLookupByLibrary.simpleMessage("备份数据到WebDAV"),
@@ -624,6 +629,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "unknownNetworkError": MessageLookupByLibrary.simpleMessage("未知网络错误"),
     "unnamed": MessageLookupByLibrary.simpleMessage("未命名"),
     "update": MessageLookupByLibrary.simpleMessage("更新"),
+    "updateDownloadSuccess": MessageLookupByLibrary.simpleMessage(
+      "更新包已下载，是否立即打开？",
+    ),
+    "updateDownloadFallback": MessageLookupByLibrary.simpleMessage(
+      "更新下载失败，正在打开下载链接...",
+    ),
+    "updateDownloading": MessageLookupByLibrary.simpleMessage("正在后台下载更新..."),
     "upload": MessageLookupByLibrary.simpleMessage("上传"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage("通过URL获取配置文件"),

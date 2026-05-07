@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
@@ -95,6 +94,32 @@ class Request {
       url,
       options: Options(responseType: ResponseType.plain),
     );
+  }
+
+  Future<void> downloadFile(String url, String savePath) async {
+    try {
+      final saveFile = File(savePath);
+      await saveFile.parent.create(recursive: true);
+      await dio.download(
+        url,
+        savePath,
+        options: Options(
+          responseType: ResponseType.bytes,
+          validateStatus: (status) => status != null && status < 400,
+        ),
+      );
+    } catch (error) {
+      commonPrint.log('downloadFile error ${error.toString()}');
+      if (error is DioException) {
+        if (error.type == DioExceptionType.unknown) {
+          throw appLocalizations.unknownNetworkError;
+        } else if (error.type == DioExceptionType.badResponse) {
+          throw appLocalizations.networkException;
+        }
+        rethrow;
+      }
+      throw appLocalizations.unknownNetworkError;
+    }
   }
 
   Future<MemoryImage?> getImage(String url) async {

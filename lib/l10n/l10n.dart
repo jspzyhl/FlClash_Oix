@@ -1129,6 +1129,56 @@ class AppLocalizations {
     );
   }
 
+  /// `Downloading update in background...`
+  String get updateDownloading {
+    return Intl.message(
+      'Downloading update in background...',
+      name: 'updateDownloading',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Update package downloaded. Open it now?`
+  String get updateDownloadSuccess {
+    return Intl.message(
+      'Update package downloaded. Open it now?',
+      name: 'updateDownloadSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Update download failed. Opening the download link...`
+  String get updateDownloadFallback {
+    return Intl.message(
+      'Update download failed. Opening the download link...',
+      name: 'updateDownloadFallback',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open installer`
+  String get openInstaller {
+    return Intl.message(
+      'Open installer',
+      name: 'openInstaller',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to open installer automatically. Opening the download link...`
+  String get openInstallerFailed {
+    return Intl.message(
+      'Unable to open installer automatically. Opening the download link...',
+      name: 'openInstallerFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Unknown`
   String get unknown {
     return Intl.message('Unknown', name: 'unknown', desc: '', args: []);
@@ -3474,6 +3524,16 @@ class AppLocalizations {
     return Intl.message(
       'Don\'t remind again',
       name: 'noLongerRemind',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remind me later`
+  String get remindLater {
+    return Intl.message(
+      'Remind me later',
+      name: 'remindLater',
       desc: '',
       args: [],
     );
