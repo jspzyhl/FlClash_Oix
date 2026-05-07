@@ -59,6 +59,12 @@ const defaultExternalController = '127.0.0.1:9090';
 const maxMobileWidth = 600;
 const maxLaptopWidth = 840;
 const defaultTestUrl = 'http://cp.cloudflare.com/generate_204';
+const defaultDirectTestUrl = 'http://wifi.vivo.com.cn/generate_204';
+
+String getDelayTestUrl({required String proxyName, required String testUrl}) {
+  return proxyName == UsedProxy.DIRECT.value ? defaultDirectTestUrl : testUrl;
+}
+
 final commonFilter = ImageFilter.blur(
   sigmaX: 5,
   sigmaY: 5,

@@ -32,14 +32,18 @@ Future<void> proxyDelayTest(Proxy proxy, [String? testUrl]) async {
   final currentTestUrl = state.testUrl.takeFirstValid([
     appController.getRealTestUrl(testUrl),
   ]);
+  final delayTestUrl = getDelayTestUrl(
+    proxyName: state.proxyName,
+    testUrl: currentTestUrl,
+  );
   if (state.proxyName.isEmpty) {
     return;
   }
   appController.setDelay(
-    Delay(url: currentTestUrl, name: state.proxyName, value: 0),
+    Delay(url: delayTestUrl, name: state.proxyName, value: 0),
   );
   appController.setDelay(
-    await coreController.getDelay(currentTestUrl, state.proxyName),
+    await coreController.getDelay(delayTestUrl, state.proxyName),
   );
 }
 
@@ -58,11 +62,12 @@ Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
       appController.getRealTestUrl(testUrl),
     ]);
     final name = state.proxyName;
+    final delayTestUrl = getDelayTestUrl(proxyName: name, testUrl: url);
     if (name.isEmpty) {
       return;
     }
-    appController.setDelay(Delay(url: url, name: name, value: 0));
-    appController.setDelay(await coreController.getDelay(url, name));
+    appController.setDelay(Delay(url: delayTestUrl, name: name, value: 0));
+    appController.setDelay(await coreController.getDelay(delayTestUrl, name));
   }).toList();
 
   final batchesDelayProxies = delayProxies.batch(100);

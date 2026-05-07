@@ -202,7 +202,8 @@ class CoreController {
   }
 
   Future<Delay> getDelay(String url, String proxyName) async {
-    final data = await _interface.asyncTestDelay(url, proxyName);
+    final testUrl = getDelayTestUrl(proxyName: proxyName, testUrl: url);
+    final data = await _interface.asyncTestDelay(testUrl, proxyName);
     return Delay.fromJson(json.decode(data));
   }
 

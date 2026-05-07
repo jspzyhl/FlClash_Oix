@@ -403,10 +403,13 @@ String realTestUrl(Ref ref, [String? testUrl]) {
 int? getDelay(Ref ref, {required String proxyName, String? testUrl}) {
   final currentTestUrl = ref.watch(realTestUrlProvider(testUrl));
   final proxyState = ref.watch(realSelectedProxyStateProvider(proxyName));
+  final delayTestUrl = getDelayTestUrl(
+    proxyName: proxyState.proxyName,
+    testUrl: proxyState.testUrl.takeFirstValid([currentTestUrl]),
+  );
   final delay = ref.watch(
     delayDataSourceProvider.select((state) {
-      final delayMap =
-          state[proxyState.testUrl.takeFirstValid([currentTestUrl])];
+      final delayMap = state[delayTestUrl];
       return delayMap?[proxyState.proxyName];
     }),
   );
