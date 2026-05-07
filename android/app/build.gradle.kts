@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Base64
 import java.util.Properties
 
 plugins {
@@ -21,6 +22,26 @@ val mKeyPassword: String? = localProperties.getProperty("keyPassword")
 val isRelease =
     mStoreFile.exists() && mStorePassword != null && mKeyAlias != null && mKeyPassword != null
 
+fun dartDefine(name: String): String {
+    val encodedDefines = (findProperty("dart-defines") as? String).orEmpty()
+    return encodedDefines.split(',')
+        .mapNotNull { encoded ->
+            if (encoded.isBlank()) {
+                null
+            } else {
+                runCatching {
+                    String(Base64.getDecoder().decode(encoded), Charsets.UTF_8)
+                }.getOrNull()
+            }
+        }
+        .firstOrNull { it.startsWith("$name=") }
+        ?.substringAfter("$name=")
+        .orEmpty()
+}
+
+fun String.asBuildConfigString(): String =
+    "\"${replace("\\", "\\\\").replace("\"", "\\\"")}\""
+
 
 android {
     namespace = "com.follow.clash"
@@ -28,6 +49,10 @@ android {
     ndkVersion = libs.versions.ndkVersion.get()
 
 
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -40,6 +65,11 @@ android {
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        buildConfigField(
+            "String",
+            "PROFILE_KEY",
+            dartDefine("PROFILE_KEY").asBuildConfigString()
+        )
     }
 
     signingConfigs {

@@ -48,15 +48,7 @@ func decodeAndDecrypt(base64Str string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	data := decoded
-	if len(data) >= 5 && string(data[:4]) == "FLEN" && data[4] == 0x02 {
-		decrypted, err := DecryptFlClash(data)
-		if err != nil {
-			return nil, err
-		}
-		data = decrypted
-	}
-	return data, nil
+	return decryptFlClashIfNeeded(decoded)
 }
 
 func handleAction(action *Action, result ActionResult) {

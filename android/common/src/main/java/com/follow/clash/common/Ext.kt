@@ -220,6 +220,9 @@ val Long.formatBytes: String
 fun String.chunkedForAidl(charset: Charset = Charsets.UTF_8): List<ByteArray> {
     val allBytes = toByteArray(charset)
     val total = allBytes.size
+    if (total == 0) {
+        return listOf(byteArrayOf())
+    }
     val maxBytes = when {
         total <= 100 * 1024 -> total
         total <= 1024 * 1024 -> 64 * 1024

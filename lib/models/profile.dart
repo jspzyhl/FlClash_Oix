@@ -30,7 +30,7 @@ final AesGcm _profileCipher = AesGcm.with256bits();
 const _flclashEncryptedMagic = 'FLEN';
 const _flclashEncryptedVersion = 0x02;
 
-bool _isEncryptedProfileBytes(Uint8List bytes) {
+bool isEncryptedProfileBytes(Uint8List bytes) {
   return bytes.length >= 5 &&
       bytes[0] == 0x46 &&
       bytes[1] == 0x4C &&
@@ -46,7 +46,7 @@ Uint8List _randomBytes(int length) {
   );
 }
 
-Future<Uint8List> _encryptProfileBytes(Uint8List bytes) async {
+Future<Uint8List> encryptProfileBytes(Uint8List bytes) async {
   final profileKey = secrets.PROFILE_KEY.trim();
   if (profileKey.isEmpty) {
     throw Exception('PROFILE_KEY is not configured');
@@ -67,6 +67,13 @@ Future<Uint8List> _encryptProfileBytes(Uint8List bytes) async {
     ...secretBox.cipherText,
     ...secretBox.mac.bytes,
   ]);
+}
+
+Future<Uint8List> ensureEncryptedProfileBytes(Uint8List bytes) async {
+  if (isEncryptedProfileBytes(bytes)) {
+    return bytes;
+  }
+  return encryptProfileBytes(bytes);
 }
 
 void registerFetchManagedConfig(FetchManagedConfigCallback callback) {
@@ -315,9 +322,7 @@ extension ProfileExtension on Profile {
   }
 
   Future<void> _replaceWithEncryptedSnapshot(Uint8List bytes) async {
-    final encryptedBytes = _isEncryptedProfileBytes(bytes)
-        ? bytes
-        : await _encryptProfileBytes(bytes);
+    final encryptedBytes = await ensureEncryptedProfileBytes(bytes);
     final mFile = await _getFile(false);
     final tempFile = File(await appPath.getProfilePath('.$id'));
 

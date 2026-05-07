@@ -160,6 +160,31 @@ func defaultSetupParams() *SetupParams {
 	}
 }
 
+func isFlClashEncrypted(data []byte) bool {
+	return len(data) >= 5 && string(data[:4]) == "FLEN" && data[4] == 0x02
+}
+
+func decryptFlClashIfNeeded(data []byte) ([]byte, error) {
+	if !isFlClashEncrypted(data) {
+		return data, nil
+	}
+	return DecryptFlClash(data)
+}
+
+func parseConfigPath(path string) (*config.Config, bool, error) {
+	data, err := os.ReadFile(path)
+	if err != nil || !isFlClashEncrypted(data) {
+		cfg, err := executor.ParseWithPath(path)
+		return cfg, false, err
+	}
+	data, err = decryptFlClashIfNeeded(data)
+	if err != nil {
+		return nil, true, err
+	}
+	cfg, err := executor.ParseWithBytes(data)
+	return cfg, true, err
+}
+
 func readFile(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, err
@@ -169,12 +194,9 @@ func readFile(path string) ([]byte, error) {
 		return nil, err
 	}
 
-	if len(data) >= 5 && string(data[:4]) == "FLEN" && data[4] == 0x02 {
-		plaintext, err := DecryptFlClash(data)
-		if err != nil {
-			return nil, err
-		}
-		data = plaintext
+	data, err = decryptFlClashIfNeeded(data)
+	if err != nil {
+		return nil, err
 	}
 
 	return data, err
@@ -243,16 +265,17 @@ func applyConfig(params *SetupParams) error {
 	runLock.Lock()
 	defer runLock.Unlock()
 	var err error
+	isOixConfig := params.RawConfig != ""
 	constant.DefaultTestURL = params.TestURL
 	if params.RawConfig != "" {
 		currentConfig, err = executor.ParseWithBytes([]byte(params.RawConfig))
 	} else {
-		currentConfig, err = executor.ParseWithPath(filepath.Join(constant.Path.HomeDir(), "config.yaml"))
+		currentConfig, isOixConfig, err = parseConfigPath(filepath.Join(constant.Path.HomeDir(), "config.yaml"))
 	}
 	if err != nil {
 		currentConfig, _ = config.ParseRawConfig(config.DefaultRawConfig())
 	}
-	setMaskedAddrs(params.RawConfig != "", currentConfig.Proxies)
+	setMaskedAddrs(isOixConfig, currentConfig.Proxies)
 	hub.ApplyConfig(currentConfig)
 	patchSelectGroup(params.SelectedMap)
 	updateListeners()

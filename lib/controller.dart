@@ -1015,7 +1015,12 @@ extension SetupControllerExt on AppController {
     final configFilePath = await appPath.configFilePath;
     final yamlString = await encodeYamlTask(config);
     final isOixCloud = profile?.isoixCloudProfile ?? false;
-    if (!isOixCloud) {
+    if (isOixCloud && system.isAndroid) {
+      final encryptedBytes = await ensureEncryptedProfileBytes(
+        Uint8List.fromList(utf8.encode(yamlString)),
+      );
+      await File(configFilePath).safeWriteAsBytes(encryptedBytes);
+    } else if (!isOixCloud) {
       await File(configFilePath).safeWriteAsString(yamlString);
     }
 

@@ -132,16 +132,17 @@ object State {
         val initParams = mutableMapOf<String, Any>()
         initParams["home-dir"] = GlobalState.application.filesDir.path
         initParams["version"] = android.os.Build.VERSION.SDK_INT
+        initParams["profile-key"] = BuildConfig.PROFILE_KEY
         val initParamsString = Gson().toJson(initParams)
         val setupParamsString = Gson().toJson(sharedState.setupParams)
         Service.quickSetup(
             initParamsString,
             setupParamsString,
-            onStarted = {
-                startService()
-            },
+            onStarted = null,
             onResult = {
-                if (it.isNotEmpty()) {
+                if (it.isEmpty()) {
+                    startService()
+                } else {
                     GlobalState.application.showToast(it)
                 }
             },
