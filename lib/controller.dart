@@ -1075,6 +1075,7 @@ extension CoreControllerExt on AppController {
       final code = await system.authorizeCore();
       switch (code) {
         case AuthorizeCode.success:
+          _ref.read(realTunEnableProvider.notifier).value = enableTun;
           await restartCore();
           return Result.error('');
         case AuthorizeCode.none:

@@ -68,7 +68,8 @@ class Proxy extends ProxyPlatform {
         cmdList.add(
           ["gsettings", "set", "org.gnome.system.proxy", "mode", "manual"],
         );
-        final ignoreHosts = "\"['${bypassDomain.join("', '")}']\"";
+        final ignoreHosts =
+            "[${bypassDomain.map((domain) => "'${domain.replaceAll("'", r"\'")}'").join(', ')}]";
         cmdList.add(
           [
             "gsettings",
@@ -134,7 +135,7 @@ class Proxy extends ProxyPlatform {
         }
       }
       for (final cmd in cmdList) {
-        await Process.run(cmd[0], cmd.sublist(1), runInShell: true);
+        await Process.run(cmd[0], cmd.sublist(1));
       }
       return true;
     } catch (_) {

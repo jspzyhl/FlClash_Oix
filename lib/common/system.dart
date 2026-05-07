@@ -109,7 +109,6 @@ class System {
       }
       return AuthorizeCode.success;
     } else if (Platform.isLinux) {
-      final shell = Platform.environment['SHELL'] ?? 'bash';
       final password = await globalState.showCommonDialog<String>(
         child: InputDialog(
           obscureText: true,
@@ -117,17 +116,39 @@ class System {
           value: '',
         ),
       );
-      final arguments = [
-        '-c',
-        'echo "$password" | sudo -S chown root:root "$corePath" && echo "$password" | sudo -S chmod +sx "$corePath"',
-      ];
-      final result = await Process.run(shell, arguments);
-      if (result.exitCode != 0) {
+      if (password == null) {
+        return AuthorizeCode.error;
+      }
+      final chownResult = await _runSudo(password, [
+        'chown',
+        'root:root',
+        corePath,
+      ]);
+      if (!chownResult) {
+        return AuthorizeCode.error;
+      }
+      final chmodResult = await _runSudo(password, ['chmod', '+sx', corePath]);
+      if (!chmodResult) {
         return AuthorizeCode.error;
       }
       return AuthorizeCode.success;
     }
     return AuthorizeCode.error;
+  }
+
+  Future<bool> _runSudo(String password, List<String> arguments) async {
+    try {
+      final process = await Process.start('sudo', ['-S', ...arguments]);
+      final stdoutDone = process.stdout.drain<void>();
+      final stderrDone = process.stderr.drain<void>();
+      process.stdin.writeln(password);
+      await process.stdin.close();
+      final exitCode = await process.exitCode;
+      await Future.wait([stdoutDone, stderrDone]);
+      return exitCode == 0;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> back() async {
