@@ -240,10 +240,14 @@ extension InitControllerExt on AppController {
   Future<void> _openUpdatePackage(File updateFile, String fallbackUrl) async {
     bool opened = false;
     try {
-      opened = await launchUrl(
-        Uri.file(updateFile.path),
-        mode: LaunchMode.externalApplication,
-      );
+      if (system.isAndroid) {
+        opened = await app?.openFile(updateFile.path) ?? false;
+      } else {
+        opened = await launchUrl(
+          Uri.file(updateFile.path),
+          mode: LaunchMode.externalApplication,
+        );
+      }
     } catch (error) {
       commonPrint.log(
         'open update package failed: $error',

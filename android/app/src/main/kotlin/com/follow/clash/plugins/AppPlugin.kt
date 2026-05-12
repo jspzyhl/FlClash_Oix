@@ -12,6 +12,7 @@ import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.FileProvider
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
@@ -157,9 +158,53 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
                 result.success(true)
             }
 
+            "openFile" -> {
+                handleOpenFile(call, result)
+            }
+
             else -> {
                 result.notImplemented()
             }
+        }
+    }
+
+    private fun handleOpenFile(call: MethodCall, result: Result) {
+        val path = call.argument<String>("path")
+        if (path.isNullOrBlank()) {
+            result.success(false)
+            return
+        }
+
+        val file = File(path)
+        if (!file.exists()) {
+            result.success(false)
+            return
+        }
+
+        val activity = activityRef?.get()
+        val context = activity ?: GlobalState.application
+        try {
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.file_provider",
+                file
+            )
+            val mimeType = if (file.extension.equals("apk", ignoreCase = true)) {
+                "application/vnd.android.package-archive"
+            } else {
+                "application/octet-stream"
+            }
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, mimeType)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                if (activity == null) {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            }
+            (activity ?: context).startActivity(intent)
+            result.success(true)
+        } catch (_: Exception) {
+            result.success(false)
         }
     }
 
