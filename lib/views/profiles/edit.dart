@@ -33,8 +33,10 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   late final TextEditingController _urlController;
   late final TextEditingController _autoUpdateDurationController;
   late final TextEditingController _oixParamsController;
-  String _defaultParams = '';
+  String _defaultEditableParams = '';
   late bool _autoUpdate;
+  bool _tfo = true;
+  bool _minimalConfig = false;
   String? _rawText;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _fileInfoNotifier = ValueNotifier<FileInfo?>(null);
@@ -61,19 +63,19 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
     if (mounted) {
       setState(() {
-        _defaultParams = defaultRaw;
-        // tfo is shown as its own switch elsewhere — don't surface it here.
-        _oixParamsController.text = params.encodeWithoutTfo();
+        _defaultEditableParams = OixParams.parse(
+          defaultRaw,
+        ).encodeEditableOptions();
+        _tfo = params.tfo ?? true;
+        _minimalConfig = params.simplerules;
+        _oixParamsController.text = params.encodeEditableOptions();
       });
     }
   }
 
   Future<void> _saveoixParams(Profile currentProfile) async {
-    final existing = await OixParamsStorage.load();
-    // Parse the user's text but preserve the previously-stored tfo value:
-    // tfo is owned by the dedicated switch in CloudProfileCard, not this field.
     final edited = OixParams.parse(_oixParamsController.text)
-        .copyWith(tfo: existing.tfo ?? true);
+        .copyWith(tfo: _tfo, simplerules: _minimalConfig);
     await OixParamsStorage.save(edited);
     await appController.updateProfile(currentProfile, showLoading: true);
   }
@@ -148,6 +150,20 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     if (_autoUpdate == value) return;
     setState(() {
       _autoUpdate = value;
+    });
+  }
+
+  void _setTfo(bool value) {
+    if (_tfo == value) return;
+    setState(() {
+      _tfo = value;
+    });
+  }
+
+  void _setMinimalConfig(bool value) {
+    if (_minimalConfig == value) return;
+    setState(() {
+      _minimalConfig = value;
     });
   }
 
@@ -377,6 +393,24 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
           },
         ),
       if (isoixCloud)
+        ListItem.switchItem(
+          title: Text(appLocalizations.tcpFastOpen),
+          subtitle: Text(appLocalizations.tcpFastOpenDesc),
+          delegate: SwitchDelegate<bool>(
+            value: _tfo,
+            onChanged: _setTfo,
+          ),
+        ),
+      if (isoixCloud)
+        ListItem.switchItem(
+          title: Text(appLocalizations.minimalConfiguration),
+          subtitle: Text(appLocalizations.minimalConfigurationDesc),
+          delegate: SwitchDelegate<bool>(
+            value: _minimalConfig,
+            onChanged: _setMinimalConfig,
+          ),
+        ),
+      if (isoixCloud)
         ListItem(
           title: TextFormField(
             textInputAction: TextInputAction.next,
@@ -390,7 +424,12 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
               hintText: '&area=hk',
             ),
             inputFormatters: [
-              FilteringTextInputFormatter.deny(RegExp(r'&tfo=(true|false)')),
+              FilteringTextInputFormatter.deny(
+                RegExp(
+                  r'(?:^|&)(?:tfo|simplerules)=(?:true|false)(?=&|$)',
+                  caseSensitive: false,
+                ),
+              ),
             ],
           ),
           trailing: showRestore
@@ -398,7 +437,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                   icon: const Icon(Icons.restore),
                   tooltip: appLocalizations.restoreDefault,
                   onPressed: () {
-                    _oixParamsController.text = _defaultParams;
+                    _oixParamsController.text = _defaultEditableParams;
                   },
                 )
               : null,

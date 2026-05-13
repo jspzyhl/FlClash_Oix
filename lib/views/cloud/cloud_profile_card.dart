@@ -197,20 +197,6 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
                   ),
                 ),
               ],
-              const Divider(height: 16),
-              ListItem.switchItem(
-                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-                title: Text(AppLocalizations.current.tcpFastOpen),
-                subtitle: Text(
-                  AppLocalizations.current.tcpFastOpenDesc,
-                  style: const TextStyle(fontSize: 12),
-                ),
-                delegate: SwitchDelegate<bool>(
-                  value: _params.tfo ?? true,
-                  onChanged: (val) =>
-                      _commit(_params.copyWith(tfo: val)),
-                ),
-              ),
             ],
           ],
         ),
@@ -218,7 +204,7 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
     );
   }
 
-  /// Restore the level/type to the tier's defaults, preserving tfo + extras.
+  /// Restore the level/type to the tier's defaults, preserving switches and extras.
   OixParams _restoreDefault(SubscriptionTier tier) {
     final defaults = tier.defaultParams;
     return _params.copyWith(

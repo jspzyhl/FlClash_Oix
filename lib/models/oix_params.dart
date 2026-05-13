@@ -38,12 +38,14 @@ class OixParams {
   final NetworkLevel? level;
   final String? type;
   final bool? tfo;
+  final bool simplerules;
   final Map<String, String> extras;
 
   const OixParams({
     this.level,
     this.type,
     this.tfo,
+    this.simplerules = false,
     this.extras = const {},
   });
 
@@ -54,6 +56,7 @@ class OixParams {
     NetworkLevel? level;
     String? type;
     bool? tfo;
+    bool simplerules = false;
     final extras = <String, String>{};
 
     for (final pair in cleaned.split('&')) {
@@ -74,12 +77,20 @@ class OixParams {
         case 'tfo':
           if (v == 'true') tfo = true;
           if (v == 'false') tfo = false;
+        case 'simplerules':
+          simplerules = v == 'true';
         default:
           extras[k] = v;
       }
     }
 
-    return OixParams(level: level, type: type, tfo: tfo, extras: extras);
+    return OixParams(
+      level: level,
+      type: type,
+      tfo: tfo,
+      simplerules: simplerules,
+      extras: extras,
+    );
   }
 
   String encode() {
@@ -87,6 +98,7 @@ class OixParams {
     if (level != null) segments.add('lv=${level!.value}');
     if (type != null && type!.isNotEmpty) segments.add('type=$type');
     if (tfo != null) segments.add('tfo=$tfo');
+    if (simplerules) segments.add('simplerules=true');
     extras.forEach((k, v) {
       if (k.isEmpty) return;
       segments.add(v.isEmpty ? k : '$k=$v');
@@ -106,20 +118,28 @@ class OixParams {
     Object? level = _sentinel,
     Object? type = _sentinel,
     Object? tfo = _sentinel,
+    Object? simplerules = _sentinel,
     Map<String, String>? extras,
   }) {
     return OixParams(
       level: level == _sentinel ? this.level : level as NetworkLevel?,
       type: type == _sentinel ? this.type : type as String?,
       tfo: tfo == _sentinel ? this.tfo : tfo as bool?,
+      simplerules: simplerules == _sentinel
+          ? this.simplerules
+          : simplerules as bool,
       extras: extras ?? this.extras,
     );
   }
 
-  /// Encoded form excluding the tfo segment. Used to decide whether the user
-  /// is still on the auto-injected defaults — defaults never carry tfo, so
-  /// comparing tfo would always make the check fail.
-  String encodeWithoutTfo() => copyWith(tfo: null).encode();
+  /// Encoded form excluding independent switches. Used to compare with tier
+  /// defaults, which only own routing params like level/type.
+  String encodeDefaultComparable() => copyWith(
+    tfo: null,
+    simplerules: false,
+  ).encode();
+
+  String encodeEditableOptions() => encodeDefaultComparable();
 
   /// Strip emergency mode if the current [tier] cannot support it.
   OixParams stripEmergencyIfUnsupported(SubscriptionTier tier) {
@@ -135,7 +155,10 @@ class OixParams {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! OixParams) return false;
-    if (level != other.level || type != other.type || tfo != other.tfo) {
+    if (level != other.level ||
+        type != other.type ||
+        tfo != other.tfo ||
+        simplerules != other.simplerules) {
       return false;
     }
     if (extras.length != other.extras.length) return false;
@@ -146,7 +169,20 @@ class OixParams {
   }
 
   @override
-  int get hashCode => Object.hash(level, type, tfo, extras.length);
+  int get hashCode {
+    var extrasHash = 0;
+    for (final extra in extras.entries) {
+      extrasHash ^= Object.hash(extra.key, extra.value);
+    }
+    return Object.hash(
+      level,
+      type,
+      tfo,
+      simplerules,
+      extras.length,
+      extrasHash,
+    );
+  }
 }
 
 const _sentinel = Object();

@@ -588,6 +588,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "tabAnimationDesc": MessageLookupByLibrary.simpleMessage("仅在移动视图中有效"),
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP并发"),
     "tcpConcurrentDesc": MessageLookupByLibrary.simpleMessage("开启后允许TCP并发"),
+    "minimalConfiguration": MessageLookupByLibrary.simpleMessage("最小化配置"),
+    "minimalConfigurationDesc": MessageLookupByLibrary.simpleMessage(
+      "使用精简规则集生成更小的配置",
+    ),
     "tcpFastOpen": MessageLookupByLibrary.simpleMessage("TCP Fast Open"),
     "tcpFastOpenDesc": MessageLookupByLibrary.simpleMessage(
       "开启此选项以加速 TCP 连接建立",

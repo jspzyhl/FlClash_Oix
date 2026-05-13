@@ -528,6 +528,8 @@
   "overseasNetworkEnvironmentDesc": "如果您当前位于中国大陆以外地区，请开启此选项",
   "emergencyMode": "应急模式",
   "emergencyModeDesc": "当常规线路不可用时，请开启此选项切换备用节点",
+  "minimalConfiguration": "最小化配置",
+  "minimalConfigurationDesc": "使用精简规则集生成更小的配置",
   "tcpFastOpen": "TCP Fast Open",
   "tcpFastOpenDesc": "开启此选项以加速 TCP 连接建立"
 }

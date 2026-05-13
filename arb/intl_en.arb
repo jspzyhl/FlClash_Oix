@@ -527,6 +527,8 @@
   "overseasNetworkEnvironmentDesc": "Turn on this option if you are currently outside mainland China",
   "emergencyMode": "Emergency Mode",
   "emergencyModeDesc": "Enable this option to switch to backup nodes when regular lines are unavailable",
+  "minimalConfiguration": "Minimal Configuration",
+  "minimalConfigurationDesc": "Use a simplified rule set to generate a smaller profile",
   "tcpFastOpen": "TCP Fast Open",
   "tcpFastOpenDesc": "Enable this option to accelerate TCP connection establishment"
 }

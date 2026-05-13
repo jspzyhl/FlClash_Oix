@@ -912,6 +912,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "tcpConcurrentDesc": MessageLookupByLibrary.simpleMessage(
       "Включение позволит использовать параллелизм TCP",
     ),
+    "minimalConfiguration": MessageLookupByLibrary.simpleMessage(
+      "Минимальная конфигурация",
+    ),
+    "minimalConfigurationDesc": MessageLookupByLibrary.simpleMessage(
+      "Использовать сокращенный набор правил для меньшего профиля",
+    ),
     "tcpFastOpen": MessageLookupByLibrary.simpleMessage("TCP Fast Open"),
     "tcpFastOpenDesc": MessageLookupByLibrary.simpleMessage(
       "Включите эту опцию для ускорения установки TCP-соединения",

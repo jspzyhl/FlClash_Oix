@@ -321,10 +321,10 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     }
 
     // No prior user params, OR user params equal the OLD default (auto-upgrade).
-    // Compare via encodeWithoutTfo: tier defaults never carry tfo, but stored
-    // user params do — including tfo in the comparison would always disagree.
+    // Compare only the tier-owned params; independent switches should not block
+    // level/type migration when the user's subscription tier changes.
     if (!hasUserParams ||
-        (userParams.encodeWithoutTfo() == oldDefaultRaw &&
+        (userParams.encodeDefaultComparable() == oldDefaultRaw &&
             oldDefaultRaw != newDefaultEncoded)) {
       effective = newDefault;
     }

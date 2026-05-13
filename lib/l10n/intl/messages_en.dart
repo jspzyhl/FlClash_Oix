@@ -859,6 +859,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "tcpConcurrentDesc": MessageLookupByLibrary.simpleMessage(
       "Enabling it will allow TCP concurrency",
     ),
+    "minimalConfiguration": MessageLookupByLibrary.simpleMessage(
+      "Minimal Configuration",
+    ),
+    "minimalConfigurationDesc": MessageLookupByLibrary.simpleMessage(
+      "Use a simplified rule set to generate a smaller profile",
+    ),
     "tcpFastOpen": MessageLookupByLibrary.simpleMessage("TCP Fast Open"),
     "tcpFastOpenDesc": MessageLookupByLibrary.simpleMessage(
       "Enable this option to accelerate TCP connection establishment",

@@ -664,6 +664,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "tabAnimationDesc": MessageLookupByLibrary.simpleMessage("モバイル表示でのみ有効"),
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP並列処理"),
     "tcpConcurrentDesc": MessageLookupByLibrary.simpleMessage("TCP並列処理を許可"),
+    "minimalConfiguration": MessageLookupByLibrary.simpleMessage("最小構成"),
+    "minimalConfigurationDesc": MessageLookupByLibrary.simpleMessage(
+      "簡略化したルールセットで小さなプロファイルを生成します",
+    ),
     "tcpFastOpen": MessageLookupByLibrary.simpleMessage("TCP Fast Open"),
     "tcpFastOpenDesc": MessageLookupByLibrary.simpleMessage(
       "TCPの接続確立を高速化するには、このオプションをオンにしてください",

@@ -537,6 +537,8 @@
   "overseasNetworkEnvironmentDesc": "Включите эту опцию, если вы находитесь за пределами материкового Китая",
   "emergencyMode": "Аварийный режим",
   "emergencyModeDesc": "Включите эту опцию для переключения на резервные узлы, когда обычные линии недоступны",
+  "minimalConfiguration": "Минимальная конфигурация",
+  "minimalConfigurationDesc": "Использовать сокращенный набор правил для меньшего профиля",
   "tcpFastOpen": "TCP Fast Open",
   "tcpFastOpenDesc": "Включите эту опцию для ускорения установки TCP-соединения"
 }

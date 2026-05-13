@@ -4199,6 +4199,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Minimal Configuration`
+  String get minimalConfiguration {
+    return Intl.message(
+      'Minimal Configuration',
+      name: 'minimalConfiguration',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use a simplified rule set to generate a smaller profile`
+  String get minimalConfigurationDesc {
+    return Intl.message(
+      'Use a simplified rule set to generate a smaller profile',
+      name: 'minimalConfigurationDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Enable this option to accelerate TCP connection establishment`
   String get tcpFastOpenDesc {
     return Intl.message(

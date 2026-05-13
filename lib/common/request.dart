@@ -33,6 +33,15 @@ class Request {
     );
   }
 
+  Map<String, String> get _flclashIdentityHeaders {
+    final packageInfo = globalState.packageInfo;
+    final headers = <String, String>{};
+    if (packageInfo.buildNumber.isNotEmpty) {
+      headers['X-Flclash-Build'] = packageInfo.buildNumber;
+    }
+    return headers;
+  }
+
   Future<Response<T>> _getWithRedirect<T>(
     String url, {
     required Options options,
@@ -73,7 +82,10 @@ class Request {
     try {
       return await _getWithRedirect<Uint8List>(
         url,
-        options: Options(responseType: ResponseType.bytes),
+        options: Options(
+          headers: _flclashIdentityHeaders,
+          responseType: ResponseType.bytes,
+        ),
       );
     } catch (e) {
       commonPrint.log('getFileResponseForUrl error ${e.toString()}');

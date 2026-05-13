@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/state.dart';
 import 'package:flutter/foundation.dart';
 
 // -- Constants --
@@ -393,15 +394,25 @@ class CloudApiService {
 
       final timestamp = _flclashTimestamp();
       final signature = _flclashSignature(timestamp);
+      final buildNumber = globalState.packageInfo.buildNumber;
+
+      if (buildNumber.isNotEmpty) {
+        queryParameters['flclash_build'] = buildNumber;
+      }
+
+      final headers = <String, String>{
+        'X-Flclash-Timestamp': timestamp,
+        'X-Flclash-Signature': signature,
+      };
+      if (buildNumber.isNotEmpty) {
+        headers['X-Flclash-Build'] = buildNumber;
+      }
 
       final res = await _dio.get<Map<String, dynamic>>(
         '/managed/flclash/direct',
         queryParameters: queryParameters,
         options: Options(
-          headers: {
-            'X-Flclash-Timestamp': timestamp,
-            'X-Flclash-Signature': signature,
-          },
+          headers: headers,
           responseType: ResponseType.json,
         ),
       );
