@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
@@ -28,6 +26,8 @@ class Tray {
 
   Future<void> destroy() async {
     await trayManager.destroy();
+    _lastIconPath = null;
+    _lastTitle = null;
   }
 
   String getTryIcon({required bool isStart, required bool tunEnable}) {
@@ -42,22 +42,25 @@ class Tray {
 
   String? _lastIconPath;
 
-  Future _updateSystemTray({
+  Future<void> _updateSystemTray({
     required bool isStart,
     required bool tunEnable,
   }) async {
-    if (Platform.isLinux) {
-      await trayManager.destroy();
-    }
+    final isLinux = system.isLinux;
     final iconPath = getTryIcon(isStart: isStart, tunEnable: tunEnable);
-    if (_lastIconPath != iconPath) {
+    final hasIcon = _lastIconPath != null;
+    final iconChanged = _lastIconPath != iconPath;
+    if (isLinux && hasIcon && iconChanged) {
+      await destroy();
+    }
+    if (iconChanged || isLinux) {
       _lastIconPath = iconPath;
       await trayManager.setIcon(
         iconPath,
         isTemplate: true,
       );
     }
-    if (!Platform.isLinux) {
+    if (!isLinux) {
       await trayManager.setToolTip(appName);
     }
   }
@@ -75,7 +78,7 @@ class Tray {
         tunEnable: trayState.tunEnable,
       );
     }
-    List<MenuItem> menuItems = [];
+    final menuItems = <MenuItem>[];
     final showMenuItem = MenuItem(
       label: appLocalizations.show,
       onClick: (_) {
@@ -116,7 +119,7 @@ class Tray {
     menuItems.add(MenuItem.separator());
     if (system.isMacOS) {
       for (final group in trayState.groups) {
-        List<MenuItem> subMenuItems = [];
+        final subMenuItems = <MenuItem>[];
         for (final proxy in group.all) {
           subMenuItems.add(
             MenuItem.checkbox(
@@ -196,7 +199,7 @@ class Tray {
         tunEnable: trayState.tunEnable,
       );
     }
-    // _updateTrayTitle could be optimized too, but it's okay to call frequently since 
+    // _updateTrayTitle could be optimized too, but it's okay to call frequently since
     // it reflects traffic which changes quickly
     updateTrayTitle(showTrayTitle: trayState.showTrayTitle, traffic: traffic);
   }
