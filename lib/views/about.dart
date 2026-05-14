@@ -20,7 +20,23 @@ class AboutView extends StatelessWidget {
     appController.checkUpdateResultHandle(data: data, isUser: true);
   }
 
+  ListItem _siteLinkItem({
+    required String title,
+    required String domain,
+    required String path,
+  }) {
+    return ListItem(
+      title: Text(title),
+      onTap: () {
+        globalState.openUrl('https://$domain$path');
+      },
+      trailing: const Icon(Icons.launch),
+    );
+  }
+
   List<Widget> _buildMoreSection(BuildContext context) {
+    final baseDomain = Secrets.primarySiteDomain;
+    final spareDomain = Secrets.spareSiteDomain;
     return generateSection(
       separated: false,
       title: appLocalizations.more,
@@ -31,20 +47,24 @@ class AboutView extends StatelessWidget {
             _checkUpdate(context);
           },
         ),
-        ListItem(
-          title: Text(appLocalizations.userCenter),
-          onTap: () {
-            globalState.openUrl('https://${secrets.BASE_DOMAIN.trim()}/user');
-          },
-          trailing: const Icon(Icons.launch),
-        ),
-        ListItem(
-          title: Text(appLocalizations.softwareCenter),
-          onTap: () {
-            globalState.openUrl('https://${secrets.BASE_DOMAIN.trim()}/client');
-          },
-          trailing: const Icon(Icons.launch),
-        ),
+        if (baseDomain.isNotEmpty)
+          _siteLinkItem(
+            title: appLocalizations.userCenter,
+            domain: baseDomain,
+            path: '/user',
+          ),
+        if (spareDomain.isNotEmpty)
+          _siteLinkItem(
+            title: appLocalizations.userCenterFallback,
+            domain: spareDomain,
+            path: '/user',
+          ),
+        if (baseDomain.isNotEmpty)
+          _siteLinkItem(
+            title: appLocalizations.softwareCenter,
+            domain: baseDomain,
+            path: '/client',
+          ),
         ListItem(
           title: Text(appLocalizations.documentCenter),
           onTap: () {

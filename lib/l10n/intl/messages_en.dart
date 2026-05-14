@@ -505,6 +505,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "This is a message.",
     ),
     "min": MessageLookupByLibrary.simpleMessage("Min"),
+    "minimalConfiguration": MessageLookupByLibrary.simpleMessage(
+      "Minimal Configuration",
+    ),
+    "minimalConfigurationDesc": MessageLookupByLibrary.simpleMessage(
+      "Use a simplified rule set to generate a smaller profile",
+    ),
     "minimizeOnExit": MessageLookupByLibrary.simpleMessage("Minimize on exit"),
     "minimizeOnExitDesc": MessageLookupByLibrary.simpleMessage(
       "Modify the default system exit event",
@@ -711,8 +717,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "refreshSuccess": MessageLookupByLibrary.simpleMessage("Refresh Complete"),
     "regExp": MessageLookupByLibrary.simpleMessage("RegExp"),
     "reload": MessageLookupByLibrary.simpleMessage("Reload"),
-    "remindLater": MessageLookupByLibrary.simpleMessage("Remind me later"),
     "remaining": m13,
+    "remindLater": MessageLookupByLibrary.simpleMessage("Remind me later"),
     "remote": MessageLookupByLibrary.simpleMessage("Remote"),
     "remoteBackupDesc": MessageLookupByLibrary.simpleMessage(
       "Backup local data to WebDAV",
@@ -859,12 +865,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "tcpConcurrentDesc": MessageLookupByLibrary.simpleMessage(
       "Enabling it will allow TCP concurrency",
     ),
-    "minimalConfiguration": MessageLookupByLibrary.simpleMessage(
-      "Minimal Configuration",
-    ),
-    "minimalConfigurationDesc": MessageLookupByLibrary.simpleMessage(
-      "Use a simplified rule set to generate a smaller profile",
-    ),
     "tcpFastOpen": MessageLookupByLibrary.simpleMessage("TCP Fast Open"),
     "tcpFastOpenDesc": MessageLookupByLibrary.simpleMessage(
       "Enable this option to accelerate TCP connection establishment",
@@ -916,11 +916,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "unnamed": MessageLookupByLibrary.simpleMessage("Unnamed"),
     "update": MessageLookupByLibrary.simpleMessage("Update"),
-    "updateDownloadSuccess": MessageLookupByLibrary.simpleMessage(
-      "Update package downloaded. Open it now?",
-    ),
     "updateDownloadFallback": MessageLookupByLibrary.simpleMessage(
       "Update download failed. Opening the download link...",
+    ),
+    "updateDownloadSuccess": MessageLookupByLibrary.simpleMessage(
+      "Update package downloaded. Open it now?",
     ),
     "updateDownloading": MessageLookupByLibrary.simpleMessage(
       "Downloading update in background...",
@@ -934,6 +934,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "useHosts": MessageLookupByLibrary.simpleMessage("Use hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("Use system hosts"),
     "userCenter": MessageLookupByLibrary.simpleMessage("User Center"),
+    "userCenterFallback": MessageLookupByLibrary.simpleMessage(
+      "User Center (Backup)",
+    ),
     "value": MessageLookupByLibrary.simpleMessage("Value"),
     "vibrantScheme": MessageLookupByLibrary.simpleMessage("Vibrant"),
     "view": MessageLookupByLibrary.simpleMessage("View"),

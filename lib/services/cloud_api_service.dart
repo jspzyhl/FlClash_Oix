@@ -15,6 +15,28 @@ const int _defaultReceiveTimeoutMs = 15000;
 const int _httpOk = 200;
 const int _httpServerError = 500;
 
+String _apiV1BaseUrl(String domain) => 'https://$domain/api/v1';
+
+// Allows accepting bad TLS certs in local dev. Off by default in debug too;
+// requires an explicit `--dart-define=ALLOW_INSECURE_TLS=true` to enable so
+// a leaked debug build cannot silently MITM.
+const _allowInsecureTls = bool.fromEnvironment(
+  'ALLOW_INSECURE_TLS',
+  defaultValue: false,
+);
+
+IOHttpClientAdapter _createDirectApiAdapter() {
+  return IOHttpClientAdapter(
+    createHttpClient: () {
+      final client = HttpClient();
+      client.findProxy = (_) => 'DIRECT';
+      client.badCertificateCallback = (_, _, _) =>
+          kDebugMode && _allowInsecureTls;
+      return client;
+    },
+  );
+}
+
 // -- DTOs --
 class CloudApiResponse<T> {
   final int ret;
@@ -46,6 +68,37 @@ class CloudApiResponse<T> {
   bool get isSuccess => ret == _httpOk;
 }
 
+class CloudApiException implements Exception {
+  final String message;
+
+  const CloudApiException(this.message);
+
+  static String clean(Object error) {
+    if (error is CloudApiException) {
+      return _cleanMessage(error.message);
+    }
+    return _cleanMessage(error.toString());
+  }
+
+  static String _cleanMessage(String value) {
+    var message = value.trim();
+    final prefixes = [
+      RegExp(r'^Excep(?:t)?ion[:：]\s*', caseSensitive: false),
+      RegExp(r'^Health check fail(?:e)?d[:：]\s*', caseSensitive: false),
+    ];
+    for (final prefix in prefixes) {
+      message = message.replaceFirst(prefix, '').trim();
+    }
+    if (message.isEmpty || message.toLowerCase() == 'null') {
+      return 'Connection failed';
+    }
+    return message;
+  }
+
+  @override
+  String toString() => clean(this);
+}
+
 class CloudApiService {
   final Dio _dio;
   String? _cachedToken;
@@ -62,7 +115,7 @@ class CloudApiService {
   CloudApiService._()
     : _dio = Dio(
         BaseOptions(
-          baseUrl: 'https://${secrets.API_DOMAIN.trim()}/api/v1',
+          baseUrl: _apiV1BaseUrl(Secrets.preferredApiDomain),
           connectTimeout: const Duration(
             milliseconds: _defaultConnectTimeoutMs,
           ),
@@ -78,6 +131,7 @@ class CloudApiService {
           },
         ),
       ) {
+    _dio.httpClientAdapter = _createDirectApiAdapter();
     _dio.interceptors.addAll([
       // Logging & Authorization Interceptor
       InterceptorsWrapper(
@@ -206,18 +260,38 @@ class CloudApiService {
   Future<void> checkServiceHealth() async {
     try {
       final res = await _dio.get(
-        'https://${secrets.API_DOMAIN.trim()}/check',
+        'https://${Secrets.preferredApiDomain}/check',
         options: Options(extra: {'skipAuth': true}),
       );
       if (res.statusCode != _httpOk) {
-        throw Exception('Service unavailable (Status: ${res.statusCode})');
+        final statusCode = res.statusCode?.toString() ?? 'unknown';
+        throw CloudApiException('Service unavailable (Status: $statusCode)');
       }
-    } catch (e) {
-      if (e is DioException) {
-        throw Exception('Health check failed: ${e.message}');
-      }
-      throw Exception('Health check failed: $e');
+    } on DioException catch (e) {
+      throw CloudApiException(_formatHealthCheckError(e));
     }
+  }
+
+  static String _formatHealthCheckError(DioException error) {
+    final fallback = switch (error.type) {
+      DioExceptionType.connectionTimeout => 'Connection timed out',
+      DioExceptionType.sendTimeout => 'Send timed out',
+      DioExceptionType.receiveTimeout => 'Response timed out',
+      DioExceptionType.badCertificate => 'Invalid certificate',
+      DioExceptionType.badResponse =>
+        'Server returned ${error.response?.statusCode ?? 'an error'}',
+      DioExceptionType.cancel => 'Request canceled',
+      DioExceptionType.connectionError => 'Connection failed',
+      DioExceptionType.unknown => 'Unknown network error',
+    };
+    if (error.type != DioExceptionType.unknown) {
+      return fallback;
+    }
+    final message = error.message?.trim();
+    if (message == null || message.isEmpty || message == 'null') {
+      return fallback;
+    }
+    return message;
   }
 
   ({CloudProfile profile, CloudNotification? announcement}) _parseUserInfo(
@@ -228,7 +302,17 @@ class CloudApiService {
     }
     final info = infoData;
 
-    final requiredKeys = ['plan', 'plan_time', 'used', 'traffic', 'today_used', 'unused', 'money', 'aff_money', 'integral'];
+    final requiredKeys = [
+      'plan',
+      'plan_time',
+      'used',
+      'traffic',
+      'today_used',
+      'unused',
+      'money',
+      'aff_money',
+      'integral',
+    ];
     for (final key in requiredKeys) {
       if (!info.containsKey(key)) {
         throw FormatException('Missing required field: $key');
@@ -374,7 +458,7 @@ class CloudApiService {
   }
 
   String _flclashSignature(String timestamp) {
-    final key = utf8.encode(secrets.FLCLASH_APP_SECRET);
+    final key = utf8.encode(Secrets.flClashAppSecret);
     final msg = utf8.encode(timestamp);
     final hmac = Hmac(sha256, key);
     return hmac.convert(msg).toString();
@@ -411,10 +495,7 @@ class CloudApiService {
       final res = await _dio.get<Map<String, dynamic>>(
         '/managed/flclash/direct',
         queryParameters: queryParameters,
-        options: Options(
-          headers: headers,
-          responseType: ResponseType.json,
-        ),
+        options: Options(headers: headers, responseType: ResponseType.json),
       );
 
       if (res.statusCode != 200) {
@@ -428,7 +509,7 @@ class CloudApiService {
 
       final configB64 = res.data?['config'] as String?;
       final userinfo = res.data?['userinfo'] as String?;
-      
+
       if (configB64 == null || configB64.isEmpty) {
         throw Exception('Empty config returned from server');
       }
@@ -446,34 +527,11 @@ class CloudApiService {
 class RetryInterceptor extends Interceptor {
   final Dio dio;
   final int retries;
-  Dio? _directDio;
 
   RetryInterceptor({required this.dio, this.retries = 2});
 
-  // Allows accepting bad TLS certs in local dev. Off by default in debug too;
-  // requires an explicit `--dart-define=ALLOW_INSECURE_TLS=true` to enable so
-  // a leaked debug build cannot silently MITM.
-  static const _allowInsecureTls = bool.fromEnvironment(
-    'ALLOW_INSECURE_TLS',
-    defaultValue: false,
-  );
-
-  Dio _getDirectDio() {
-    final existing = _directDio;
-    if (existing != null) return existing;
-    final direct = Dio(dio.options.copyWith());
-    direct.httpClientAdapter = IOHttpClientAdapter(
-      createHttpClient: () {
-        final client = HttpClient();
-        client.findProxy = (_) => 'DIRECT';
-        client.badCertificateCallback = (_, _, _) =>
-            kDebugMode && _allowInsecureTls;
-        return client;
-      },
-    );
-    _directDio = direct;
-    return direct;
-  }
+  static const _retryHandledKey = 'retryHandled';
+  static const _apiDomainFallbackHandledKey = 'apiDomainFallbackHandled';
 
   @override
   Future<void> onError(
@@ -481,12 +539,12 @@ class RetryInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     if (!_shouldRetry(err) ||
-        err.requestOptions.extra['retryHandled'] == true) {
+        err.requestOptions.extra[_retryHandledKey] == true) {
       return super.onError(err, handler);
     }
 
     final baseExtra = Map<String, dynamic>.from(err.requestOptions.extra)
-      ..['retryHandled'] = true;
+      ..[_retryHandledKey] = true;
     DioException lastError = err;
 
     for (int attempt = 1; attempt <= retries; attempt++) {
@@ -504,10 +562,17 @@ class RetryInterceptor extends Interceptor {
       }
     }
 
-    if (_shouldRetry(lastError)) {
+    final spareDomain = _spareApiDomainFor(lastError.requestOptions);
+    if (spareDomain != null &&
+        baseExtra[_apiDomainFallbackHandledKey] != true) {
       try {
-        final response = await _getDirectDio().fetch(
-          _copyRequestOptionsForRetry(err.requestOptions, baseExtra),
+        final response = await dio.fetch(
+          _copyRequestOptionsForDomain(
+            lastError.requestOptions,
+            Map<String, dynamic>.from(baseExtra)
+              ..[_apiDomainFallbackHandledKey] = true,
+            spareDomain,
+          ),
         );
         return handler.resolve(response);
       } on DioException catch (e) {
@@ -522,16 +587,52 @@ class RetryInterceptor extends Interceptor {
     RequestOptions requestOptions,
     Map<String, dynamic> extra,
   ) {
-    final data = requestOptions.data;
     return requestOptions.copyWith(
-      data: data is FormData ? data.clone() : data,
+      data: _cloneRequestData(requestOptions.data),
       extra: extra,
     );
   }
 
+  RequestOptions _copyRequestOptionsForDomain(
+    RequestOptions requestOptions,
+    Map<String, dynamic> extra,
+    String domain,
+  ) {
+    final uri = requestOptions.uri.replace(host: domain);
+    return requestOptions.copyWith(
+      baseUrl: '',
+      path: uri.toString(),
+      queryParameters: const {},
+      data: _cloneRequestData(requestOptions.data),
+      extra: extra,
+    );
+  }
+
+  Object? _cloneRequestData(Object? data) {
+    return data is FormData ? data.clone() : data;
+  }
+
+  String? _spareApiDomainFor(RequestOptions requestOptions) {
+    final primaryDomain = Secrets.preferredApiDomain.toLowerCase();
+    final spareDomain = Secrets.fallbackApiDomain.toLowerCase();
+    if (primaryDomain.isEmpty ||
+        spareDomain.isEmpty ||
+        primaryDomain == spareDomain) {
+      return null;
+    }
+    final requestHost = requestOptions.uri.host.toLowerCase();
+    if (requestHost != primaryDomain) {
+      return null;
+    }
+    return spareDomain;
+  }
+
   bool _shouldRetry(DioException err) {
     return err.type == DioExceptionType.connectionTimeout ||
+        err.type == DioExceptionType.sendTimeout ||
         err.type == DioExceptionType.receiveTimeout ||
-        err.type == DioExceptionType.connectionError;
+        err.type == DioExceptionType.connectionError ||
+        (err.type == DioExceptionType.badResponse &&
+            (err.response?.statusCode ?? 0) >= _httpServerError);
   }
 }

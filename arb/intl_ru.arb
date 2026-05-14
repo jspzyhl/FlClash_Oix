@@ -491,6 +491,7 @@
   "addProfile": "Добавить профиль",
   "delayTest": "Тест задержки",
   "userCenter": "Центр пользователя",
+  "userCenterFallback": "Центр пользователя (резервный)",
   "softwareCenter": "Центр ПО",
   "documentCenter": "Центр документации",
   "oixCloud": "oixCloud",

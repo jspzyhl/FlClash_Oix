@@ -146,39 +146,44 @@ class Request {
   }
 
   Future<Map<String, dynamic>?> checkForUpdate() async {
-    try {
-      final response = await dio.get(
-        'https://${secrets.API_DOMAIN.trim()}/api/v1/version/get',
-        options: Options(responseType: ResponseType.json),
-      );
-      if (response.statusCode != 200) return null;
-      final data = response.data as Map<String, dynamic>?;
-      if (data == null || (data['ret'] as int?) != 200) return null;
+    for (final domain in Secrets.apiDomains) {
+      try {
+        final response = await dio.get(
+          'https://$domain/api/v1/version/get',
+          options: Options(responseType: ResponseType.json),
+        );
+        if (response.statusCode != 200) continue;
+        final data = response.data as Map<String, dynamic>?;
+        if (data == null || (data['ret'] as int?) != 200) continue;
 
-      final versionData = data['data'];
-      final String? remoteVersion = versionData is Map<String, dynamic>
-          ? versionData['version'] as String?
-          : versionData as String?;
+        final versionData = data['data'];
+        final String? remoteVersion = versionData is Map<String, dynamic>
+            ? versionData['version'] as String?
+            : versionData as String?;
 
-      if (remoteVersion == null) return null;
+        if (remoteVersion == null) continue;
 
-      final currentBuildNumber =
-          int.tryParse(globalState.packageInfo.buildNumber) ?? 0;
-      final remoteBuildNumber =
-          int.tryParse(remoteVersion.split('+').last) ?? 0;
+        final currentBuildNumber =
+            int.tryParse(globalState.packageInfo.buildNumber) ?? 0;
+        final remoteBuildNumber =
+            int.tryParse(remoteVersion.split('+').last) ?? 0;
 
-      final hasUpdate = remoteBuildNumber > currentBuildNumber;
+        final hasUpdate = remoteBuildNumber > currentBuildNumber;
 
-      if (!hasUpdate) return null;
+        if (!hasUpdate) return null;
 
-      return <String, dynamic>{
-        'tag_name': 'v${globalState.packageInfo.version}+$remoteVersion',
-        'body': '',
-      };
-    } catch (e) {
-      commonPrint.log('checkForUpdate failed', logLevel: LogLevel.warning);
-      return null;
+        return <String, dynamic>{
+          'tag_name': 'v${globalState.packageInfo.version}+$remoteVersion',
+          'body': '',
+        };
+      } catch (e) {
+        commonPrint.log(
+          'checkForUpdate failed for $domain',
+          logLevel: LogLevel.warning,
+        );
+      }
     }
+    return null;
   }
 
   final Map<String, IpInfo Function(Map<String, dynamic>)> _ipInfoSources = {

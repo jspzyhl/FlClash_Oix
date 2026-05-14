@@ -1,4 +1,3 @@
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
@@ -90,6 +89,7 @@ UpdateParams updateParams(Ref ref) {
         ipv6: state.ipv6,
         tcpConcurrent: state.tcpConcurrent,
         externalController: state.externalController,
+        secret: resolveExternalControllerSecret(state.secret),
         unifiedDelay: state.unifiedDelay,
         mixedPort: state.mixedPort,
       ),
@@ -528,15 +528,12 @@ ColorScheme genColorScheme(
     ),
   );
   if (color == null && (ignoreConfig == true || vm2.a == null)) {
-    // if (globalState.corePalette != null) {
-    //   return globalState.corePalette!.toColorScheme(brightness: brightness);
-    // }
+    final dynamicColorScheme = switch (brightness) {
+      Brightness.light => globalState.lightDynamicColorScheme,
+      Brightness.dark => globalState.darkDynamicColorScheme,
+    };
     return ColorScheme.fromSeed(
-      seedColor:
-          globalState.corePalette
-              ?.toColorScheme(brightness: brightness)
-              .primary ??
-          globalState.accentColor,
+      seedColor: dynamicColorScheme?.primary ?? globalState.accentColor,
       brightness: brightness,
       dynamicSchemeVariant: vm2.b,
     );

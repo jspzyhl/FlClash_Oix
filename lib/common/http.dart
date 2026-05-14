@@ -6,12 +6,13 @@ import 'package:fl_clash/controller.dart';
 
 class FlClashHttpOverrides extends HttpOverrides {
   static String handleFindProxy(Uri url) {
-    if ([localhost].contains(url.host)) {
+    final isApiDomain = Secrets.isApiDomain(url.host);
+    if (url.host == localhost || isApiDomain) {
       return 'DIRECT';
     }
     final port = appController.config.patchClashConfig.mixedPort;
     final isStart = appController.isStart;
-    final displayUrl = url.toString().contains(secrets.API_DOMAIN.trim())
+    final displayUrl = isApiDomain
         ? Uri(scheme: url.scheme, host: url.host, path: url.path)
         : url;
     commonPrint.log('find $displayUrl proxy:$isStart');

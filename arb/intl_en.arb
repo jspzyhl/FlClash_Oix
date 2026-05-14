@@ -482,6 +482,7 @@
   "addProfile": "Add Profile",
   "delayTest": "Delay Test",
   "userCenter": "User Center",
+  "userCenterFallback": "User Center (Backup)",
   "softwareCenter": "Software Center",
   "documentCenter": "Document Center",
   "oixCloud": "oixCloud",

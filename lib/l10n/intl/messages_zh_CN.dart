@@ -340,6 +340,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "messageTest": MessageLookupByLibrary.simpleMessage("消息测试"),
     "messageTestTip": MessageLookupByLibrary.simpleMessage("这是一条消息。"),
     "min": MessageLookupByLibrary.simpleMessage("最小"),
+    "minimalConfiguration": MessageLookupByLibrary.simpleMessage("最小化配置"),
+    "minimalConfigurationDesc": MessageLookupByLibrary.simpleMessage(
+      "使用精简规则集生成更小的配置",
+    ),
     "minimizeOnExit": MessageLookupByLibrary.simpleMessage("退出时最小化"),
     "minimizeOnExitDesc": MessageLookupByLibrary.simpleMessage("修改系统默认退出事件"),
     "minutes": MessageLookupByLibrary.simpleMessage("分钟"),
@@ -482,8 +486,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "refreshSuccess": MessageLookupByLibrary.simpleMessage("刷新完成"),
     "regExp": MessageLookupByLibrary.simpleMessage("正则"),
     "reload": MessageLookupByLibrary.simpleMessage("重载"),
-    "remindLater": MessageLookupByLibrary.simpleMessage("稍后提醒"),
     "remaining": m13,
+    "remindLater": MessageLookupByLibrary.simpleMessage("稍后提醒"),
     "remote": MessageLookupByLibrary.simpleMessage("远程"),
     "remoteBackupDesc": MessageLookupByLibrary.simpleMessage("备份数据到WebDAV"),
     "remoteDestination": MessageLookupByLibrary.simpleMessage("远程目标"),
@@ -588,10 +592,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "tabAnimationDesc": MessageLookupByLibrary.simpleMessage("仅在移动视图中有效"),
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP并发"),
     "tcpConcurrentDesc": MessageLookupByLibrary.simpleMessage("开启后允许TCP并发"),
-    "minimalConfiguration": MessageLookupByLibrary.simpleMessage("最小化配置"),
-    "minimalConfigurationDesc": MessageLookupByLibrary.simpleMessage(
-      "使用精简规则集生成更小的配置",
-    ),
     "tcpFastOpen": MessageLookupByLibrary.simpleMessage("TCP Fast Open"),
     "tcpFastOpenDesc": MessageLookupByLibrary.simpleMessage(
       "开启此选项以加速 TCP 连接建立",
@@ -633,11 +633,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "unknownNetworkError": MessageLookupByLibrary.simpleMessage("未知网络错误"),
     "unnamed": MessageLookupByLibrary.simpleMessage("未命名"),
     "update": MessageLookupByLibrary.simpleMessage("更新"),
-    "updateDownloadSuccess": MessageLookupByLibrary.simpleMessage(
-      "更新包已下载，是否立即打开？",
-    ),
     "updateDownloadFallback": MessageLookupByLibrary.simpleMessage(
       "更新下载失败，正在打开下载链接...",
+    ),
+    "updateDownloadSuccess": MessageLookupByLibrary.simpleMessage(
+      "更新包已下载，是否立即打开？",
     ),
     "updateDownloading": MessageLookupByLibrary.simpleMessage("正在后台下载更新..."),
     "upload": MessageLookupByLibrary.simpleMessage("上传"),
@@ -647,6 +647,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "useHosts": MessageLookupByLibrary.simpleMessage("使用Hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("使用系统Hosts"),
     "userCenter": MessageLookupByLibrary.simpleMessage("用户中心"),
+    "userCenterFallback": MessageLookupByLibrary.simpleMessage("用户中心（备用）"),
     "value": MessageLookupByLibrary.simpleMessage("值"),
     "vibrantScheme": MessageLookupByLibrary.simpleMessage("活力"),
     "view": MessageLookupByLibrary.simpleMessage("查看"),

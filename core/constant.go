@@ -35,6 +35,7 @@ type UpdateParams struct {
 	Sniffing           *bool              `json:"sniffing"`
 	TCPConcurrent      *bool              `json:"tcp-concurrent"`
 	ExternalController *string            `json:"external-controller"`
+	Secret             *string            `json:"secret"`
 	Interface          *string            `json:"interface-name"`
 	UnifiedDelay       *bool              `json:"unified-delay"`
 }

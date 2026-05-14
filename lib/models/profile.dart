@@ -47,7 +47,7 @@ Uint8List _randomBytes(int length) {
 }
 
 Future<Uint8List> encryptProfileBytes(Uint8List bytes) async {
-  final profileKey = secrets.PROFILE_KEY.trim();
+  final profileKey = Secrets.profileKey.trim();
   if (profileKey.isEmpty) {
     throw Exception('PROFILE_KEY is not configured');
   }
@@ -246,9 +246,8 @@ extension ProfileExtension on Profile {
 
   bool get isoixCloudProfile {
     if (url == oixCloudManagedProfileUrl) return true;
-    final apiDomain = secrets.API_DOMAIN.trim();
-    if (apiDomain.isEmpty) return false;
-    return url.toLowerCase().contains(apiDomain.toLowerCase());
+    final normalizedUrl = url.toLowerCase();
+    return Secrets.apiDomains.any(normalizedUrl.contains);
   }
 
   String get fileName => '$id.yaml';

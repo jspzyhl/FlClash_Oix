@@ -13,6 +13,11 @@ const defaultGeoXUrl = GeoXUrl();
 
 const defaultMixedPort = 7890;
 const defaultKeepAliveInterval = 30;
+const defaultExternalControllerSecret = 'oixCloud';
+
+String resolveExternalControllerSecret(String secret) {
+  return secret.trim().isEmpty ? defaultExternalControllerSecret : secret;
+}
 
 const defaultBypassPrivateRouteAddress = [
   '1.0.0.0/8',
@@ -451,10 +456,7 @@ abstract class ClashConfig with _$ClashConfig {
     @Default(LogLevel.error) @JsonKey(name: 'log-level') LogLevel logLevel,
     @Default(false) bool ipv6,
     @Default(FindProcessMode.off)
-    @JsonKey(
-      name: 'find-process-mode',
-      unknownEnumValue: FindProcessMode.off,
-    )
+    @JsonKey(name: 'find-process-mode', unknownEnumValue: FindProcessMode.off)
     FindProcessMode findProcessMode,
     @Default(defaultKeepAliveInterval)
     @JsonKey(name: 'keep-alive-interval')
@@ -475,6 +477,7 @@ abstract class ClashConfig with _$ClashConfig {
     @Default(ExternalControllerStatus.close)
     @JsonKey(name: 'external-controller')
     ExternalControllerStatus externalController,
+    @Default(defaultExternalControllerSecret) String secret,
     @Default({}) Map<String, String> hosts,
   }) = _ClashConfig;
 

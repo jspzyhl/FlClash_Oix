@@ -422,7 +422,7 @@ class ExternalControllerItem extends ConsumerWidget {
         (state) => state.externalController == ExternalControllerStatus.open,
       ),
     );
-    return ListItem.switchItem(
+    final item = ListItem.switchItem(
       leading: const Icon(Icons.api_outlined),
       title: Text(appLocalizations.externalController),
       subtitle: Text(appLocalizations.externalControllerDesc),
@@ -436,6 +436,53 @@ class ExternalControllerItem extends ConsumerWidget {
                   externalController: value
                       ? ExternalControllerStatus.open
                       : ExternalControllerStatus.close,
+                ),
+              );
+        },
+      ),
+    );
+    if (!hasExternalController) {
+      return item;
+    }
+    return Column(
+      children: [
+        item,
+        const Divider(height: 0),
+        const ExternalControllerSecretItem(),
+      ],
+    );
+  }
+}
+
+class ExternalControllerSecretItem extends ConsumerWidget {
+  const ExternalControllerSecretItem({super.key});
+
+  @override
+  Widget build(BuildContext context, ref) {
+    final secret = ref.watch(
+      patchClashConfigProvider.select((state) => state.secret),
+    );
+    final effectiveSecret = resolveExternalControllerSecret(secret);
+    return ListItem.input(
+      leading: const Icon(Icons.password_outlined),
+      title: Text(
+        '${appLocalizations.externalController} ${appLocalizations.password}',
+      ),
+      subtitle: Text(effectiveSecret),
+      delegate: InputDelegate(
+        title:
+            '${appLocalizations.externalController} ${appLocalizations.password}',
+        value: effectiveSecret,
+        resetValue: defaultExternalControllerSecret,
+        onChanged: (String? value) {
+          if (value == null) {
+            return;
+          }
+          ref
+              .read(patchClashConfigProvider.notifier)
+              .update(
+                (state) => state.copyWith(
+                  secret: resolveExternalControllerSecret(value),
                 ),
               );
         },

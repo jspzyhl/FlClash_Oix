@@ -3794,6 +3794,16 @@ class AppLocalizations {
     return Intl.message('User Center', name: 'userCenter', desc: '', args: []);
   }
 
+  /// `User Center (Backup)`
+  String get userCenterFallback {
+    return Intl.message(
+      'User Center (Backup)',
+      name: 'userCenterFallback',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Software Center`
   String get softwareCenter {
     return Intl.message(
@@ -4189,16 +4199,6 @@ class AppLocalizations {
     );
   }
 
-  /// `TCP Fast Open`
-  String get tcpFastOpen {
-    return Intl.message(
-      'TCP Fast Open',
-      name: 'tcpFastOpen',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Minimal Configuration`
   String get minimalConfiguration {
     return Intl.message(
@@ -4214,6 +4214,16 @@ class AppLocalizations {
     return Intl.message(
       'Use a simplified rule set to generate a smaller profile',
       name: 'minimalConfigurationDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `TCP Fast Open`
+  String get tcpFastOpen {
+    return Intl.message(
+      'TCP Fast Open',
+      name: 'tcpFastOpen',
       desc: '',
       args: [],
     );

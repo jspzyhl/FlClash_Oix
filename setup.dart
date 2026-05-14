@@ -359,6 +359,23 @@ class BuildCommand extends Command {
       .map((e) => e.arch!)
       .toList();
 
+  String _buildDartDefines({required String prefix, required String env}) {
+    final values = {
+      'APP_ENV': env,
+      'PROFILE_KEY': Platform.environment['PROFILE_KEY']?.trim(),
+      'BASE_DOMAIN': Platform.environment['BASE_DOMAIN']?.trim(),
+      'SPARE_DOMAIN': Platform.environment['SPARE_DOMAIN']?.trim(),
+      'API_DOMAIN': Platform.environment['API_DOMAIN']?.trim(),
+      'SPARE_API_DOMAIN': Platform.environment['SPARE_API_DOMAIN']?.trim(),
+      'FLCLASH_APP_SECRET': Platform.environment['FLCLASH_APP_SECRET']?.trim(),
+    };
+
+    return values.entries
+        .where((entry) => entry.value != null && entry.value!.isNotEmpty)
+        .map((entry) => '$prefix=${entry.key}=${entry.value}')
+        .join(' ');
+  }
+
   Future<void> _getLinuxDependencies(Arch arch) async {
     await Build.exec(Build.getExecutable('sudo apt-get update -y'));
     await Build.exec(
@@ -418,24 +435,10 @@ class BuildCommand extends Command {
     // Use custom artifact name template to exclude version number and -setup suffix
     const artifactNameTemplate =
         'flclash-{{platform}}{{#description}}-{{description}}{{/description}}.{{ext}}';
-    final profileKey = Platform.environment['PROFILE_KEY']?.trim();
-    final baseDomain = Platform.environment['BASE_DOMAIN']?.trim();
-    final oixApiDomain = Platform.environment['API_DOMAIN']?.trim();
-    final flclashAppSecret = Platform.environment['FLCLASH_APP_SECRET']?.trim();
-
-    var dartDefines = '--build-dart-define=APP_ENV=$env';
-    if (profileKey != null && profileKey.isNotEmpty) {
-      dartDefines += ' --build-dart-define=PROFILE_KEY=$profileKey';
-    }
-    if (baseDomain != null && baseDomain.isNotEmpty) {
-      dartDefines += ' --build-dart-define=BASE_DOMAIN=$baseDomain';
-    }
-    if (oixApiDomain != null && oixApiDomain.isNotEmpty) {
-      dartDefines += ' --build-dart-define=API_DOMAIN=$oixApiDomain';
-    }
-    if (flclashAppSecret != null && flclashAppSecret.isNotEmpty) {
-      dartDefines += ' --build-dart-define=FLCLASH_APP_SECRET=$flclashAppSecret';
-    }
+    final dartDefines = _buildDartDefines(
+      prefix: '--build-dart-define',
+      env: env,
+    );
 
     await Build.exec(
       name: name,
@@ -457,24 +460,7 @@ class BuildCommand extends Command {
       await _updatePubspecVersion(versionNumber, buildNumber);
     }
 
-    final profileKey = Platform.environment['PROFILE_KEY']?.trim();
-    final baseDomain = Platform.environment['BASE_DOMAIN']?.trim();
-    final oixApiDomain = Platform.environment['API_DOMAIN']?.trim();
-    final flclashAppSecret = Platform.environment['FLCLASH_APP_SECRET']?.trim();
-
-    var dartDefines = '--dart-define=APP_ENV=$env';
-    if (profileKey != null && profileKey.isNotEmpty) {
-      dartDefines += ' --dart-define=PROFILE_KEY=$profileKey';
-    }
-    if (baseDomain != null && baseDomain.isNotEmpty) {
-      dartDefines += ' --dart-define=BASE_DOMAIN=$baseDomain';
-    }
-    if (oixApiDomain != null && oixApiDomain.isNotEmpty) {
-      dartDefines += ' --dart-define=API_DOMAIN=$oixApiDomain';
-    }
-    if (flclashAppSecret != null && flclashAppSecret.isNotEmpty) {
-      dartDefines += ' --dart-define=FLCLASH_APP_SECRET=$flclashAppSecret';
-    }
+    final dartDefines = _buildDartDefines(prefix: '--dart-define', env: env);
 
     await Build.exec(
       name: name,

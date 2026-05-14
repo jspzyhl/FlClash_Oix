@@ -241,10 +241,16 @@ func updateConfig(params *UpdateParams) {
 		general.IPv6 = *params.IPv6
 		resolver.DisableIPv6 = !general.IPv6
 	}
-	if params.ExternalController != nil {
-		currentConfig.Controller.ExternalController = *params.ExternalController
+	if params.ExternalController != nil || params.Secret != nil {
+		if params.ExternalController != nil {
+			currentConfig.Controller.ExternalController = *params.ExternalController
+		}
+		if params.Secret != nil {
+			currentConfig.Controller.Secret = *params.Secret
+		}
 		route.ReCreateServer(&route.Config{
-			Addr: currentConfig.Controller.ExternalController,
+			Addr:   currentConfig.Controller.ExternalController,
+			Secret: currentConfig.Controller.Secret,
 		})
 	}
 

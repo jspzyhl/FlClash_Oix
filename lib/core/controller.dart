@@ -64,7 +64,7 @@ class CoreController {
       InitParams(
         homeDir: homeDirPath,
         version: version,
-        profileKey: secrets.PROFILE_KEY,
+        profileKey: Secrets.profileKey,
       ),
     );
   }

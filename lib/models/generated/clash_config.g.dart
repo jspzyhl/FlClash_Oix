@@ -379,6 +379,7 @@ _ClashConfig _$ClashConfigFromJson(Map<String, dynamic> json) => _ClashConfig(
         json['external-controller'],
       ) ??
       ExternalControllerStatus.close,
+  secret: json['secret'] as String? ?? defaultExternalControllerSecret,
   hosts:
       (json['hosts'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
@@ -410,6 +411,7 @@ Map<String, dynamic> _$ClashConfigToJson(_ClashConfig instance) =>
       'global-ua': instance.globalUa,
       'external-controller':
           _$ExternalControllerStatusEnumMap[instance.externalController]!,
+      'secret': instance.secret,
       'hosts': instance.hosts,
     };
 

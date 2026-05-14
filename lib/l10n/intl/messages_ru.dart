@@ -532,6 +532,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "messageTestTip": MessageLookupByLibrary.simpleMessage("Это сообщение."),
     "min": MessageLookupByLibrary.simpleMessage("Мин"),
+    "minimalConfiguration": MessageLookupByLibrary.simpleMessage(
+      "Минимальная конфигурация",
+    ),
+    "minimalConfigurationDesc": MessageLookupByLibrary.simpleMessage(
+      "Использовать сокращенный набор правил для меньшего профиля",
+    ),
     "minimizeOnExit": MessageLookupByLibrary.simpleMessage(
       "Свернуть при выходе",
     ),
@@ -754,8 +760,8 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "regExp": MessageLookupByLibrary.simpleMessage("Регулярное выражение"),
     "reload": MessageLookupByLibrary.simpleMessage("Перезагрузить"),
-    "remindLater": MessageLookupByLibrary.simpleMessage("Напомнить позже"),
     "remaining": m13,
+    "remindLater": MessageLookupByLibrary.simpleMessage("Напомнить позже"),
     "remote": MessageLookupByLibrary.simpleMessage("Удаленный"),
     "remoteBackupDesc": MessageLookupByLibrary.simpleMessage(
       "Резервное копирование локальных данных на WebDAV",
@@ -912,12 +918,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "tcpConcurrentDesc": MessageLookupByLibrary.simpleMessage(
       "Включение позволит использовать параллелизм TCP",
     ),
-    "minimalConfiguration": MessageLookupByLibrary.simpleMessage(
-      "Минимальная конфигурация",
-    ),
-    "minimalConfigurationDesc": MessageLookupByLibrary.simpleMessage(
-      "Использовать сокращенный набор правил для меньшего профиля",
-    ),
     "tcpFastOpen": MessageLookupByLibrary.simpleMessage("TCP Fast Open"),
     "tcpFastOpenDesc": MessageLookupByLibrary.simpleMessage(
       "Включите эту опцию для ускорения установки TCP-соединения",
@@ -973,11 +973,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "unnamed": MessageLookupByLibrary.simpleMessage("Без имени"),
     "update": MessageLookupByLibrary.simpleMessage("Обновить"),
-    "updateDownloadSuccess": MessageLookupByLibrary.simpleMessage(
-      "Пакет обновления загружен. Открыть сейчас?",
-    ),
     "updateDownloadFallback": MessageLookupByLibrary.simpleMessage(
       "Не удалось загрузить обновление. Открываем ссылку для загрузки...",
+    ),
+    "updateDownloadSuccess": MessageLookupByLibrary.simpleMessage(
+      "Пакет обновления загружен. Открыть сейчас?",
     ),
     "updateDownloading": MessageLookupByLibrary.simpleMessage(
       "Загрузка обновления в фоновом режиме...",
@@ -993,6 +993,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Использовать системные hosts",
     ),
     "userCenter": MessageLookupByLibrary.simpleMessage("Центр пользователя"),
+    "userCenterFallback": MessageLookupByLibrary.simpleMessage(
+      "Центр пользователя (резервный)",
+    ),
     "value": MessageLookupByLibrary.simpleMessage("Значение"),
     "vibrantScheme": MessageLookupByLibrary.simpleMessage("Яркие"),
     "view": MessageLookupByLibrary.simpleMessage("Просмотр"),

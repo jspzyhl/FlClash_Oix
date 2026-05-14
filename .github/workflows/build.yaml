@@ -183,7 +183,9 @@ jobs:
           FLUTTER_BUILD_NUMBER: ${{ needs.version.outputs.build_number }}
           PROFILE_KEY: ${{ secrets.PROFILE_KEY }}
           BASE_DOMAIN: ${{ secrets.BASE_DOMAIN }}
+          SPARE_DOMAIN: ${{ secrets.SPARE_DOMAIN }}
           API_DOMAIN: ${{ secrets.API_DOMAIN }}
+          SPARE_API_DOMAIN: ${{ secrets.SPARE_API_DOMAIN }}
           FLCLASH_APP_SECRET: ${{ secrets.FLCLASH_APP_SECRET }}
         run: |
           set -e

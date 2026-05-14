@@ -72,7 +72,7 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
               children: [
                 InkWell(
                   onTap: () => launchUrl(
-                    Uri.parse('https://${secrets.BASE_DOMAIN.trim()}/user'),
+                    Uri.parse('https://${Secrets.primarySiteDomain}/user'),
                   ),
                   child: Container(
                     padding: const EdgeInsets.all(12),
@@ -207,10 +207,7 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
   /// Restore the level/type to the tier's defaults, preserving switches and extras.
   OixParams _restoreDefault(SubscriptionTier tier) {
     final defaults = tier.defaultParams;
-    return _params.copyWith(
-      level: defaults.level,
-      type: defaults.type,
-    );
+    return _params.copyWith(level: defaults.level, type: defaults.type);
   }
 
   Widget _buildInfo(

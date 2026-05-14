@@ -382,6 +382,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "messageTest": MessageLookupByLibrary.simpleMessage("メッセージテスト"),
     "messageTestTip": MessageLookupByLibrary.simpleMessage("これはメッセージです。"),
     "min": MessageLookupByLibrary.simpleMessage("最小化"),
+    "minimalConfiguration": MessageLookupByLibrary.simpleMessage("最小構成"),
+    "minimalConfigurationDesc": MessageLookupByLibrary.simpleMessage(
+      "簡略化したルールセットで小さなプロファイルを生成します",
+    ),
     "minimizeOnExit": MessageLookupByLibrary.simpleMessage("終了時に最小化"),
     "minimizeOnExitDesc": MessageLookupByLibrary.simpleMessage(
       "システムの終了イベントを変更",
@@ -552,8 +556,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "refreshSuccess": MessageLookupByLibrary.simpleMessage("更新完了"),
     "regExp": MessageLookupByLibrary.simpleMessage("正規表現"),
     "reload": MessageLookupByLibrary.simpleMessage("リロード"),
-    "remindLater": MessageLookupByLibrary.simpleMessage("後で通知"),
     "remaining": m13,
+    "remindLater": MessageLookupByLibrary.simpleMessage("後で通知"),
     "remote": MessageLookupByLibrary.simpleMessage("リモート"),
     "remoteBackupDesc": MessageLookupByLibrary.simpleMessage(
       "WebDAVにデータをバックアップ",
@@ -664,10 +668,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "tabAnimationDesc": MessageLookupByLibrary.simpleMessage("モバイル表示でのみ有効"),
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP並列処理"),
     "tcpConcurrentDesc": MessageLookupByLibrary.simpleMessage("TCP並列処理を許可"),
-    "minimalConfiguration": MessageLookupByLibrary.simpleMessage("最小構成"),
-    "minimalConfigurationDesc": MessageLookupByLibrary.simpleMessage(
-      "簡略化したルールセットで小さなプロファイルを生成します",
-    ),
     "tcpFastOpen": MessageLookupByLibrary.simpleMessage("TCP Fast Open"),
     "tcpFastOpenDesc": MessageLookupByLibrary.simpleMessage(
       "TCPの接続確立を高速化するには、このオプションをオンにしてください",
@@ -713,11 +713,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "unknownNetworkError": MessageLookupByLibrary.simpleMessage("不明なネットワークエラー"),
     "unnamed": MessageLookupByLibrary.simpleMessage("無題"),
     "update": MessageLookupByLibrary.simpleMessage("更新"),
-    "updateDownloadSuccess": MessageLookupByLibrary.simpleMessage(
-      "アップデートパッケージをダウンロードしました。今すぐ開きますか？",
-    ),
     "updateDownloadFallback": MessageLookupByLibrary.simpleMessage(
       "アップデートのダウンロードに失敗しました。ダウンロードリンクを開きます...",
+    ),
+    "updateDownloadSuccess": MessageLookupByLibrary.simpleMessage(
+      "アップデートパッケージをダウンロードしました。今すぐ開きますか？",
     ),
     "updateDownloading": MessageLookupByLibrary.simpleMessage(
       "バックグラウンドでアップデートをダウンロード中...",
@@ -729,6 +729,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "useHosts": MessageLookupByLibrary.simpleMessage("ホストを使用"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("システムホストを使用"),
     "userCenter": MessageLookupByLibrary.simpleMessage("ユーザーセンター"),
+    "userCenterFallback": MessageLookupByLibrary.simpleMessage("ユーザーセンター（予備）"),
     "value": MessageLookupByLibrary.simpleMessage("値"),
     "vibrantScheme": MessageLookupByLibrary.simpleMessage("ビブラント"),
     "view": MessageLookupByLibrary.simpleMessage("表示"),

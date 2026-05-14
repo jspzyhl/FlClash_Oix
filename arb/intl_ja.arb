@@ -483,6 +483,7 @@
   "addProfile": "プロファイルを追加",
   "delayTest": "遅延テスト",
   "userCenter": "ユーザーセンター",
+  "userCenterFallback": "ユーザーセンター（予備）",
   "softwareCenter": "ソフトウェアセンター",
   "documentCenter": "ドキュメントセンター",
   "oixCloud": "oixCloud",

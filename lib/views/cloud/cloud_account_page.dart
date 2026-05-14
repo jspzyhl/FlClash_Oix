@@ -52,7 +52,7 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
     try {
       await CloudApiService().checkServiceHealth();
     } catch (e) {
-      error = e.toString();
+      error = CloudApiException.clean(e);
     }
 
     if (mounted) {
@@ -130,6 +130,15 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
       color = Colors.red;
     }
 
+    final String tooltip;
+    if (_isCheckingService || !_checkedStatus) {
+      tooltip = AppLocalizations.current.checkApi;
+    } else if (_serviceError == null) {
+      tooltip = AppLocalizations.current.apiAvailable;
+    } else {
+      tooltip = AppLocalizations.current.serviceCheckFailed;
+    }
+
     return IconButton(
       icon: _isCheckingService
           ? const SizedBox(
@@ -139,7 +148,7 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
             )
           : Icon(icon, color: color),
       onPressed: _checkHealth,
-      tooltip: _serviceError ?? AppLocalizations.current.checkApi,
+      tooltip: tooltip,
     );
   }
 
@@ -194,9 +203,9 @@ class _CloudAccountPageState extends ConsumerState<CloudAccountPage> {
                         const Spacer(),
                         if (state.latestNotification?.publishTime != null)
                           Text(
-                            DateFormat('yyyy-MM-dd').format(
-                              state.latestNotification!.publishTime,
-                            ),
+                            DateFormat(
+                              'yyyy-MM-dd',
+                            ).format(state.latestNotification!.publishTime),
                             style: context.textTheme.bodySmall?.copyWith(
                               color: context.colorScheme.onSurfaceVariant,
                             ),
