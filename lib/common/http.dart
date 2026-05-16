@@ -4,6 +4,39 @@ import 'package:flutter/foundation.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
 
+class FlClashHostOverrides {
+  const FlClashHostOverrides._();
+
+  static String? resolve(String host) {
+    return Secrets.resolveHostOverride(host);
+  }
+
+  static Future<ConnectionTask<Socket>> connect(
+    Uri uri,
+    String? proxyHost,
+    int? proxyPort, {
+    SecurityContext? context,
+    bool Function(X509Certificate certificate)? onBadCertificate,
+  }) async {
+    final hasProxy = proxyHost != null;
+    final targetHost = hasProxy ? proxyHost : resolve(uri.host) ?? uri.host;
+    final targetPort = hasProxy ? proxyPort! : uri.port;
+    if (!hasProxy && uri.isScheme('https')) {
+      final socketTask = await Socket.startConnect(targetHost, targetPort);
+      final secureSocket = socketTask.socket.then(
+        (socket) => SecureSocket.secure(
+          socket,
+          host: uri.host,
+          context: context,
+          onBadCertificate: onBadCertificate,
+        ),
+      );
+      return ConnectionTask.fromSocket<Socket>(secureSocket, socketTask.cancel);
+    }
+    return Socket.startConnect(targetHost, targetPort);
+  }
+}
+
 class FlClashHttpOverrides extends HttpOverrides {
   static String handleFindProxy(Uri url) {
     final isApiDomain = Secrets.isApiDomain(url.host);
@@ -24,6 +57,15 @@ class FlClashHttpOverrides extends HttpOverrides {
   HttpClient createHttpClient(SecurityContext? context) {
     final client = super.createHttpClient(context);
     client.badCertificateCallback = (_, _, _) => kDebugMode;
+    client.connectionFactory = (uri, proxyHost, proxyPort) {
+      return FlClashHostOverrides.connect(
+        uri,
+        proxyHost,
+        proxyPort,
+        context: context,
+        onBadCertificate: (_) => kDebugMode,
+      );
+    };
     client.findProxy = handleFindProxy;
     return client;
   }

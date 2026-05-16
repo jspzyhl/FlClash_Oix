@@ -368,6 +368,7 @@ class BuildCommand extends Command {
       'API_DOMAIN': Platform.environment['API_DOMAIN']?.trim(),
       'SPARE_API_DOMAIN': Platform.environment['SPARE_API_DOMAIN']?.trim(),
       'FLCLASH_APP_SECRET': Platform.environment['FLCLASH_APP_SECRET']?.trim(),
+      'HOST_OVERRIDES': Platform.environment['HOST_OVERRIDES']?.trim(),
     };
 
     return values.entries

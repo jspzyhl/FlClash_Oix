@@ -4109,10 +4109,10 @@ class AppLocalizations {
     );
   }
 
-  /// `API Connected`
+  /// `API service is operational`
   String get apiAvailable {
     return Intl.message(
-      'API Connected',
+      'API service is operational',
       name: 'apiAvailable',
       desc: '',
       args: [],

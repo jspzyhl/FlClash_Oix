@@ -94,7 +94,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("局域网代理"),
     "allowLanDesc": MessageLookupByLibrary.simpleMessage("允许通过局域网访问代理"),
     "announcement": MessageLookupByLibrary.simpleMessage("公告"),
-    "apiAvailable": MessageLookupByLibrary.simpleMessage("API 已连接"),
+    "apiAvailable": MessageLookupByLibrary.simpleMessage("API 服务正常"),
     "apiUnavailable": MessageLookupByLibrary.simpleMessage("API 异常"),
     "app": MessageLookupByLibrary.simpleMessage("应用"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage("应用访问控制"),

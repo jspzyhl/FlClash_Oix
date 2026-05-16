@@ -98,7 +98,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("LANを許可"),
     "allowLanDesc": MessageLookupByLibrary.simpleMessage("LAN経由でのプロキシアクセスを許可"),
     "announcement": MessageLookupByLibrary.simpleMessage("お知らせ"),
-    "apiAvailable": MessageLookupByLibrary.simpleMessage("API接続済み"),
+    "apiAvailable": MessageLookupByLibrary.simpleMessage("APIサービスは正常です"),
     "apiUnavailable": MessageLookupByLibrary.simpleMessage("API利用不可"),
     "app": MessageLookupByLibrary.simpleMessage("アプリ"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage("アプリアクセス制御"),

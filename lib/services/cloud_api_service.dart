@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/state.dart';
 import 'package:flutter/foundation.dart';
@@ -26,15 +27,47 @@ const _allowInsecureTls = bool.fromEnvironment(
 );
 
 IOHttpClientAdapter _createDirectApiAdapter() {
+  return _createApiAdapter(findProxy: (_) => 'DIRECT');
+}
+
+IOHttpClientAdapter _createLocalProxyApiAdapter() {
+  return _createApiAdapter(
+    findProxy: (_) => _localProxyDirective() ?? 'DIRECT',
+  );
+}
+
+IOHttpClientAdapter _createApiAdapter({
+  required String Function(Uri uri) findProxy,
+}) {
   return IOHttpClientAdapter(
     createHttpClient: () {
       final client = HttpClient();
-      client.findProxy = (_) => 'DIRECT';
+      client.findProxy = findProxy;
       client.badCertificateCallback = (_, _, _) =>
           kDebugMode && _allowInsecureTls;
+      client.connectionFactory = (uri, proxyHost, proxyPort) {
+        return FlClashHostOverrides.connect(
+          uri,
+          proxyHost,
+          proxyPort,
+          onBadCertificate: (_) => kDebugMode && _allowInsecureTls,
+        );
+      };
       return client;
     },
   );
+}
+
+String? _localProxyDirective() {
+  try {
+    if (!appController.isStart) {
+      return null;
+    }
+    final port = appController.config.patchClashConfig.mixedPort;
+    return 'PROXY $localhost:$port';
+  } catch (_) {
+    return null;
+  }
 }
 
 // -- DTOs --
@@ -527,11 +560,21 @@ class CloudApiService {
 class RetryInterceptor extends Interceptor {
   final Dio dio;
   final int retries;
+  Dio? _localProxyDio;
 
   RetryInterceptor({required this.dio, this.retries = 2});
 
   static const _retryHandledKey = 'retryHandled';
   static const _apiDomainFallbackHandledKey = 'apiDomainFallbackHandled';
+
+  Dio _getLocalProxyDio() {
+    final existing = _localProxyDio;
+    if (existing != null) return existing;
+    final localProxyDio = Dio(dio.options.copyWith());
+    localProxyDio.httpClientAdapter = _createLocalProxyApiAdapter();
+    _localProxyDio = localProxyDio;
+    return localProxyDio;
+  }
 
   @override
   Future<void> onError(
@@ -562,19 +605,42 @@ class RetryInterceptor extends Interceptor {
       }
     }
 
-    final spareDomain = _spareApiDomainFor(lastError.requestOptions);
+    try {
+      final response = await _fetchWithLocalProxy(
+        err.requestOptions,
+        baseExtra,
+      );
+      if (response != null) {
+        return handler.resolve(response);
+      }
+    } on DioException catch (e) {
+      lastError = e;
+    }
+
+    final spareDomain = _spareApiDomainFor(err.requestOptions);
     if (spareDomain != null &&
         baseExtra[_apiDomainFallbackHandledKey] != true) {
+      final spareExtra = Map<String, dynamic>.from(baseExtra)
+        ..[_apiDomainFallbackHandledKey] = true;
+      final spareRequestOptions = _copyRequestOptionsForDomain(
+        err.requestOptions,
+        spareExtra,
+        spareDomain,
+      );
       try {
-        final response = await dio.fetch(
-          _copyRequestOptionsForDomain(
-            lastError.requestOptions,
-            Map<String, dynamic>.from(baseExtra)
-              ..[_apiDomainFallbackHandledKey] = true,
-            spareDomain,
-          ),
-        );
+        final response = await dio.fetch(spareRequestOptions);
         return handler.resolve(response);
+      } on DioException catch (e) {
+        lastError = e;
+      }
+      try {
+        final response = await _fetchWithLocalProxy(
+          spareRequestOptions,
+          spareExtra,
+        );
+        if (response != null) {
+          return handler.resolve(response);
+        }
       } on DioException catch (e) {
         lastError = e;
       }
@@ -605,6 +671,18 @@ class RetryInterceptor extends Interceptor {
       queryParameters: const {},
       data: _cloneRequestData(requestOptions.data),
       extra: extra,
+    );
+  }
+
+  Future<Response<dynamic>?> _fetchWithLocalProxy(
+    RequestOptions requestOptions,
+    Map<String, dynamic> extra,
+  ) async {
+    if (_localProxyDirective() == null) {
+      return null;
+    }
+    return _getLocalProxyDio().fetch(
+      _copyRequestOptionsForRetry(requestOptions, extra),
     );
   }
 

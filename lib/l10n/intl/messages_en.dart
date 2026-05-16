@@ -125,7 +125,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Allow access proxy through the LAN",
     ),
     "announcement": MessageLookupByLibrary.simpleMessage("Announcement"),
-    "apiAvailable": MessageLookupByLibrary.simpleMessage("API Connected"),
+    "apiAvailable": MessageLookupByLibrary.simpleMessage(
+      "API service is operational",
+    ),
     "apiUnavailable": MessageLookupByLibrary.simpleMessage("API Unavailable"),
     "app": MessageLookupByLibrary.simpleMessage("App"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage(

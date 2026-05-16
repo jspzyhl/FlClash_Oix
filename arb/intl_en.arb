@@ -518,7 +518,7 @@
   "points": "Points",
   "announcement": "Announcement",
   "serviceCheckFailed": "Service Check Failed",
-  "apiAvailable": "API Connected",
+  "apiAvailable": "API service is operational",
   "checkApi": "Check API",
   "apiUnavailable": "API Unavailable",
   "refreshSuccess": "Refresh Complete",

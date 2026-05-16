@@ -187,6 +187,7 @@ jobs:
           API_DOMAIN: ${{ secrets.API_DOMAIN }}
           SPARE_API_DOMAIN: ${{ secrets.SPARE_API_DOMAIN }}
           FLCLASH_APP_SECRET: ${{ secrets.FLCLASH_APP_SECRET }}
+          HOST_OVERRIDES: ${{ secrets.HOST_OVERRIDES }}
         run: |
           set -e
           BUILD_ARGS="${{ matrix.platform }}"

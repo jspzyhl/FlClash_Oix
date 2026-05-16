@@ -122,7 +122,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Разрешить доступ к прокси через локальную сеть",
     ),
     "announcement": MessageLookupByLibrary.simpleMessage("Объявление"),
-    "apiAvailable": MessageLookupByLibrary.simpleMessage("API подключено"),
+    "apiAvailable": MessageLookupByLibrary.simpleMessage(
+      "API-сервис работает нормально",
+    ),
     "apiUnavailable": MessageLookupByLibrary.simpleMessage("API недоступно"),
     "app": MessageLookupByLibrary.simpleMessage("Приложение"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage(

@@ -14,6 +14,12 @@ class Secrets {
     'FLCLASH_APP_SECRET',
   );
 
+  static const String hostOverrides = String.fromEnvironment('HOST_OVERRIDES');
+
+  static final Map<String, String> hostOverrideMap = _parseHostOverrides(
+    hostOverrides,
+  );
+
   static String get primarySiteDomain => baseDomain.trim();
 
   static String get spareSiteDomain => spareDomain.trim();
@@ -39,5 +45,25 @@ class Secrets {
 
   static bool isApiDomain(String host) {
     return apiDomains.contains(host.trim().toLowerCase());
+  }
+
+  static String? resolveHostOverride(String host) {
+    return hostOverrideMap[host.trim().toLowerCase()];
+  }
+
+  static Map<String, String> _parseHostOverrides(String value) {
+    final overrides = <String, String>{};
+    for (final item in value.split(RegExp(r'[;,]'))) {
+      final separator = item.indexOf('=');
+      if (separator <= 0 || separator == item.length - 1) {
+        continue;
+      }
+      final host = item.substring(0, separator).trim().toLowerCase();
+      final address = item.substring(separator + 1).trim();
+      if (host.isNotEmpty && address.isNotEmpty) {
+        overrides[host] = address;
+      }
+    }
+    return overrides;
   }
 }

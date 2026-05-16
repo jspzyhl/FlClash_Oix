@@ -528,7 +528,7 @@
   "points": "Баллы",
   "announcement": "Объявление",
   "serviceCheckFailed": "Проверка сервиса не удалась",
-  "apiAvailable": "API подключено",
+  "apiAvailable": "API-сервис работает нормально",
   "checkApi": "Проверить API",
   "apiUnavailable": "API недоступно",
   "refreshSuccess": "Обновление завершено",
