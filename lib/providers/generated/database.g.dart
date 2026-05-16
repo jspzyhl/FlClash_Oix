@@ -10,7 +10,7 @@ part of '../database.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(profilesStream)
-const profilesStreamProvider = ProfilesStreamProvider._();
+final profilesStreamProvider = ProfilesStreamProvider._();
 
 final class ProfilesStreamProvider
     extends
@@ -20,7 +20,7 @@ final class ProfilesStreamProvider
           Stream<List<Profile>>
         >
     with $FutureModifier<List<Profile>>, $StreamProvider<List<Profile>> {
-  const ProfilesStreamProvider._()
+  ProfilesStreamProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,7 +49,7 @@ final class ProfilesStreamProvider
 String _$profilesStreamHash() => r'483907aa6c324209b5202369300a4a53230f83db';
 
 @ProviderFor(addedRuleStream)
-const addedRuleStreamProvider = AddedRuleStreamFamily._();
+final addedRuleStreamProvider = AddedRuleStreamFamily._();
 
 final class AddedRuleStreamProvider
     extends
@@ -59,7 +59,7 @@ final class AddedRuleStreamProvider
           Stream<List<Rule>>
         >
     with $FutureModifier<List<Rule>>, $StreamProvider<List<Rule>> {
-  const AddedRuleStreamProvider._({
+  AddedRuleStreamProvider._({
     required AddedRuleStreamFamily super.from,
     required int super.argument,
   }) : super(
@@ -106,7 +106,7 @@ String _$addedRuleStreamHash() => r'491968ce795e56d4516a95676fcf46d575b3495f';
 
 final class AddedRuleStreamFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<Rule>>, int> {
-  const AddedRuleStreamFamily._()
+  AddedRuleStreamFamily._()
     : super(
         retry: null,
         name: r'addedRuleStreamProvider',
@@ -123,11 +123,11 @@ final class AddedRuleStreamFamily extends $Family
 }
 
 @ProviderFor(Profiles)
-const profilesProvider = ProfilesProvider._();
+final profilesProvider = ProfilesProvider._();
 
 final class ProfilesProvider
     extends $NotifierProvider<Profiles, List<Profile>> {
-  const ProfilesProvider._()
+  ProfilesProvider._()
     : super(
         from: null,
         argument: null,
@@ -161,7 +161,6 @@ abstract class _$Profiles extends $Notifier<List<Profile>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<List<Profile>, List<Profile>>;
     final element =
         ref.element
@@ -171,16 +170,16 @@ abstract class _$Profiles extends $Notifier<List<Profile>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(Scripts)
-const scriptsProvider = ScriptsProvider._();
+final scriptsProvider = ScriptsProvider._();
 
 final class ScriptsProvider
     extends $StreamNotifierProvider<Scripts, List<Script>> {
-  const ScriptsProvider._()
+  ScriptsProvider._()
     : super(
         from: null,
         argument: null,
@@ -206,7 +205,6 @@ abstract class _$Scripts extends $StreamNotifier<List<Script>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AsyncValue<List<Script>>, List<Script>>;
     final element =
         ref.element
@@ -216,16 +214,16 @@ abstract class _$Scripts extends $StreamNotifier<List<Script>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(GlobalRules)
-const globalRulesProvider = GlobalRulesProvider._();
+final globalRulesProvider = GlobalRulesProvider._();
 
 final class GlobalRulesProvider
     extends $StreamNotifierProvider<GlobalRules, List<Rule>> {
-  const GlobalRulesProvider._()
+  GlobalRulesProvider._()
     : super(
         from: null,
         argument: null,
@@ -251,7 +249,6 @@ abstract class _$GlobalRules extends $StreamNotifier<List<Rule>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AsyncValue<List<Rule>>, List<Rule>>;
     final element =
         ref.element
@@ -261,16 +258,16 @@ abstract class _$GlobalRules extends $StreamNotifier<List<Rule>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(ProfileAddedRules)
-const profileAddedRulesProvider = ProfileAddedRulesFamily._();
+final profileAddedRulesProvider = ProfileAddedRulesFamily._();
 
 final class ProfileAddedRulesProvider
     extends $StreamNotifierProvider<ProfileAddedRules, List<Rule>> {
-  const ProfileAddedRulesProvider._({
+  ProfileAddedRulesProvider._({
     required ProfileAddedRulesFamily super.from,
     required int super.argument,
   }) : super(
@@ -317,7 +314,7 @@ final class ProfileAddedRulesFamily extends $Family
           Stream<List<Rule>>,
           int
         > {
-  const ProfileAddedRulesFamily._()
+  ProfileAddedRulesFamily._()
     : super(
         retry: null,
         name: r'profileAddedRulesProvider',
@@ -341,7 +338,6 @@ abstract class _$ProfileAddedRules extends $StreamNotifier<List<Rule>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<AsyncValue<List<Rule>>, List<Rule>>;
     final element =
         ref.element
@@ -351,16 +347,16 @@ abstract class _$ProfileAddedRules extends $StreamNotifier<List<Rule>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }
 
 @ProviderFor(ProfileDisabledRuleIds)
-const profileDisabledRuleIdsProvider = ProfileDisabledRuleIdsFamily._();
+final profileDisabledRuleIdsProvider = ProfileDisabledRuleIdsFamily._();
 
 final class ProfileDisabledRuleIdsProvider
     extends $StreamNotifierProvider<ProfileDisabledRuleIds, List<int>> {
-  const ProfileDisabledRuleIdsProvider._({
+  ProfileDisabledRuleIdsProvider._({
     required ProfileDisabledRuleIdsFamily super.from,
     required int super.argument,
   }) : super(
@@ -409,7 +405,7 @@ final class ProfileDisabledRuleIdsFamily extends $Family
           Stream<List<int>>,
           int
         > {
-  const ProfileDisabledRuleIdsFamily._()
+  ProfileDisabledRuleIdsFamily._()
     : super(
         retry: null,
         name: r'profileDisabledRuleIdsProvider',
@@ -433,7 +429,6 @@ abstract class _$ProfileDisabledRuleIds extends $StreamNotifier<List<int>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<AsyncValue<List<int>>, List<int>>;
     final element =
         ref.element
@@ -443,6 +438,6 @@ abstract class _$ProfileDisabledRuleIds extends $StreamNotifier<List<int>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

@@ -10,12 +10,12 @@ part of '../state.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(currentGroupsState)
-const currentGroupsStateProvider = CurrentGroupsStateProvider._();
+final currentGroupsStateProvider = CurrentGroupsStateProvider._();
 
 final class CurrentGroupsStateProvider
     extends $FunctionalProvider<GroupsState, GroupsState, GroupsState>
     with $Provider<GroupsState> {
-  const CurrentGroupsStateProvider._()
+  CurrentGroupsStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -52,7 +52,7 @@ String _$currentGroupsStateHash() =>
     r'dbf8f02606a31486c99d7b89d19914cd5a1fc496';
 
 @ProviderFor(navigationItemsState)
-const navigationItemsStateProvider = NavigationItemsStateProvider._();
+final navigationItemsStateProvider = NavigationItemsStateProvider._();
 
 final class NavigationItemsStateProvider
     extends
@@ -62,7 +62,7 @@ final class NavigationItemsStateProvider
           NavigationItemsState
         >
     with $Provider<NavigationItemsState> {
-  const NavigationItemsStateProvider._()
+  NavigationItemsStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -100,7 +100,7 @@ String _$navigationItemsStateHash() =>
     r'1fc37c14d129f9725b0e62fd53f6b25382f51102';
 
 @ProviderFor(currentNavigationItemsState)
-const currentNavigationItemsStateProvider =
+final currentNavigationItemsStateProvider =
     CurrentNavigationItemsStateProvider._();
 
 final class CurrentNavigationItemsStateProvider
@@ -111,7 +111,7 @@ final class CurrentNavigationItemsStateProvider
           NavigationItemsState
         >
     with $Provider<NavigationItemsState> {
-  const CurrentNavigationItemsStateProvider._()
+  CurrentNavigationItemsStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -149,12 +149,12 @@ String _$currentNavigationItemsStateHash() =>
     r'06fbdc194f4527b945695fe3b72b16e0585fa440';
 
 @ProviderFor(updateParams)
-const updateParamsProvider = UpdateParamsProvider._();
+final updateParamsProvider = UpdateParamsProvider._();
 
 final class UpdateParamsProvider
     extends $FunctionalProvider<UpdateParams, UpdateParams, UpdateParams>
     with $Provider<UpdateParams> {
-  const UpdateParamsProvider._()
+  UpdateParamsProvider._()
     : super(
         from: null,
         argument: null,
@@ -187,15 +187,15 @@ final class UpdateParamsProvider
   }
 }
 
-String _$updateParamsHash() => r'012df72ab0e769a51c573f4692031506d7b1f1b4';
+String _$updateParamsHash() => r'1f89392e2444766a9911851a6451fe0a2ce1284b';
 
 @ProviderFor(proxyState)
-const proxyStateProvider = ProxyStateProvider._();
+final proxyStateProvider = ProxyStateProvider._();
 
 final class ProxyStateProvider
     extends $FunctionalProvider<ProxyState, ProxyState, ProxyState>
     with $Provider<ProxyState> {
-  const ProxyStateProvider._()
+  ProxyStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -231,12 +231,12 @@ final class ProxyStateProvider
 String _$proxyStateHash() => r'3df11daa70bd06de32da43e9b3e09a74389264b2';
 
 @ProviderFor(trayState)
-const trayStateProvider = TrayStateProvider._();
+final trayStateProvider = TrayStateProvider._();
 
 final class TrayStateProvider
     extends $FunctionalProvider<TrayState, TrayState, TrayState>
     with $Provider<TrayState> {
-  const TrayStateProvider._()
+  TrayStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -272,12 +272,12 @@ final class TrayStateProvider
 String _$trayStateHash() => r'b03770ae2eb7fe1a73372f1128af3b38fdebb818';
 
 @ProviderFor(trayTitleState)
-const trayTitleStateProvider = TrayTitleStateProvider._();
+final trayTitleStateProvider = TrayTitleStateProvider._();
 
 final class TrayTitleStateProvider
     extends $FunctionalProvider<TrayTitleState, TrayTitleState, TrayTitleState>
     with $Provider<TrayTitleState> {
-  const TrayTitleStateProvider._()
+  TrayTitleStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -313,12 +313,12 @@ final class TrayTitleStateProvider
 String _$trayTitleStateHash() => r'5f868aaf70480b00bfdc2de18684ee646a93fd12';
 
 @ProviderFor(vpnState)
-const vpnStateProvider = VpnStateProvider._();
+final vpnStateProvider = VpnStateProvider._();
 
 final class VpnStateProvider
     extends $FunctionalProvider<VpnState, VpnState, VpnState>
     with $Provider<VpnState> {
-  const VpnStateProvider._()
+  VpnStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -354,13 +354,13 @@ final class VpnStateProvider
 String _$vpnStateHash() => r'128ddad03ce045ad1f8204e47aec3cb6cfa29f6e';
 
 @ProviderFor(navigationState)
-const navigationStateProvider = NavigationStateProvider._();
+final navigationStateProvider = NavigationStateProvider._();
 
 final class NavigationStateProvider
     extends
         $FunctionalProvider<NavigationState, NavigationState, NavigationState>
     with $Provider<NavigationState> {
-  const NavigationStateProvider._()
+  NavigationStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -396,12 +396,12 @@ final class NavigationStateProvider
 String _$navigationStateHash() => r'657dc47ecc35ba0807b58cb37e7f1baa14f6c2f9';
 
 @ProviderFor(contentWidth)
-const contentWidthProvider = ContentWidthProvider._();
+final contentWidthProvider = ContentWidthProvider._();
 
 final class ContentWidthProvider
     extends $FunctionalProvider<double, double, double>
     with $Provider<double> {
-  const ContentWidthProvider._()
+  ContentWidthProvider._()
     : super(
         from: null,
         argument: null,
@@ -437,12 +437,12 @@ final class ContentWidthProvider
 String _$contentWidthHash() => r'4710fee8f91b08dc88520798fb6b1d4f61f090e6';
 
 @ProviderFor(dashboardState)
-const dashboardStateProvider = DashboardStateProvider._();
+final dashboardStateProvider = DashboardStateProvider._();
 
 final class DashboardStateProvider
     extends $FunctionalProvider<DashboardState, DashboardState, DashboardState>
     with $Provider<DashboardState> {
-  const DashboardStateProvider._()
+  DashboardStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -478,7 +478,7 @@ final class DashboardStateProvider
 String _$dashboardStateHash() => r'e8616e327c1b96658d917e4e4950f70ecb099d85';
 
 @ProviderFor(proxiesActionsState)
-const proxiesActionsStateProvider = ProxiesActionsStateProvider._();
+final proxiesActionsStateProvider = ProxiesActionsStateProvider._();
 
 final class ProxiesActionsStateProvider
     extends
@@ -488,7 +488,7 @@ final class ProxiesActionsStateProvider
           ProxiesActionsState
         >
     with $Provider<ProxiesActionsState> {
-  const ProxiesActionsStateProvider._()
+  ProxiesActionsStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -526,12 +526,12 @@ String _$proxiesActionsStateHash() =>
     r'84f8a94706233ff5d4b8a456291a4e66c1381c62';
 
 @ProviderFor(profilesState)
-const profilesStateProvider = ProfilesStateProvider._();
+final profilesStateProvider = ProfilesStateProvider._();
 
 final class ProfilesStateProvider
     extends $FunctionalProvider<ProfilesState, ProfilesState, ProfilesState>
     with $Provider<ProfilesState> {
-  const ProfilesStateProvider._()
+  ProfilesStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -567,12 +567,12 @@ final class ProfilesStateProvider
 String _$profilesStateHash() => r'8b07eeacb83b9002ba7e6283ff7a7f451a0845a6';
 
 @ProviderFor(filterGroupsState)
-const filterGroupsStateProvider = FilterGroupsStateFamily._();
+final filterGroupsStateProvider = FilterGroupsStateFamily._();
 
 final class FilterGroupsStateProvider
     extends $FunctionalProvider<GroupsState, GroupsState, GroupsState>
     with $Provider<GroupsState> {
-  const FilterGroupsStateProvider._({
+  FilterGroupsStateProvider._({
     required FilterGroupsStateFamily super.from,
     required String super.argument,
   }) : super(
@@ -627,7 +627,7 @@ String _$filterGroupsStateHash() => r'7de7a4603ca5ed7c39a00351af43144eb6c21404';
 
 final class FilterGroupsStateFamily extends $Family
     with $FunctionalFamilyOverride<GroupsState, String> {
-  const FilterGroupsStateFamily._()
+  FilterGroupsStateFamily._()
     : super(
         retry: null,
         name: r'filterGroupsStateProvider',
@@ -644,7 +644,7 @@ final class FilterGroupsStateFamily extends $Family
 }
 
 @ProviderFor(proxiesListState)
-const proxiesListStateProvider = ProxiesListStateProvider._();
+final proxiesListStateProvider = ProxiesListStateProvider._();
 
 final class ProxiesListStateProvider
     extends
@@ -654,7 +654,7 @@ final class ProxiesListStateProvider
           ProxiesListState
         >
     with $Provider<ProxiesListState> {
-  const ProxiesListStateProvider._()
+  ProxiesListStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -690,13 +690,13 @@ final class ProxiesListStateProvider
 String _$proxiesListStateHash() => r'b16ad96516ece78f6cb22f558a0535000b784317';
 
 @ProviderFor(proxiesTabState)
-const proxiesTabStateProvider = ProxiesTabStateProvider._();
+final proxiesTabStateProvider = ProxiesTabStateProvider._();
 
 final class ProxiesTabStateProvider
     extends
         $FunctionalProvider<ProxiesTabState, ProxiesTabState, ProxiesTabState>
     with $Provider<ProxiesTabState> {
-  const ProxiesTabStateProvider._()
+  ProxiesTabStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -732,11 +732,11 @@ final class ProxiesTabStateProvider
 String _$proxiesTabStateHash() => r'143b106d74da618327cbac48af15078efd8cabee';
 
 @ProviderFor(isStart)
-const isStartProvider = IsStartProvider._();
+final isStartProvider = IsStartProvider._();
 
 final class IsStartProvider extends $FunctionalProvider<bool, bool, bool>
     with $Provider<bool> {
-  const IsStartProvider._()
+  IsStartProvider._()
     : super(
         from: null,
         argument: null,
@@ -772,7 +772,7 @@ final class IsStartProvider extends $FunctionalProvider<bool, bool, bool>
 String _$isStartHash() => r'f8bcefa8515c44fbe14876a5fc6676110508e9b2';
 
 @ProviderFor(proxiesTabControllerState)
-const proxiesTabControllerStateProvider = ProxiesTabControllerStateProvider._();
+final proxiesTabControllerStateProvider = ProxiesTabControllerStateProvider._();
 
 final class ProxiesTabControllerStateProvider
     extends
@@ -782,7 +782,7 @@ final class ProxiesTabControllerStateProvider
           VM2<List<String>, String?>
         >
     with $Provider<VM2<List<String>, String?>> {
-  const ProxiesTabControllerStateProvider._()
+  ProxiesTabControllerStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -820,7 +820,7 @@ String _$proxiesTabControllerStateHash() =>
     r'd9c4eb6771262b2a989b053ce6ad94c307cf43fb';
 
 @ProviderFor(proxyGroupSelectorState)
-const proxyGroupSelectorStateProvider = ProxyGroupSelectorStateFamily._();
+final proxyGroupSelectorStateProvider = ProxyGroupSelectorStateFamily._();
 
 final class ProxyGroupSelectorStateProvider
     extends
@@ -830,7 +830,7 @@ final class ProxyGroupSelectorStateProvider
           ProxyGroupSelectorState
         >
     with $Provider<ProxyGroupSelectorState> {
-  const ProxyGroupSelectorStateProvider._({
+  ProxyGroupSelectorStateProvider._({
     required ProxyGroupSelectorStateFamily super.from,
     required (String, String) super.argument,
   }) : super(
@@ -888,7 +888,7 @@ String _$proxyGroupSelectorStateHash() =>
 
 final class ProxyGroupSelectorStateFamily extends $Family
     with $FunctionalFamilyOverride<ProxyGroupSelectorState, (String, String)> {
-  const ProxyGroupSelectorStateFamily._()
+  ProxyGroupSelectorStateFamily._()
     : super(
         retry: null,
         name: r'proxyGroupSelectorStateProvider',
@@ -908,7 +908,7 @@ final class ProxyGroupSelectorStateFamily extends $Family
 }
 
 @ProviderFor(packageListSelectorState)
-const packageListSelectorStateProvider = PackageListSelectorStateProvider._();
+final packageListSelectorStateProvider = PackageListSelectorStateProvider._();
 
 final class PackageListSelectorStateProvider
     extends
@@ -918,7 +918,7 @@ final class PackageListSelectorStateProvider
           PackageListSelectorState
         >
     with $Provider<PackageListSelectorState> {
-  const PackageListSelectorStateProvider._()
+  PackageListSelectorStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -956,7 +956,7 @@ String _$packageListSelectorStateHash() =>
     r'1fa2bebbd8ee07910aa8d6e9c5d5d6128df5c13b';
 
 @ProviderFor(moreToolsSelectorState)
-const moreToolsSelectorStateProvider = MoreToolsSelectorStateProvider._();
+final moreToolsSelectorStateProvider = MoreToolsSelectorStateProvider._();
 
 final class MoreToolsSelectorStateProvider
     extends
@@ -966,7 +966,7 @@ final class MoreToolsSelectorStateProvider
           MoreToolsSelectorState
         >
     with $Provider<MoreToolsSelectorState> {
-  const MoreToolsSelectorStateProvider._()
+  MoreToolsSelectorStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -1004,11 +1004,11 @@ String _$moreToolsSelectorStateHash() =>
     r'6329d92652135e2af009dddeac590b4369d2fa04';
 
 @ProviderFor(isCurrentPage)
-const isCurrentPageProvider = IsCurrentPageFamily._();
+final isCurrentPageProvider = IsCurrentPageFamily._();
 
 final class IsCurrentPageProvider extends $FunctionalProvider<bool, bool, bool>
     with $Provider<bool> {
-  const IsCurrentPageProvider._({
+  IsCurrentPageProvider._({
     required IsCurrentPageFamily super.from,
     required (
       PageLabel, {
@@ -1079,7 +1079,7 @@ final class IsCurrentPageFamily extends $Family
             bool Function(PageLabel pageLabel, ViewMode viewMode)? handler,
           })
         > {
-  const IsCurrentPageFamily._()
+  IsCurrentPageFamily._()
     : super(
         retry: null,
         name: r'isCurrentPageProvider',
@@ -1101,12 +1101,12 @@ final class IsCurrentPageFamily extends $Family
 }
 
 @ProviderFor(realTestUrl)
-const realTestUrlProvider = RealTestUrlFamily._();
+final realTestUrlProvider = RealTestUrlFamily._();
 
 final class RealTestUrlProvider
     extends $FunctionalProvider<String, String, String>
     with $Provider<String> {
-  const RealTestUrlProvider._({
+  RealTestUrlProvider._({
     required RealTestUrlFamily super.from,
     required String? super.argument,
   }) : super(
@@ -1161,7 +1161,7 @@ String _$realTestUrlHash() => r'6d68caa7a526b6788e3e4899d3ec8ad1c065b15e';
 
 final class RealTestUrlFamily extends $Family
     with $FunctionalFamilyOverride<String, String?> {
-  const RealTestUrlFamily._()
+  RealTestUrlFamily._()
     : super(
         retry: null,
         name: r'realTestUrlProvider',
@@ -1178,11 +1178,11 @@ final class RealTestUrlFamily extends $Family
 }
 
 @ProviderFor(getDelay)
-const getDelayProvider = GetDelayFamily._();
+final getDelayProvider = GetDelayFamily._();
 
 final class GetDelayProvider extends $FunctionalProvider<int?, int?, int?>
     with $Provider<int?> {
-  const GetDelayProvider._({
+  GetDelayProvider._({
     required GetDelayFamily super.from,
     required ({String proxyName, String? testUrl}) super.argument,
   }) : super(
@@ -1237,12 +1237,12 @@ final class GetDelayProvider extends $FunctionalProvider<int?, int?, int?>
   }
 }
 
-String _$getDelayHash() => r'ee2df2db2b12d599794f77519a9ac518f42245a7';
+String _$getDelayHash() => r'a83d4e468fbb19a4ff299b800bb8ce704d7668cf';
 
 final class GetDelayFamily extends $Family
     with
         $FunctionalFamilyOverride<int?, ({String proxyName, String? testUrl})> {
-  const GetDelayFamily._()
+  GetDelayFamily._()
     : super(
         retry: null,
         name: r'getDelayProvider',
@@ -1262,7 +1262,7 @@ final class GetDelayFamily extends $Family
 }
 
 @ProviderFor(selectedMap)
-const selectedMapProvider = SelectedMapProvider._();
+final selectedMapProvider = SelectedMapProvider._();
 
 final class SelectedMapProvider
     extends
@@ -1272,7 +1272,7 @@ final class SelectedMapProvider
           Map<String, String>
         >
     with $Provider<Map<String, String>> {
-  const SelectedMapProvider._()
+  SelectedMapProvider._()
     : super(
         from: null,
         argument: null,
@@ -1309,12 +1309,12 @@ final class SelectedMapProvider
 String _$selectedMapHash() => r'd4438d8d87d0c7ec7d9c5d02f577cdba6ba2a785';
 
 @ProviderFor(unfoldSet)
-const unfoldSetProvider = UnfoldSetProvider._();
+final unfoldSetProvider = UnfoldSetProvider._();
 
 final class UnfoldSetProvider
     extends $FunctionalProvider<Set<String>, Set<String>, Set<String>>
     with $Provider<Set<String>> {
-  const UnfoldSetProvider._()
+  UnfoldSetProvider._()
     : super(
         from: null,
         argument: null,
@@ -1350,12 +1350,12 @@ final class UnfoldSetProvider
 String _$unfoldSetHash() => r'59a5b417611533069462ddf31eca080ab2f74ac9';
 
 @ProviderFor(getHotKeyAction)
-const getHotKeyActionProvider = GetHotKeyActionFamily._();
+final getHotKeyActionProvider = GetHotKeyActionFamily._();
 
 final class GetHotKeyActionProvider
     extends $FunctionalProvider<HotKeyAction, HotKeyAction, HotKeyAction>
     with $Provider<HotKeyAction> {
-  const GetHotKeyActionProvider._({
+  GetHotKeyActionProvider._({
     required GetHotKeyActionFamily super.from,
     required HotAction super.argument,
   }) : super(
@@ -1410,7 +1410,7 @@ String _$getHotKeyActionHash() => r'4dc74ea7ffb25624ce70c7c8214806f3ef022223';
 
 final class GetHotKeyActionFamily extends $Family
     with $FunctionalFamilyOverride<HotKeyAction, HotAction> {
-  const GetHotKeyActionFamily._()
+  GetHotKeyActionFamily._()
     : super(
         retry: null,
         name: r'getHotKeyActionProvider',
@@ -1427,12 +1427,12 @@ final class GetHotKeyActionFamily extends $Family
 }
 
 @ProviderFor(currentProfile)
-const currentProfileProvider = CurrentProfileProvider._();
+final currentProfileProvider = CurrentProfileProvider._();
 
 final class CurrentProfileProvider
     extends $FunctionalProvider<Profile?, Profile?, Profile?>
     with $Provider<Profile?> {
-  const CurrentProfileProvider._()
+  CurrentProfileProvider._()
     : super(
         from: null,
         argument: null,
@@ -1468,11 +1468,11 @@ final class CurrentProfileProvider
 String _$currentProfileHash() => r'55f3cb9570a0aa6b9e0b83a36693b69d52e753ab';
 
 @ProviderFor(getProxiesColumns)
-const getProxiesColumnsProvider = GetProxiesColumnsProvider._();
+final getProxiesColumnsProvider = GetProxiesColumnsProvider._();
 
 final class GetProxiesColumnsProvider extends $FunctionalProvider<int, int, int>
     with $Provider<int> {
-  const GetProxiesColumnsProvider._()
+  GetProxiesColumnsProvider._()
     : super(
         from: null,
         argument: null,
@@ -1508,7 +1508,7 @@ final class GetProxiesColumnsProvider extends $FunctionalProvider<int, int, int>
 String _$getProxiesColumnsHash() => r'd5340932d4812727caa670065bce30450f1c4da5';
 
 @ProviderFor(realSelectedProxyState)
-const realSelectedProxyStateProvider = RealSelectedProxyStateFamily._();
+final realSelectedProxyStateProvider = RealSelectedProxyStateFamily._();
 
 final class RealSelectedProxyStateProvider
     extends
@@ -1518,7 +1518,7 @@ final class RealSelectedProxyStateProvider
           SelectedProxyState
         >
     with $Provider<SelectedProxyState> {
-  const RealSelectedProxyStateProvider._({
+  RealSelectedProxyStateProvider._({
     required RealSelectedProxyStateFamily super.from,
     required String super.argument,
   }) : super(
@@ -1576,7 +1576,7 @@ String _$realSelectedProxyStateHash() =>
 
 final class RealSelectedProxyStateFamily extends $Family
     with $FunctionalFamilyOverride<SelectedProxyState, String> {
-  const RealSelectedProxyStateFamily._()
+  RealSelectedProxyStateFamily._()
     : super(
         retry: null,
         name: r'realSelectedProxyStateProvider',
@@ -1593,12 +1593,12 @@ final class RealSelectedProxyStateFamily extends $Family
 }
 
 @ProviderFor(getProxyName)
-const getProxyNameProvider = GetProxyNameFamily._();
+final getProxyNameProvider = GetProxyNameFamily._();
 
 final class GetProxyNameProvider
     extends $FunctionalProvider<String?, String?, String?>
     with $Provider<String?> {
-  const GetProxyNameProvider._({
+  GetProxyNameProvider._({
     required GetProxyNameFamily super.from,
     required String super.argument,
   }) : super(
@@ -1653,7 +1653,7 @@ String _$getProxyNameHash() => r'204a477ea18c8e1eeef55b3efd3d47e45b0d2350';
 
 final class GetProxyNameFamily extends $Family
     with $FunctionalFamilyOverride<String?, String> {
-  const GetProxyNameFamily._()
+  GetProxyNameFamily._()
     : super(
         retry: null,
         name: r'getProxyNameProvider',
@@ -1670,12 +1670,12 @@ final class GetProxyNameFamily extends $Family
 }
 
 @ProviderFor(getSelectedProxyName)
-const getSelectedProxyNameProvider = GetSelectedProxyNameFamily._();
+final getSelectedProxyNameProvider = GetSelectedProxyNameFamily._();
 
 final class GetSelectedProxyNameProvider
     extends $FunctionalProvider<String?, String?, String?>
     with $Provider<String?> {
-  const GetSelectedProxyNameProvider._({
+  GetSelectedProxyNameProvider._({
     required GetSelectedProxyNameFamily super.from,
     required String super.argument,
   }) : super(
@@ -1731,7 +1731,7 @@ String _$getSelectedProxyNameHash() =>
 
 final class GetSelectedProxyNameFamily extends $Family
     with $FunctionalFamilyOverride<String?, String> {
-  const GetSelectedProxyNameFamily._()
+  GetSelectedProxyNameFamily._()
     : super(
         retry: null,
         name: r'getSelectedProxyNameProvider',
@@ -1748,12 +1748,12 @@ final class GetSelectedProxyNameFamily extends $Family
 }
 
 @ProviderFor(getProxyDesc)
-const getProxyDescProvider = GetProxyDescFamily._();
+final getProxyDescProvider = GetProxyDescFamily._();
 
 final class GetProxyDescProvider
     extends $FunctionalProvider<String, String, String>
     with $Provider<String> {
-  const GetProxyDescProvider._({
+  GetProxyDescProvider._({
     required GetProxyDescFamily super.from,
     required Proxy super.argument,
   }) : super(
@@ -1808,7 +1808,7 @@ String _$getProxyDescHash() => r'4579b55bf7e9fbcfdf91b91619bd0320c585f23d';
 
 final class GetProxyDescFamily extends $Family
     with $FunctionalFamilyOverride<String, Proxy> {
-  const GetProxyDescFamily._()
+  GetProxyDescFamily._()
     : super(
         retry: null,
         name: r'getProxyDescProvider',
@@ -1825,7 +1825,7 @@ final class GetProxyDescFamily extends $Family
 }
 
 @ProviderFor(checkIp)
-const checkIpProvider = CheckIpProvider._();
+final checkIpProvider = CheckIpProvider._();
 
 final class CheckIpProvider
     extends
@@ -1835,7 +1835,7 @@ final class CheckIpProvider
           VM3<bool, int, bool>
         >
     with $Provider<VM3<bool, int, bool>> {
-  const CheckIpProvider._()
+  CheckIpProvider._()
     : super(
         from: null,
         argument: null,
@@ -1872,12 +1872,12 @@ final class CheckIpProvider
 String _$checkIpHash() => r'7d8be66f0e8164bcf20c32659da2a4bea9893596';
 
 @ProviderFor(genColorScheme)
-const genColorSchemeProvider = GenColorSchemeFamily._();
+final genColorSchemeProvider = GenColorSchemeFamily._();
 
 final class GenColorSchemeProvider
     extends $FunctionalProvider<ColorScheme, ColorScheme, ColorScheme>
     with $Provider<ColorScheme> {
-  const GenColorSchemeProvider._({
+  GenColorSchemeProvider._({
     required GenColorSchemeFamily super.from,
     required (Brightness, {Color? color, bool ignoreConfig}) super.argument,
   }) : super(
@@ -1934,7 +1934,7 @@ final class GenColorSchemeProvider
   }
 }
 
-String _$genColorSchemeHash() => r'25f648db7c33ac00e7152f3d304da372a4de9fdd';
+String _$genColorSchemeHash() => r'9fa703106c24396bd97e2bcda8fb31d4d5cbc034';
 
 final class GenColorSchemeFamily extends $Family
     with
@@ -1942,7 +1942,7 @@ final class GenColorSchemeFamily extends $Family
           ColorScheme,
           (Brightness, {Color? color, bool ignoreConfig})
         > {
-  const GenColorSchemeFamily._()
+  GenColorSchemeFamily._()
     : super(
         retry: null,
         name: r'genColorSchemeProvider',
@@ -1965,12 +1965,12 @@ final class GenColorSchemeFamily extends $Family
 }
 
 @ProviderFor(currentSetupState)
-const currentSetupStateProvider = CurrentSetupStateProvider._();
+final currentSetupStateProvider = CurrentSetupStateProvider._();
 
 final class CurrentSetupStateProvider
     extends $FunctionalProvider<SetupState?, SetupState?, SetupState?>
     with $Provider<SetupState?> {
-  const CurrentSetupStateProvider._()
+  CurrentSetupStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -2006,12 +2006,12 @@ final class CurrentSetupStateProvider
 String _$currentSetupStateHash() => r'd687b0563ea8cc8eb1ca345fdfeee3411d67ad47';
 
 @ProviderFor(currentBrightness)
-const currentBrightnessProvider = CurrentBrightnessProvider._();
+final currentBrightnessProvider = CurrentBrightnessProvider._();
 
 final class CurrentBrightnessProvider
     extends $FunctionalProvider<Brightness, Brightness, Brightness>
     with $Provider<Brightness> {
-  const CurrentBrightnessProvider._()
+  CurrentBrightnessProvider._()
     : super(
         from: null,
         argument: null,
@@ -2047,13 +2047,13 @@ final class CurrentBrightnessProvider
 String _$currentBrightnessHash() => r'ab56c47af4fcae773c8f9f81c91800c1e1890b70';
 
 @ProviderFor(autoSetSystemDnsState)
-const autoSetSystemDnsStateProvider = AutoSetSystemDnsStateProvider._();
+final autoSetSystemDnsStateProvider = AutoSetSystemDnsStateProvider._();
 
 final class AutoSetSystemDnsStateProvider
     extends
         $FunctionalProvider<VM2<bool, bool>, VM2<bool, bool>, VM2<bool, bool>>
     with $Provider<VM2<bool, bool>> {
-  const AutoSetSystemDnsStateProvider._()
+  AutoSetSystemDnsStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -2090,7 +2090,7 @@ String _$autoSetSystemDnsStateHash() =>
     r'a8805965efe78241613bfde55f4ea8fa12a6ea32';
 
 @ProviderFor(needUpdateGroups)
-const needUpdateGroupsProvider = NeedUpdateGroupsProvider._();
+final needUpdateGroupsProvider = NeedUpdateGroupsProvider._();
 
 final class NeedUpdateGroupsProvider
     extends
@@ -2100,7 +2100,7 @@ final class NeedUpdateGroupsProvider
           VM3<bool, int, ProxiesSortType>
         >
     with $Provider<VM3<bool, int, ProxiesSortType>> {
-  const NeedUpdateGroupsProvider._()
+  NeedUpdateGroupsProvider._()
     : super(
         from: null,
         argument: null,
@@ -2139,12 +2139,12 @@ final class NeedUpdateGroupsProvider
 String _$needUpdateGroupsHash() => r'7913b7b74caf9f2c72fd32729d52b7c6ac9258e8';
 
 @ProviderFor(sharedState)
-const sharedStateProvider = SharedStateProvider._();
+final sharedStateProvider = SharedStateProvider._();
 
 final class SharedStateProvider
     extends $FunctionalProvider<SharedState, SharedState, SharedState>
     with $Provider<SharedState> {
-  const SharedStateProvider._()
+  SharedStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -2180,12 +2180,12 @@ final class SharedStateProvider
 String _$sharedStateHash() => r'43eb9cc5115307b63c4303756937c5b928dc786e';
 
 @ProviderFor(overlayTopOffset)
-const overlayTopOffsetProvider = OverlayTopOffsetProvider._();
+final overlayTopOffsetProvider = OverlayTopOffsetProvider._();
 
 final class OverlayTopOffsetProvider
     extends $FunctionalProvider<double, double, double>
     with $Provider<double> {
-  const OverlayTopOffsetProvider._()
+  OverlayTopOffsetProvider._()
     : super(
         from: null,
         argument: null,
@@ -2221,12 +2221,12 @@ final class OverlayTopOffsetProvider
 String _$overlayTopOffsetHash() => r'b2462f67acbd88b7a881dfe4c6353e68ba49961d';
 
 @ProviderFor(profile)
-const profileProvider = ProfileFamily._();
+final profileProvider = ProfileFamily._();
 
 final class ProfileProvider
     extends $FunctionalProvider<Profile?, Profile?, Profile?>
     with $Provider<Profile?> {
-  const ProfileProvider._({
+  ProfileProvider._({
     required ProfileFamily super.from,
     required int? super.argument,
   }) : super(
@@ -2281,7 +2281,7 @@ String _$profileHash() => r'8de429dc0844c6b6155032ad3c9546231e08cead';
 
 final class ProfileFamily extends $Family
     with $FunctionalFamilyOverride<Profile?, int?> {
-  const ProfileFamily._()
+  ProfileFamily._()
     : super(
         retry: null,
         name: r'profileProvider',
@@ -2298,12 +2298,12 @@ final class ProfileFamily extends $Family
 }
 
 @ProviderFor(overwriteType)
-const overwriteTypeProvider = OverwriteTypeFamily._();
+final overwriteTypeProvider = OverwriteTypeFamily._();
 
 final class OverwriteTypeProvider
     extends $FunctionalProvider<OverwriteType, OverwriteType, OverwriteType>
     with $Provider<OverwriteType> {
-  const OverwriteTypeProvider._({
+  OverwriteTypeProvider._({
     required OverwriteTypeFamily super.from,
     required int? super.argument,
   }) : super(
@@ -2358,7 +2358,7 @@ String _$overwriteTypeHash() => r'03a8ab8ddec76935da5fa231270b65baa70fd727';
 
 final class OverwriteTypeFamily extends $Family
     with $FunctionalFamilyOverride<OverwriteType, int?> {
-  const OverwriteTypeFamily._()
+  OverwriteTypeFamily._()
     : super(
         retry: null,
         name: r'overwriteTypeProvider',
@@ -2375,12 +2375,12 @@ final class OverwriteTypeFamily extends $Family
 }
 
 @ProviderFor(script)
-const scriptProvider = ScriptFamily._();
+final scriptProvider = ScriptFamily._();
 
 final class ScriptProvider
     extends $FunctionalProvider<AsyncValue<Script?>, Script?, FutureOr<Script?>>
     with $FutureModifier<Script?>, $FutureProvider<Script?> {
-  const ScriptProvider._({
+  ScriptProvider._({
     required ScriptFamily super.from,
     required int? super.argument,
   }) : super(
@@ -2427,7 +2427,7 @@ String _$scriptHash() => r'b12a6dbe34e08cb1232afafa8b0b0f5363d28bc0';
 
 final class ScriptFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Script?>, int?> {
-  const ScriptFamily._()
+  ScriptFamily._()
     : super(
         retry: null,
         name: r'scriptProvider',
@@ -2444,7 +2444,7 @@ final class ScriptFamily extends $Family
 }
 
 @ProviderFor(setupState)
-const setupStateProvider = SetupStateFamily._();
+final setupStateProvider = SetupStateFamily._();
 
 final class SetupStateProvider
     extends
@@ -2454,7 +2454,7 @@ final class SetupStateProvider
           FutureOr<SetupState>
         >
     with $FutureModifier<SetupState>, $FutureProvider<SetupState> {
-  const SetupStateProvider._({
+  SetupStateProvider._({
     required SetupStateFamily super.from,
     required int? super.argument,
   }) : super(
@@ -2501,7 +2501,7 @@ String _$setupStateHash() => r'8e0c849fa1a51ee15f8b40be94e3094182325b58';
 
 final class SetupStateFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SetupState>, int?> {
-  const SetupStateFamily._()
+  SetupStateFamily._()
     : super(
         retry: null,
         name: r'setupStateProvider',
@@ -2518,11 +2518,11 @@ final class SetupStateFamily extends $Family
 }
 
 @ProviderFor(AccessControlState)
-const accessControlStateProvider = AccessControlStateProvider._();
+final accessControlStateProvider = AccessControlStateProvider._();
 
 final class AccessControlStateProvider
     extends $NotifierProvider<AccessControlState, AccessControlProps> {
-  const AccessControlStateProvider._()
+  AccessControlStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -2557,7 +2557,6 @@ abstract class _$AccessControlState extends $Notifier<AccessControlProps> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AccessControlProps, AccessControlProps>;
     final element =
         ref.element
@@ -2567,6 +2566,6 @@ abstract class _$AccessControlState extends $Notifier<AccessControlProps> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

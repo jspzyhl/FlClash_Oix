@@ -105,7 +105,7 @@ class TrackerInfoItem extends ConsumerWidget {
               },
             ),
           ),
-          if (trailing != null) trailing!,
+          ?trailing,
         ],
       ),
     );
@@ -162,7 +162,7 @@ class TrackerInfoItem extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: 12,
             children: [
-              if (icon != null) icon,
+              ?icon,
               Flexible(child: title),
             ],
           ),

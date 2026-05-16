@@ -330,8 +330,8 @@ Map<String, dynamic> _$ClashConfigSnippetToJson(_ClashConfigSnippet instance) =>
 
 _ClashConfig _$ClashConfigFromJson(Map<String, dynamic> json) => _ClashConfig(
   mixedPort: (json['mixed-port'] as num?)?.toInt() ?? defaultMixedPort,
-  socksPort: (json['socks-port'] as num?)?.toInt() ?? 6153,
-  port: (json['port'] as num?)?.toInt() ?? 6152,
+  socksPort: (json['socks-port'] as num?)?.toInt() ?? 0,
+  port: (json['port'] as num?)?.toInt() ?? 0,
   redirPort: (json['redir-port'] as num?)?.toInt() ?? 0,
   tproxyPort: (json['tproxy-port'] as num?)?.toInt() ?? 0,
   mode: $enumDecodeNullable(_$ModeEnumMap, json['mode']) ?? Mode.rule,

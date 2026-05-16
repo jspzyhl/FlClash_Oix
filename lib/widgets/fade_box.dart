@@ -20,7 +20,7 @@ class FadeBox extends StatelessWidget {
           alignment: realAlignment,
           children: <Widget>[
             ...previousChildren,
-            if (currentChild != null) currentChild,
+            ?currentChild,
           ],
         ),
       ),
@@ -93,7 +93,7 @@ class FadeRotationScaleBox extends StatelessWidget {
         alignment: realAlignment,
         children: <Widget>[
           ...previousChildren,
-          if (currentChild != null) currentChild,
+          ?currentChild,
         ],
       ),
       child: child,
@@ -129,7 +129,7 @@ class FadeScaleBox extends StatelessWidget {
           alignment: realAlignment,
           children: <Widget>[
             ...previousChildren,
-            if (currentChild != null) currentChild,
+            ?currentChild,
           ],
         ),
       ),

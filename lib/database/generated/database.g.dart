@@ -2929,13 +2929,46 @@ class $DatabaseManager {
 
 mixin _$ProfilesDaoMixin on DatabaseAccessor<Database> {
   $ProfilesTable get profiles => attachedDatabase.profiles;
+  ProfilesDaoManager get managers => ProfilesDaoManager(this);
 }
+
+class ProfilesDaoManager {
+  final _$ProfilesDaoMixin _db;
+  ProfilesDaoManager(this._db);
+  $$ProfilesTableTableManager get profiles =>
+      $$ProfilesTableTableManager(_db.attachedDatabase, _db.profiles);
+}
+
 mixin _$ScriptsDaoMixin on DatabaseAccessor<Database> {
   $ScriptsTable get scripts => attachedDatabase.scripts;
+  ScriptsDaoManager get managers => ScriptsDaoManager(this);
 }
+
+class ScriptsDaoManager {
+  final _$ScriptsDaoMixin _db;
+  ScriptsDaoManager(this._db);
+  $$ScriptsTableTableManager get scripts =>
+      $$ScriptsTableTableManager(_db.attachedDatabase, _db.scripts);
+}
+
 mixin _$RulesDaoMixin on DatabaseAccessor<Database> {
   $RulesTable get rules => attachedDatabase.rules;
   $ProfilesTable get profiles => attachedDatabase.profiles;
   $ProfileRuleLinksTable get profileRuleLinks =>
       attachedDatabase.profileRuleLinks;
+  RulesDaoManager get managers => RulesDaoManager(this);
+}
+
+class RulesDaoManager {
+  final _$RulesDaoMixin _db;
+  RulesDaoManager(this._db);
+  $$RulesTableTableManager get rules =>
+      $$RulesTableTableManager(_db.attachedDatabase, _db.rules);
+  $$ProfilesTableTableManager get profiles =>
+      $$ProfilesTableTableManager(_db.attachedDatabase, _db.profiles);
+  $$ProfileRuleLinksTableTableManager get profileRuleLinks =>
+      $$ProfileRuleLinksTableTableManager(
+        _db.attachedDatabase,
+        _db.profileRuleLinks,
+      );
 }

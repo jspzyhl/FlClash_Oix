@@ -124,7 +124,7 @@ jobs:
         with:
           channel: master
           flutter-version: 3.41.6
-          cache: true
+          cache: ${{ matrix.platform != 'windows' }}
 
       - name: Cache Gradle
         if: matrix.platform == 'android'
