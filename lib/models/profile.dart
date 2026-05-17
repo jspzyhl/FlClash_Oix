@@ -19,7 +19,6 @@ part 'generated/profile.g.dart';
 typedef FetchManagedConfigCallback =
     Future<(Uint8List, String?)> Function(String paramString);
 FetchManagedConfigCallback? _fetchManagedConfigCallback;
-const oixCloudManagedProfileUrl = 'oixcloud://managed';
 
 /// Hook the cloud-account layer registers so [Profile.update] can wait for
 /// token bootstrap to finish before issuing a managed-config fetch.
@@ -250,9 +249,7 @@ extension ProfileExtension on Profile {
   String get realLabel => label.takeFirstValid([id.toString()]);
 
   bool get isoixCloudProfile {
-    if (url == oixCloudManagedProfileUrl) return true;
-    final normalizedUrl = url.toLowerCase();
-    return Secrets.apiDomains.any(normalizedUrl.contains);
+    return isOixCloudProfileUrl(url);
   }
 
   String get fileName => '$id.yaml';
@@ -354,9 +351,10 @@ extension ProfileExtension on Profile {
         final params = await OixParamsStorage.load();
         final paramWithTfo = params.encodeWithTfo();
         final (bytes, userinfo) = await fetch(paramWithTfo);
-        final profileWithLabel = label.isNotEmpty
-            ? this
-            : copyWith(label: 'oixCloud');
+        final profileWithLabel = copyWith(
+          label: label.isNotEmpty ? label : 'oixCloud',
+          url: oixCloudManagedProfileUrl,
+        );
         return profileWithLabel
             .copyWith(subscriptionInfo: SubscriptionInfo.formHString(userinfo))
             .saveFile(bytes);

@@ -42,13 +42,17 @@ class _CloudProfileCardState extends ConsumerState<CloudProfileCard> {
         .where((p) => p.isoixCloudProfile)
         .toList();
     if (clashProfileList.isNotEmpty) {
-      await appController.safeRun(
+      final updatedProfile = await appController.safeRun(
         () => appController.updateProfile(
           clashProfileList.first,
           showLoading: true,
+          applyIfCurrent: false,
         ),
         title: AppLocalizations.current.update,
       );
+      if (updatedProfile != null) {
+        appController.applyProfileDebounce(silence: true);
+      }
     }
   }
 

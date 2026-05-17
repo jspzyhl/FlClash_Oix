@@ -44,13 +44,15 @@ class Request {
   Future<Response<T>> _getWithRedirect<T>(
     String url, {
     required Options options,
+    Dio? client,
   }) async {
+    final dio = client ?? _clashDio;
     final opts = options.copyWith(
       followRedirects: false,
       validateStatus: (status) => status != null && status < 400,
     );
 
-    var response = await _clashDio.get<T>(url, options: opts);
+    var response = await dio.get<T>(url, options: opts);
     int redirectCount = 0;
     while ([
           HttpStatus.movedTemporarily,
@@ -63,7 +65,7 @@ class Request {
       final location = response.headers.value(HttpHeaders.locationHeader);
       if (location == null || location.isEmpty) break;
       final redirectUrl = Uri.parse(url).resolve(location).toString();
-      response = await _clashDio.get<T>(redirectUrl, options: opts);
+      response = await dio.get<T>(redirectUrl, options: opts);
       redirectCount++;
     }
 
@@ -79,8 +81,11 @@ class Request {
 
   Future<Response<Uint8List>> getFileResponseForUrl(String url) async {
     try {
+      final uri = Uri.tryParse(url);
+      final isApiDomain = uri != null && Secrets.isApiDomain(uri.host);
       return await _getWithRedirect<Uint8List>(
         url,
+        client: isApiDomain ? _apiDirectDio : null,
         options: Options(
           headers: _flclashIdentityHeaders,
           responseType: ResponseType.bytes,

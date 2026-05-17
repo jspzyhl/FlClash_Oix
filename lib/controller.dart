@@ -428,9 +428,10 @@ extension ProfilesControllerExt on AppController {
     await Future.wait(tasks);
   }
 
-  Future<void> updateProfile(
+  Future<Profile> updateProfile(
     Profile profile, {
     bool showLoading = false,
+    bool applyIfCurrent = true,
   }) async {
     try {
       if (showLoading) {
@@ -439,9 +440,10 @@ extension ProfilesControllerExt on AppController {
       }
       final newProfile = await profile.update();
       _ref.read(profilesProvider.notifier).put(newProfile);
-      if (profile.id == _ref.read(currentProfileIdProvider)) {
+      if (applyIfCurrent && profile.id == _ref.read(currentProfileIdProvider)) {
         applyProfileDebounce(silence: true);
       }
+      return newProfile;
     } finally {
       _ref.read(isUpdatingProvider(profile.updatingKey).notifier).value = false;
     }
@@ -1143,7 +1145,7 @@ extension SystemControllerExt on AppController {
       await Future.wait([
         if (needSave) preferences.saveConfig(config),
         if (macOS != null) macOS!.updateDns(true),
-        if (proxy != null) proxy!.stopProxy(),
+        stopSystemProxyIfNeeded(),
         if (tray != null) tray!.destroy(),
       ]);
       await coreController.destroy();

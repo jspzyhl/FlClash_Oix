@@ -171,12 +171,13 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   Future<void> _activateManagedProfile(
     Profile profile, {
     bool requestStartIfNeeded = true,
+    bool applyIfRunning = true,
   }) async {
     ref.read(currentProfileIdProvider.notifier).value = profile.id;
     if (!appController.isAttach) {
       return;
     }
-    if (appController.isStart) {
+    if (applyIfRunning && appController.isStart) {
       await appController.applyProfile(silence: true, force: true);
       return;
     }
@@ -197,13 +198,31 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     bool showLoading = false,
     bool showSuccessMessage = false,
   }) async {
-    await _dedupOixProfiles(existing);
-    final profile = existing.first;
-    await appController.updateProfile(profile, showLoading: showLoading);
+    final updateFlow = OixCloudManagedProfileUpdateFlow<Profile>(
+      deduplicate: _dedupOixProfiles,
+      refresh: (profile, {required showLoading, required applyIfCurrent}) {
+        return appController.updateProfile(
+          profile,
+          showLoading: showLoading,
+          applyIfCurrent: applyIfCurrent,
+        );
+      },
+      activate: (profile, {required applyIfRunning}) {
+        return _activateManagedProfile(profile, applyIfRunning: applyIfRunning);
+      },
+    );
+
+    final updatedProfile = await updateFlow.refreshExisting(
+      existing,
+      showLoading: showLoading,
+    );
     if (showSuccessMessage) {
       globalState.showNotifier(AppLocalizations.current.getProfileSuccess);
     }
-    await _activateManagedProfile(profile);
+    if (updatedProfile.id == ref.read(currentProfileIdProvider) &&
+        appController.isStart) {
+      appController.applyProfileDebounce(silence: true, force: true);
+    }
   }
 
   Future<void> signInWithPassword({
@@ -371,7 +390,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
         await _syncExistingManagedProfile(existing);
       }
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: CloudApiException.clean(e));
     } finally {
       state = state.copyWith(isSyncing: false);
     }
@@ -391,7 +410,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
         showSuccessMessage: true,
       );
     } catch (e) {
-      globalState.showNotifier(e.toString());
+      globalState.showNotifier(CloudApiException.clean(e));
     }
   }
 
