@@ -116,10 +116,6 @@ class CloudApiService {
     r'^Bearer\s+(.+)$',
     caseSensitive: false,
   );
-  static final RegExp _queryTokenPattern = RegExp(
-    r'^(?:access_token|token)=(.+)$',
-    caseSensitive: false,
-  );
 
   CloudApiService._()
     : _dio = Dio(
@@ -197,19 +193,9 @@ class CloudApiService {
     var normalized = _stripWrappingQuotes(token.trim());
     if (normalized.isEmpty) return null;
 
-    final uriToken = _extractTokenFromUri(normalized);
-    if (uriToken != null) {
-      normalized = uriToken;
-    }
-
     final bearerMatch = _bearerTokenPattern.firstMatch(normalized);
     if (bearerMatch != null) {
       normalized = bearerMatch.group(1)?.trim() ?? '';
-    }
-
-    final queryToken = _extractTokenFromQuery(normalized);
-    if (queryToken != null) {
-      normalized = queryToken;
     }
 
     normalized = _stripWrappingQuotes(normalized);
@@ -223,36 +209,6 @@ class CloudApiService {
         ((normalized.startsWith('"') && normalized.endsWith('"')) ||
             (normalized.startsWith("'") && normalized.endsWith("'")))) {
       normalized = normalized.substring(1, normalized.length - 1).trim();
-    }
-    return normalized;
-  }
-
-  static String? _extractTokenFromUri(String value) {
-    final uri = Uri.tryParse(value);
-    if (uri == null || !uri.hasScheme) {
-      return null;
-    }
-    return _extractTokenFromParameters(uri.queryParameters);
-  }
-
-  static String? _extractTokenFromQuery(String value) {
-    final queryCandidate = value.startsWith('?') ? value.substring(1) : value;
-    if (!_queryTokenPattern.hasMatch(queryCandidate) &&
-        !(queryCandidate.contains('&') && queryCandidate.contains('='))) {
-      return null;
-    }
-    try {
-      return _extractTokenFromParameters(Uri.splitQueryString(queryCandidate));
-    } catch (_) {
-      return null;
-    }
-  }
-
-  static String? _extractTokenFromParameters(Map<String, String> parameters) {
-    final token = parameters['access_token'] ?? parameters['token'];
-    final normalized = token?.trim();
-    if (normalized == null || normalized.isEmpty) {
-      return null;
     }
     return normalized;
   }
