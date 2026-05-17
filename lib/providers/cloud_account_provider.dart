@@ -32,6 +32,13 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     return _prefs!;
   }
 
+  Future<void> _clearStoredToken() async {
+    CloudApiService().setToken(null);
+    await SafeStorage.delete('cloud_token');
+    final prefs = await _safePrefs;
+    await prefs.remove('cloud_token');
+  }
+
   /// Awaitable handle to the one-shot init. Call sites that need the token
   /// before issuing API calls should `await ensureReady()` to avoid the
   /// race where `_init()` hasn't yet pushed the token into [CloudApiService].
@@ -238,7 +245,10 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
         await action();
       } catch (e) {
         CloudApiService().setToken(null);
-        state = state.copyWith(isLoading: false, error: e.toString());
+        state = state.copyWith(
+          isLoading: false,
+          error: CloudApiException.clean(e),
+        );
         rethrow;
       } finally {
         _signInFuture = null;
@@ -300,8 +310,13 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
         latestNotification: userInfo.announcement ?? state.latestNotification,
       );
     } catch (e) {
-      CloudApiService().setToken(null);
-      state = state.copyWith(isRefreshing: false, error: e.toString());
+      final unauthorized = CloudApiException.isUnauthorized(e);
+      if (unauthorized) await _clearStoredToken();
+      state = state.copyWith(
+        isRefreshing: false,
+        isLoggedIn: unauthorized ? false : state.isLoggedIn,
+        error: CloudApiException.clean(e),
+      );
     }
   }
 
@@ -394,12 +409,9 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   }
 
   Future<void> signOut() async {
-    await SafeStorage.delete('cloud_token');
-    final prefs = await _safePrefs;
-    await prefs.remove('cloud_token');
+    await _clearStoredToken();
     await _clearCache();
 
-    CloudApiService().setToken(null);
     oixCloudConfigCache.clear();
     state = const CloudAccountState();
     await _clearManagedProfiles();

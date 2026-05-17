@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -15,21 +14,21 @@ import 'package:flutter/foundation.dart';
 class Request {
   late final Dio dio;
   late final Dio _clashDio;
+  late final Dio _apiDirectDio;
   String? userAgent;
 
   Request() {
     dio = Dio(BaseOptions(headers: {'User-Agent': browserUa}));
+    _apiDirectDio = Dio(BaseOptions(headers: {'User-Agent': browserUa}));
+    _apiDirectDio.httpClientAdapter = createFlClashHttpClientAdapter(
+      findProxy: (_) => 'DIRECT',
+      allowBadCertificate: () => kDebugMode,
+    );
     _clashDio = Dio();
-    _clashDio.httpClientAdapter = IOHttpClientAdapter(
-      createHttpClient: () {
-        final client = HttpClient();
-        client.badCertificateCallback = (_, _, _) => kDebugMode;
-        client.findProxy = (Uri uri) {
-          client.userAgent = appController.ua;
-          return FlClashHttpOverrides.handleFindProxy(uri);
-        };
-        return client;
-      },
+    _clashDio.httpClientAdapter = createFlClashHttpClientAdapter(
+      findProxy: FlClashHttpOverrides.handleFindProxy,
+      allowBadCertificate: () => kDebugMode,
+      userAgent: () => appController.ua,
     );
   }
 
@@ -148,7 +147,7 @@ class Request {
   Future<Map<String, dynamic>?> checkForUpdate() async {
     for (final domain in Secrets.apiDomains) {
       try {
-        final response = await dio.get(
+        final response = await _apiDirectDio.get(
           'https://$domain/api/v1/version/get',
           options: Options(responseType: ResponseType.json),
         );

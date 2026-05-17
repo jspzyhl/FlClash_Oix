@@ -1,11 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/state.dart';
 import 'package:flutter/foundation.dart';
@@ -26,48 +23,11 @@ const _allowInsecureTls = bool.fromEnvironment(
   defaultValue: false,
 );
 
-IOHttpClientAdapter _createDirectApiAdapter() {
-  return _createApiAdapter(findProxy: (_) => 'DIRECT');
-}
-
-IOHttpClientAdapter _createLocalProxyApiAdapter() {
-  return _createApiAdapter(
-    findProxy: (_) => _localProxyDirective() ?? 'DIRECT',
+HttpClientAdapter _createDirectApiAdapter() {
+  return createFlClashHttpClientAdapter(
+    findProxy: (_) => 'DIRECT',
+    allowBadCertificate: () => kDebugMode && _allowInsecureTls,
   );
-}
-
-IOHttpClientAdapter _createApiAdapter({
-  required String Function(Uri uri) findProxy,
-}) {
-  return IOHttpClientAdapter(
-    createHttpClient: () {
-      final client = HttpClient();
-      client.findProxy = findProxy;
-      client.badCertificateCallback = (_, _, _) =>
-          kDebugMode && _allowInsecureTls;
-      client.connectionFactory = (uri, proxyHost, proxyPort) {
-        return FlClashHostOverrides.connect(
-          uri,
-          proxyHost,
-          proxyPort,
-          onBadCertificate: (_) => kDebugMode && _allowInsecureTls,
-        );
-      };
-      return client;
-    },
-  );
-}
-
-String? _localProxyDirective() {
-  try {
-    if (!appController.isStart) {
-      return null;
-    }
-    final port = appController.config.patchClashConfig.mixedPort;
-    return 'PROXY $localhost:$port';
-  } catch (_) {
-    return null;
-  }
 }
 
 // -- DTOs --
@@ -106,6 +66,13 @@ class CloudApiException implements Exception {
 
   const CloudApiException(this.message);
 
+  static bool isUnauthorized(Object error) {
+    final message = clean(error).toLowerCase();
+    return message == 'unauthorized' ||
+        message.contains('unauthorized') ||
+        message.contains('401');
+  }
+
   static String clean(Object error) {
     if (error is CloudApiException) {
       return _cleanMessage(error.message);
@@ -116,11 +83,20 @@ class CloudApiException implements Exception {
   static String _cleanMessage(String value) {
     var message = value.trim();
     final prefixes = [
-      RegExp(r'^Excep(?:t)?ion[:：]\s*', caseSensitive: false),
+      RegExp(r'^_?Excep(?:t)?ion[:：]\s*', caseSensitive: false),
+      RegExp(r'^CloudApiException[:：]\s*', caseSensitive: false),
       RegExp(r'^Health check fail(?:e)?d[:：]\s*', caseSensitive: false),
     ];
-    for (final prefix in prefixes) {
-      message = message.replaceFirst(prefix, '').trim();
+    var changed = true;
+    while (changed) {
+      changed = false;
+      for (final prefix in prefixes) {
+        final updated = message.replaceFirst(prefix, '').trim();
+        if (updated != message) {
+          message = updated;
+          changed = true;
+        }
+      }
     }
     if (message.isEmpty || message.toLowerCase() == 'null') {
       return 'Connection failed';
@@ -532,24 +508,30 @@ class CloudApiService {
       );
 
       if (res.statusCode != 200) {
-        throw Exception('Server returned ${res.statusCode}');
+        throw CloudApiException('Config request failed (${res.statusCode})');
       }
 
       if (res.data?['ret'] == 401) {
         setToken(null);
-        throw Exception('Unauthorized');
+        throw const CloudApiException('Unauthorized');
       }
 
       final configB64 = res.data?['config'] as String?;
       final userinfo = res.data?['userinfo'] as String?;
 
       if (configB64 == null || configB64.isEmpty) {
-        throw Exception('Empty config returned from server');
+        throw const CloudApiException('Server returned empty config');
       }
-      return (base64Decode(configB64), userinfo);
+      try {
+        return (base64Decode(configB64), userinfo);
+      } on FormatException {
+        throw const CloudApiException('Server returned invalid config');
+      }
     } catch (e) {
       if (e is DioException) {
-        throw Exception('Network error: ${e.type.name}');
+        throw CloudApiException(
+          'Unable to get oixCloud config: ${_formatHealthCheckError(e)}',
+        );
       }
       rethrow;
     }
@@ -560,21 +542,10 @@ class CloudApiService {
 class RetryInterceptor extends Interceptor {
   final Dio dio;
   final int retries;
-  Dio? _localProxyDio;
 
   RetryInterceptor({required this.dio, this.retries = 2});
 
   static const _retryHandledKey = 'retryHandled';
-  static const _apiDomainFallbackHandledKey = 'apiDomainFallbackHandled';
-
-  Dio _getLocalProxyDio() {
-    final existing = _localProxyDio;
-    if (existing != null) return existing;
-    final localProxyDio = Dio(dio.options.copyWith());
-    localProxyDio.httpClientAdapter = _createLocalProxyApiAdapter();
-    _localProxyDio = localProxyDio;
-    return localProxyDio;
-  }
 
   @override
   Future<void> onError(
@@ -586,7 +557,7 @@ class RetryInterceptor extends Interceptor {
       return super.onError(err, handler);
     }
 
-    final baseExtra = Map<String, dynamic>.from(err.requestOptions.extra)
+    final retryExtra = Map<String, dynamic>.from(err.requestOptions.extra)
       ..[_retryHandledKey] = true;
     DioException lastError = err;
 
@@ -596,7 +567,7 @@ class RetryInterceptor extends Interceptor {
       );
       try {
         final response = await dio.fetch(
-          _copyRequestOptionsForRetry(err.requestOptions, baseExtra),
+          _copyRequestOptionsForRetry(err.requestOptions, retryExtra),
         );
         return handler.resolve(response);
       } on DioException catch (e) {
@@ -605,47 +576,23 @@ class RetryInterceptor extends Interceptor {
       }
     }
 
-    try {
-      final response = await _fetchWithLocalProxy(
-        err.requestOptions,
-        baseExtra,
-      );
-      if (response != null) {
-        return handler.resolve(response);
-      }
-    } on DioException catch (e) {
-      lastError = e;
-    }
-
     final spareDomain = _spareApiDomainFor(err.requestOptions);
-    if (spareDomain != null &&
-        baseExtra[_apiDomainFallbackHandledKey] != true) {
-      final spareExtra = Map<String, dynamic>.from(baseExtra)
-        ..[_apiDomainFallbackHandledKey] = true;
-      final spareRequestOptions = _copyRequestOptionsForDomain(
-        err.requestOptions,
-        spareExtra,
-        spareDomain,
-      );
+    if (spareDomain != null) {
       try {
-        final response = await dio.fetch(spareRequestOptions);
-        return handler.resolve(response);
-      } on DioException catch (e) {
-        lastError = e;
-      }
-      try {
-        final response = await _fetchWithLocalProxy(
-          spareRequestOptions,
-          spareExtra,
+        final response = await dio.fetch(
+          _copyRequestOptionsForDomain(
+            err.requestOptions,
+            retryExtra,
+            spareDomain,
+          ),
         );
-        if (response != null) {
-          return handler.resolve(response);
-        }
+        return handler.resolve(response);
       } on DioException catch (e) {
         lastError = e;
       }
     }
 
+    // Keep oixCloud API direct-only so a broken proxy cannot block recovery.
     return super.onError(lastError, handler);
   }
 
@@ -671,18 +618,6 @@ class RetryInterceptor extends Interceptor {
       queryParameters: const {},
       data: _cloneRequestData(requestOptions.data),
       extra: extra,
-    );
-  }
-
-  Future<Response<dynamic>?> _fetchWithLocalProxy(
-    RequestOptions requestOptions,
-    Map<String, dynamic> extra,
-  ) async {
-    if (_localProxyDirective() == null) {
-      return null;
-    }
-    return _getLocalProxyDio().fetch(
-      _copyRequestOptionsForRetry(requestOptions, extra),
     );
   }
 

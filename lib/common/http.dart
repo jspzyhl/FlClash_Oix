@@ -1,8 +1,41 @@
 import 'dart:io';
 
+import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
+
+IOHttpClientAdapter createFlClashHttpClientAdapter({
+  required String Function(Uri uri) findProxy,
+  bool Function()? allowBadCertificate,
+  String? Function()? userAgent,
+}) {
+  return IOHttpClientAdapter(
+    createHttpClient: () {
+      final client = HttpClient();
+      bool allowBadCertificateCallback() =>
+          allowBadCertificate?.call() ?? false;
+      client.badCertificateCallback = (_, _, _) =>
+          allowBadCertificateCallback();
+      client.findProxy = (uri) {
+        final ua = userAgent?.call();
+        if (ua != null && ua.isNotEmpty) {
+          client.userAgent = ua;
+        }
+        return findProxy(uri);
+      };
+      client.connectionFactory = (uri, proxyHost, proxyPort) {
+        return FlClashHostOverrides.connect(
+          uri,
+          proxyHost,
+          proxyPort,
+          onBadCertificate: (_) => allowBadCertificateCallback(),
+        );
+      };
+      return client;
+    },
+  );
+}
 
 class FlClashHostOverrides {
   const FlClashHostOverrides._();

@@ -30,6 +30,11 @@ final AesGcm _profileCipher = AesGcm.with256bits();
 const _flclashEncryptedMagic = 'FLEN';
 const _flclashEncryptedVersion = 0x02;
 
+bool _isUnauthorizedError(Object error) {
+  final message = error.toString().toLowerCase();
+  return message.contains('unauthorized') || message.contains('401');
+}
+
 bool isEncryptedProfileBytes(Uint8List bytes) {
   return bytes.length >= 5 &&
       bytes[0] == 0x46 &&
@@ -339,21 +344,35 @@ extension ProfileExtension on Profile {
 
   Future<Profile> update() async {
     if (isoixCloudProfile) {
-      final fetch = _fetchManagedConfigCallback;
-      if (fetch == null) throw Exception('fetchManagedConfig not registered');
+      try {
+        final fetch = _fetchManagedConfigCallback;
+        if (fetch == null) throw Exception('fetchManagedConfig not registered');
 
-      // Wait for cloud-account bootstrap so the API client has its token.
-      await _ensureCloudReady?.call();
+        // Wait for cloud-account bootstrap so the API client has its token.
+        await _ensureCloudReady?.call();
 
-      final params = await OixParamsStorage.load();
-      final paramWithTfo = params.encodeWithTfo();
-      final (bytes, userinfo) = await fetch(paramWithTfo);
-      final profileWithLabel = label.isNotEmpty
-          ? this
-          : copyWith(label: 'oixCloud');
-      return profileWithLabel
-          .copyWith(subscriptionInfo: SubscriptionInfo.formHString(userinfo))
-          .saveFile(bytes);
+        final params = await OixParamsStorage.load();
+        final paramWithTfo = params.encodeWithTfo();
+        final (bytes, userinfo) = await fetch(paramWithTfo);
+        final profileWithLabel = label.isNotEmpty
+            ? this
+            : copyWith(label: 'oixCloud');
+        return profileWithLabel
+            .copyWith(subscriptionInfo: SubscriptionInfo.formHString(userinfo))
+            .saveFile(bytes);
+      } catch (e) {
+        if (_isUnauthorizedError(e)) {
+          rethrow;
+        }
+        if (await hasLocalConfigSnapshot()) {
+          commonPrint.log(
+            'oixCloud config update failed, keeping local snapshot: $e',
+            logLevel: LogLevel.warning,
+          );
+          return this;
+        }
+        rethrow;
+      }
     }
 
     final response = await request.getFileResponseForUrl(url);
