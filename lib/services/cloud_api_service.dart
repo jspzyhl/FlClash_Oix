@@ -372,7 +372,11 @@ class CloudApiService {
 
     final res = await _dio.post(
       '/login',
-      data: FormData.fromMap({'email': email, 'passwd': password}),
+      data: FormData.fromMap({
+        'email': email,
+        'passwd': password,
+        'token_expire': 365,
+      }),
       options: Options(extra: {'skipAuth': true}),
     );
 

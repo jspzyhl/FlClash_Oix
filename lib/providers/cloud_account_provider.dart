@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
@@ -18,6 +19,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   SharedPreferences? _prefs;
   Future<void>? _initFuture;
   Future<void>? _signInFuture;
+  Future<void>? _managedProfileFuture;
 
   String _requireNormalizedToken(String token) {
     final normalizedToken = CloudApiService.normalizeToken(token);
@@ -67,8 +69,7 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
 
     if (token == null || token.isEmpty) {
       CloudApiService().setToken(null);
-      await _clearCache();
-      await _clearManagedProfiles();
+      await _clearCache(clearParams: false);
       return;
     }
 
@@ -126,11 +127,13 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
     }
   }
 
-  Future<void> _clearCache() async {
+  Future<void> _clearCache({bool clearParams = true}) async {
     final prefs = await _safePrefs;
     await prefs.remove('cloud_profile');
     await prefs.remove('cloud_notification');
-    await OixParamsStorage.clear();
+    if (clearParams) {
+      await OixParamsStorage.clear();
+    }
   }
 
   Future<void> _deleteProfileLocally(
@@ -375,50 +378,96 @@ class CloudAccountNotifier extends Notifier<CloudAccountState> {
   Future<void> syncManagedConfig() async {
     if (!state.isLoggedIn) return;
 
-    state = state.copyWith(isSyncing: true, error: null);
-    try {
-      if (state.profile != null) {
-        await _injectDefaultParams(state.profile!);
-      }
-
-      final existing = _existingOixProfiles();
-      if (existing.isEmpty) {
+    await _runManagedProfileTask(() async {
+      state = state.copyWith(isSyncing: true, error: null);
+      try {
         if (state.profile != null) {
-          await _addManagedProfile(oixCloudManagedProfileUrl);
+          await _injectDefaultParams(state.profile!);
         }
-      } else {
-        await _syncExistingManagedProfile(existing);
+
+        final existing = await _existingOixProfiles();
+        if (existing.isEmpty) {
+          if (state.profile != null) {
+            await _addManagedProfile(oixCloudManagedProfileUrl);
+            await _dedupOixProfiles(await _existingOixProfiles());
+          }
+        } else {
+          await _syncExistingManagedProfile(existing);
+        }
+      } catch (e) {
+        state = state.copyWith(error: CloudApiException.clean(e));
+      } finally {
+        state = state.copyWith(isSyncing: false);
       }
-    } catch (e) {
-      state = state.copyWith(error: CloudApiException.clean(e));
-    } finally {
-      state = state.copyWith(isSyncing: false);
-    }
+    });
   }
 
   Future<void> importManagedProfile(String url) async {
-    final existing = _existingOixProfiles();
-    if (existing.isEmpty) {
-      await _addManagedProfile(url);
-      return;
+    await _runManagedProfileTask(() async {
+      final existing = await _existingOixProfiles();
+      if (existing.isEmpty) {
+        await _addManagedProfile(url);
+        await _dedupOixProfiles(await _existingOixProfiles());
+        return;
+      }
+
+      try {
+        await _syncExistingManagedProfile(
+          existing,
+          showLoading: true,
+          showSuccessMessage: true,
+        );
+      } catch (e) {
+        globalState.showNotifier(CloudApiException.clean(e));
+      }
+    });
+  }
+
+  Future<T> _runManagedProfileTask<T>(Future<T> Function() action) async {
+    while (_managedProfileFuture != null) {
+      await _managedProfileFuture;
     }
 
+    final task = action();
+    final marker = task.then<void>((_) {}, onError: (_) {});
+    _managedProfileFuture = marker;
+
     try {
-      await _syncExistingManagedProfile(
-        existing,
-        showLoading: true,
-        showSuccessMessage: true,
-      );
-    } catch (e) {
-      globalState.showNotifier(CloudApiException.clean(e));
+      return await task;
+    } finally {
+      if (identical(_managedProfileFuture, marker)) {
+        _managedProfileFuture = null;
+      }
     }
   }
 
-  List<Profile> _existingOixProfiles() {
-    return ref
-        .read(profilesProvider)
-        .where((p) => p.isoixCloudProfile)
-        .toList();
+  Future<List<Profile>> _existingOixProfiles() async {
+    final byId = <int, Profile>{};
+    final dbProfiles = await database.profilesDao.all().get();
+
+    for (final profile in dbProfiles) {
+      if (profile.isoixCloudProfile) {
+        byId[profile.id] = profile;
+      }
+    }
+    for (final profile in ref.read(profilesProvider)) {
+      if (profile.isoixCloudProfile) {
+        byId[profile.id] = profile;
+      }
+    }
+
+    final profiles = byId.values.toList();
+    profiles.sort((a, b) {
+      final orderA = a.order;
+      final orderB = b.order;
+      if (orderA != null && orderB != null && orderA != orderB) {
+        return orderA.compareTo(orderB);
+      }
+      if (orderA != null && orderB == null) return -1;
+      if (orderA == null && orderB != null) return 1;
+      return a.id.compareTo(b.id);
+    });
+    return profiles;
   }
 
   Future<void> _dedupOixProfiles(List<Profile> existing) async {
