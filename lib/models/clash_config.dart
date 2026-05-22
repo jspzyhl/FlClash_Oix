@@ -13,7 +13,41 @@ const defaultGeoXUrl = GeoXUrl();
 
 const defaultMixedPort = 7890;
 const defaultKeepAliveInterval = 30;
+const defaultExternalControllerAddress = '127.0.0.1:9090';
 const defaultExternalControllerSecret = 'oixCloud';
+
+bool isExternalControllerAddress(String address) {
+  final value = address.trim();
+  if (value.isEmpty) {
+    return false;
+  }
+  final uri = Uri.tryParse('http://$value');
+  return uri != null &&
+      uri.host.isNotEmpty &&
+      uri.hasPort &&
+      uri.path.isEmpty &&
+      uri.query.isEmpty &&
+      uri.fragment.isEmpty &&
+      uri.port >= 1024 &&
+      uri.port <= 49151;
+}
+
+String resolveExternalControllerAddress(String address) {
+  final value = address.trim();
+  return isExternalControllerAddress(value)
+      ? value
+      : defaultExternalControllerAddress;
+}
+
+String resolveExternalController(
+  ExternalControllerStatus status,
+  String address,
+) {
+  return switch (status) {
+    ExternalControllerStatus.close => '',
+    ExternalControllerStatus.open => resolveExternalControllerAddress(address),
+  };
+}
 
 String resolveExternalControllerSecret(String secret) {
   return secret.trim().isEmpty ? defaultExternalControllerSecret : secret;
@@ -477,6 +511,9 @@ abstract class ClashConfig with _$ClashConfig {
     @Default(ExternalControllerStatus.close)
     @JsonKey(name: 'external-controller')
     ExternalControllerStatus externalController,
+    @Default(defaultExternalControllerAddress)
+    @JsonKey(name: 'external-controller-address')
+    String externalControllerAddress,
     @Default(defaultExternalControllerSecret) String secret,
     @Default({}) Map<String, String> hosts,
   }) = _ClashConfig;

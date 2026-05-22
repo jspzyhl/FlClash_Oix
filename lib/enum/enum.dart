@@ -160,13 +160,9 @@ enum DnsMode {
 
 enum ExternalControllerStatus {
   @JsonValue('')
-  close(''),
+  close,
   @JsonValue('127.0.0.1:9090')
-  open('127.0.0.1:9090');
-
-  final String value;
-
-  const ExternalControllerStatus(this.value);
+  open,
 }
 
 enum KeyboardModifier {

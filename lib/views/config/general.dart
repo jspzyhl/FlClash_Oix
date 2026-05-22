@@ -448,8 +448,57 @@ class ExternalControllerItem extends ConsumerWidget {
       children: [
         item,
         const Divider(height: 0),
+        const ExternalControllerAddressItem(),
+        const Divider(height: 0),
         const ExternalControllerSecretItem(),
       ],
+    );
+  }
+}
+
+class ExternalControllerAddressItem extends ConsumerWidget {
+  const ExternalControllerAddressItem({super.key});
+
+  @override
+  Widget build(BuildContext context, ref) {
+    final address = ref.watch(
+      patchClashConfigProvider.select(
+        (state) => state.externalControllerAddress,
+      ),
+    );
+    final title =
+        '${appLocalizations.externalController} '
+        '${appLocalizations.address}';
+    final effectiveAddress = resolveExternalControllerAddress(address);
+    return ListItem.input(
+      leading: const Icon(Icons.settings_ethernet_outlined),
+      title: Text(title),
+      subtitle: Text(effectiveAddress),
+      delegate: InputDelegate(
+        title: title,
+        value: effectiveAddress,
+        resetValue: defaultExternalControllerAddress,
+        validator: (String? value) {
+          if (value == null || value.isEmpty) {
+            return appLocalizations.emptyTip(title);
+          }
+          if (!isExternalControllerAddress(value)) {
+            return defaultExternalControllerAddress;
+          }
+          return null;
+        },
+        onChanged: (String? value) {
+          if (value == null) {
+            return;
+          }
+          ref
+              .read(patchClashConfigProvider.notifier)
+              .update(
+                (state) =>
+                    state.copyWith(externalControllerAddress: value.trim()),
+              );
+        },
+      ),
     );
   }
 }

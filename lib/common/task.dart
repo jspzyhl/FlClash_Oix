@@ -103,7 +103,10 @@ Future<Map<String, dynamic>> _makeRealProfileTask(
     );
   }
 
-  rawConfig['external-controller'] = realPatchConfig.externalController.value;
+  rawConfig['external-controller'] = resolveExternalController(
+    realPatchConfig.externalController,
+    realPatchConfig.externalControllerAddress,
+  );
   rawConfig['secret'] = resolveExternalControllerSecret(realPatchConfig.secret);
   rawConfig['external-ui'] = '';
   rawConfig['interface-name'] = '';

@@ -55,7 +55,6 @@ const clashConfigKey = 'clash_config';
 const configKey = 'config';
 const double dialogCommonWidth = 300;
 const repository = 'pickrui/FlClash';
-const defaultExternalController = '127.0.0.1:9090';
 const maxMobileWidth = 600;
 const maxLaptopWidth = 840;
 const defaultTestUrl = 'http://cp.cloudflare.com/generate_204';

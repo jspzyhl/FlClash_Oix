@@ -88,7 +88,10 @@ UpdateParams updateParams(Ref ref) {
         logLevel: state.logLevel,
         ipv6: state.ipv6,
         tcpConcurrent: state.tcpConcurrent,
-        externalController: state.externalController,
+        externalController: resolveExternalController(
+          state.externalController,
+          state.externalControllerAddress,
+        ),
         secret: resolveExternalControllerSecret(state.secret),
         unifiedDelay: state.unifiedDelay,
         mixedPort: state.mixedPort,

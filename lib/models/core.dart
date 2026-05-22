@@ -29,8 +29,7 @@ abstract class UpdateParams with _$UpdateParams {
     @JsonKey(name: 'log-level') required LogLevel logLevel,
     required bool ipv6,
     @JsonKey(name: 'tcp-concurrent') required bool tcpConcurrent,
-    @JsonKey(name: 'external-controller')
-    required ExternalControllerStatus externalController,
+    @JsonKey(name: 'external-controller') required String externalController,
     required String secret,
     @JsonKey(name: 'unified-delay') required bool unifiedDelay,
   }) = _UpdateParams;

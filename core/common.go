@@ -107,14 +107,12 @@ func updateListeners() {
 	general := currentConfig.General
 	listener.PatchInboundListeners(listeners, tunnel.Tunnel, true)
 
-	allowLan := general.AllowLan
-	listener.SetAllowLan(allowLan)
+	listener.SetAllowLan(general.AllowLan)
 	inbound.SetSkipAuthPrefixes(general.SkipAuthPrefixes)
 	inbound.SetAllowedIPs(general.LanAllowedIPs)
 	inbound.SetDisAllowedIPs(general.LanDisAllowedIPs)
 
-	bindAddress := general.BindAddress
-	listener.SetBindAddress(bindAddress)
+	listener.SetBindAddress(general.BindAddress)
 	listener.ReCreateHTTP(general.Port, tunnel.Tunnel)
 	listener.ReCreateSocks(general.SocksPort, tunnel.Tunnel)
 	listener.ReCreateRedir(general.RedirPort, tunnel.Tunnel)
@@ -208,6 +206,9 @@ func updateConfig(params *UpdateParams) {
 	general := currentConfig.General
 	if params.MixedPort != nil {
 		general.MixedPort = *params.MixedPort
+	}
+	if params.AllowLan != nil {
+		general.AllowLan = *params.AllowLan
 	}
 	if params.Sniffing != nil {
 		general.Sniffing = *params.Sniffing
