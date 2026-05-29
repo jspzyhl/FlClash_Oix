@@ -6,6 +6,7 @@ replace github.com/metacubex/mihomo => ./Clash.Meta
 
 require (
 	github.com/metacubex/mihomo v0.0.0-00010101000000-000000000000
+	golang.org/x/exp v0.0.0-20240904232852-e7e105dedf7e
 	golang.org/x/sync v0.11.0
 )
 
@@ -69,7 +70,7 @@ require (
 	github.com/metacubex/sing-quic v0.0.0-20260112044712-65d17608159e // indirect
 	github.com/metacubex/sing-shadowsocks v0.2.12 // indirect
 	github.com/metacubex/sing-shadowsocks2 v0.2.7 // indirect
-	github.com/metacubex/sing-shadowtls v0.0.0-20250503063515-5d9f966d17a2 // indirect
+	github.com/metacubex/sing-shadowtls v0.0.0-20260517015314-c11c36474edc // indirect
 	github.com/metacubex/sing-tun v0.4.11 // indirect
 	github.com/metacubex/sing-vmess v0.2.4 // indirect
 	github.com/metacubex/sing-wireguard v0.0.0-20250503063753-2dc62acc626f // indirect
@@ -100,7 +101,6 @@ require (
 	gitlab.com/yawning/bsaes.git v0.0.0-20190805113838-0a714cd429ec // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/crypto v0.33.0 // indirect
-	golang.org/x/exp v0.0.0-20240904232852-e7e105dedf7e // indirect
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
